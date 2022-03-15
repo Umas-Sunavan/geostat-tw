@@ -19,7 +19,7 @@ export class AnimateService {
 
 
   animate = (renderer: WebGLRenderer, scene: Scene, camera: Camera, orbitControl: OrbitControls, mouse: Vector2, frameMax: number = 1200) => {
-    // if (renderer.info.render.frame > frameMax) return    
+    if (renderer.info.render.frame > frameMax) return    
     this.raycaster.setFromCamera(mouse, camera);
     requestAnimationFrame(() => {
       this.animate(renderer, scene, camera, orbitControl, mouse)

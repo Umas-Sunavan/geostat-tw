@@ -8,6 +8,7 @@ import { HeaderComponent } from './core/layouts/header/header/header.component';
 import { FooterComponent } from './core/layouts/footer/footer/footer.component';
 import { MapComponent } from './modules/map/map.component';
 import { DashboardComponent } from './modules/dashboard/dashboard.component';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import { DashboardComponent } from './modules/dashboard/dashboard.component';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    HttpClientModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

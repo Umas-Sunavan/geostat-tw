@@ -1,2 +1,56 @@
 <p>map works!</p>
 <div #canvasContainer></div>
+<p type="x-shader/x-vertex" id="vertexshader" #vertexshader>
+
+    {{
+        '
+        uniform float amplitude;
+
+
+    varying vec3 vNormal;
+    varying vec2 vUv;
+    attribute vec4 a_position;
+    
+    void main() {
+
+        vNormal = normal;
+        vUv = ( 0.5 + amplitude ) * uv + vec2( amplitude );
+
+        vec3 newPosition = position + amplitude * normal;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+
+    }
+    '
+    }}
+
+</p>
+
+<p type="x-shader/x-fragment" id="fragmentshader" #fragmentshader>
+
+    {{
+        '
+        varying vec3 vNormal;
+        varying vec2 vUv;
+
+        uniform vec3 color;
+        uniform sampler2D colorTexture;
+
+        void main() {
+
+            vec3 light = vec3( 0.5, 0.2, 1.0 );
+            light = normalize( light );
+
+            float dProd = dot( vNormal, light ) * 0.5 + 0.5;
+
+            vec4 tcolor = texture2D( colorTexture, vUv );
+            vec4 gray = vec4( vec3( tcolor.r * 0.3 + tcolor.g * 0.59 + tcolor.b * 0.11 ), 1.0 );
+
+            float evelation = -10000.0 + ((tcolor.r * 256.0 * 256.0 * 256.0 + tcolor.g * 256.0 * 256.0 + tcolor.b * 256.0 ) * 0.1);
+            float normalElevation = evelation * 1.0/255.0;
+            normalElevation =( normalElevation + 5.0) / 6.0;
+            gl_FragColor = vec4(normalElevation, normalElevation, normalElevation, 1.0);
+        }
+    '
+    }}
+
+</p>

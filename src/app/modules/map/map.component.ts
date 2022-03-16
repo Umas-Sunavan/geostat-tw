@@ -1,6 +1,6 @@
 import { AfterContentInit, AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { TileId } from 'src/app/shared/models/TileId';
-import { BoxGeometry, BufferGeometry, Camera, Color, CurvePath, ExtrudeBufferGeometry, ExtrudeGeometry, Line, LineBasicMaterial, LineCurve, Material, Mesh, MeshBasicMaterial, MeshNormalMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PointLight, Raycaster, Renderer, Scene, Shape, ShapeBufferGeometry, ShapeGeometry, Vector, Vector2, Vector3, Vector3Tuple, WebGLRenderer, DoubleSide, Texture, Plane } from 'three';
+import { BoxGeometry, BufferGeometry, Camera, Color, CurvePath, ExtrudeBufferGeometry, ExtrudeGeometry, Line, LineBasicMaterial, LineCurve, Material, Mesh, MeshBasicMaterial, MeshNormalMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PointLight, Raycaster, Renderer, Scene, Shape, ShapeBufferGeometry, ShapeGeometry, Vector, Vector2, Vector3, Vector3Tuple, WebGLRenderer, DoubleSide, Texture, Plane, WebGLRenderTarget } from 'three';
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { AnimateService } from './three-services/animate.service';
@@ -39,6 +39,7 @@ export class MapComponent implements OnInit, AfterViewInit {
   ground!: Object3D
   mousePosition: Vector2 = new Vector2(0, 0)
   plane!: Object3D
+  tilePlanes: Mesh<PlaneGeometry, MeshBasicMaterial>[] = [];
 
   ngOnInit(): void {
     console.log('this.canvasContainer');
@@ -58,15 +59,13 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   getPlane = (size: number = 50) => {
-    const planGeo = new PlaneGeometry(size, size, size)
+    const planGeo = new PlaneGeometry(size, size, size, size)
     const planMaterial = new MeshBasicMaterial({ color: 0xffffff, side: DoubleSide })
     const plane = new Mesh(planGeo, planMaterial)
     return plane
   }
 
   initThree = () => {
-    console.log(this.canvasContainer);
-
     this.scene = this.sceneService.makeScene()
     this.renderer = this.rendererService.makeRenderer(this.canvasContainer)
     this.renderer.domElement.addEventListener('mousemove', this.onMouseMove)
@@ -81,7 +80,6 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.plane.position.setY(-0.1)
     this.scene.add(this.box)
     this.scene.add(this.plane)
-
 
     this.animateService.onFrameRender.subscribe(({ renderer, raycaster }) => {
       // console.log(this.camera.position);
@@ -98,7 +96,7 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   initTile = async () => {
-    this.initTextureTile()
+    await this.initTextureTile()
     await this.initHeightTile()
   }
 
@@ -108,48 +106,45 @@ export class MapComponent implements OnInit, AfterViewInit {
       y: 108,
       z: 8
     }
-    const arrayBuffer = await this.tileService.getHeightTile(initTileId);
+    const arrayBuffer = await this.tileService.getHeightBuffer(initTileId);
     const base64 = this.arrayBufferToBase64(arrayBuffer)
-    const texture = this.getTextureByTextureLoader(base64)
-    const heightPlane = this.getPlane(10)
+    const heightTexture = this.getTextureByTextureLoader(base64)
+
+    const vertextShaderScript = this.vertexshader.nativeElement.textContent || ""
+    const fragmentShaderScript = this.fragmentshader.nativeElement.textContent || ""
+    this.animateService.initShaderMaterial(heightTexture, vertextShaderScript, fragmentShaderScript)
+    
+    const renderTargetMaterial = new MeshPhongMaterial({
+      displacementMap: this.animateService.renderTarget.texture,
+      wireframe: true,
+      displacementScale:10
+    })
+    this.tilePlanes.forEach( tilePlane => {
+      tilePlane.material = renderTargetMaterial
+    })
+  }
+
+  getShaderPlane = ( texture: Texture) => {
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
-
     const uniforms = {
       'amplitude': { value: 1.0 },
       'color': { value: new THREE.Color( 0xffffff ) },
       'colorTexture': { value: texture }
     };
-    console.log(this.vertexshader, this.canvasContainer);
-    
     const vertextShaderScript = this.vertexshader.nativeElement.textContent
     const fragmentShaderScript = this.fragmentshader.nativeElement.textContent
-    if (vertextShaderScript && fragmentShaderScript) {
-      console.log(vertextShaderScript , fragmentShaderScript);
-
-      const shaderMaterial = new THREE.ShaderMaterial( {
-        uniforms: uniforms,
-        vertexShader: vertextShaderScript,
-        fragmentShader: fragmentShaderScript
-      } );
-
-      const planeGeo = new PlaneGeometry( 10, 10, 1, 1)
-      const shaderPlane = new THREE.Mesh( planeGeo, shaderMaterial );
-      // shaderPlane.material
-      
-      this.scene.add( shaderPlane );
-    }
-
-
-
-
-    heightPlane.rotateX(-Math.PI * 0.5)
-    this.applyTexture(texture, heightPlane)
-    this.scene.add(heightPlane)
-    // heightPlane.material.map
+    if (!vertextShaderScript || !fragmentShaderScript) throw new Error("")
+    const shaderMaterial = new THREE.ShaderMaterial( {
+      uniforms: uniforms,
+      vertexShader: vertextShaderScript,
+      fragmentShader: fragmentShaderScript
+    } );
+    const planeGeo = new PlaneGeometry( 10, 10, 1, 1)
+    return new THREE.Mesh( planeGeo, shaderMaterial );
   }
 
-  initTextureTile = () => {
+  initTextureTile = async () => {
     const initTileId: TileId = {
       x: 212,
       y: 108,
@@ -157,7 +152,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     }
 
     const tiles = this.getAllTilesFromLevel8(initTileId)
-    tiles.forEach( async tileId => {
+    for (const tileId of tiles) {
       const arrayBuffer = await this.tileService.getTextureTile(tileId);
       const base64 = this.arrayBufferToBase64(arrayBuffer)
       const texture = this.getTextureByTextureLoader(base64)
@@ -165,9 +160,9 @@ export class MapComponent implements OnInit, AfterViewInit {
       tilePlane.position.setX((tileId.x - initTileId.x) * 10)
       tilePlane.position.setZ((tileId.y - initTileId.y) * 10)
       tilePlane.rotateX(-Math.PI * 0.5)
-      this.applyTexture(texture, tilePlane)
       this.scene.add(tilePlane)
-    })
+      this.tilePlanes.push(tilePlane)
+    }
   }
 
   getAllTilesFromLevel8 = (initTileId: TileId) => {

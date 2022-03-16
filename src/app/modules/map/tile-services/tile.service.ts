@@ -19,7 +19,7 @@ export class TileService {
     return firstValueFrom(this.httpClient.get(`https://tile.openstreetmap.org/${tileId.z}/${tileId.x}/${tileId.y}.png`, options))
   }
 
-  getHeightTile = async (tileId: TileId): Promise<ArrayBuffer> => {
+  getHeightBuffer = async (tileId: TileId): Promise<ArrayBuffer> => {
     const options = {
       responseType: 'arraybuffer' as const,
     };

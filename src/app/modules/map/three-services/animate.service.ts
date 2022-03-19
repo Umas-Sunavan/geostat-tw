@@ -14,15 +14,8 @@ export class AnimateService {
   intersectedObjs: Object3D[] = []
   mouse?: Vector2
 
-  renderTarget: WebGLRenderTarget = new WebGLRenderTarget(512, 512);
-  renderTargetScene: Scene = new Scene;
-  renderTargetCamera: PerspectiveCamera = new PerspectiveCamera();
-  shaderPlane?: Mesh;
-
   constructor(
   ) {
-    this.renderTargetScene = this.initTargetScene()
-    this.renderTargetCamera = this.initTargetCamera()
   }
 
 
@@ -34,9 +27,6 @@ export class AnimateService {
       this.onFrameRender.next({ renderer: renderer, raycaster: this.raycaster })
     });
 
-    renderer.setRenderTarget(this.renderTarget);
-    renderer.render(this.renderTargetScene, this.renderTargetCamera);
-    renderer.setRenderTarget(null);
     renderer.render(scene, camera);
 
     // orbitControl.update()
@@ -66,60 +56,6 @@ export class AnimateService {
 
   updateMouse = (mouse: Vector2) => {
     this.mouse = mouse
-  }
-
-  initTargetCamera = () => {
-    const rtWidth = 512;
-    const rtHeight = 512;
-    const rtFov = 75;
-    const rtAspect = rtWidth / rtHeight;
-    const rtNear = 0.1;
-    const rtFar = 5;
-    const rtCamera = new PerspectiveCamera(rtFov, rtAspect, rtNear, rtFar);
-    rtCamera.position.z = 2;
-    return rtCamera
-  }
-
-  initTargetScene = () => {
-
-    const rtScene = new Scene();
-    rtScene.background = new Color('red');
-
-    {
-      const color = 0xFFFFFF;
-      const intensity = 1;
-      const light = new DirectionalLight(color, intensity);
-      light.position.set(-1, 2, 4);
-      rtScene.add(light);
-    }
-
-    const material = new MeshPhongMaterial({ color: 0xFFFF00 });
-    const geometry = new BoxGeometry(1, 1, 1);
-    const cube = new Mesh(geometry, material);
-    // rtScene.add(cube);
-
-    return rtScene
-  }
-
-  initShaderMaterial = (texture: Texture, vertext?: string, fragment?:string) => {
-
-    texture.wrapS = RepeatWrapping;
-    texture.wrapT = RepeatWrapping;
-    const uniforms = {
-      'amplitude': { value: 1.0 },
-      'color': { value: new Color( 0xffffff ) },
-      'colorTexture': { value: texture }
-    };
-    if (!vertext || !fragment) throw new Error("")
-    const shaderMaterial = new ShaderMaterial( {
-      uniforms: uniforms,
-      vertexShader: vertext,
-      fragmentShader: fragment
-    } );
-    const planeGeo = new PlaneGeometry( 1, 1, 1, 1)
-    this.shaderPlane = new Mesh( planeGeo, shaderMaterial );
-    this.shaderPlane.position.z = 0.35
-    this.renderTargetScene.add(this.shaderPlane)
   }
   
 }

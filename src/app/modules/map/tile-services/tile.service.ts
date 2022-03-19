@@ -12,7 +12,7 @@ export class TileService {
     private httpClient: HttpClient
   ) { }
 
-  getTextureTile = async (tileId: TileId): Promise<ArrayBuffer> => {
+  getTextureBuffer = async (tileId: TileId): Promise<ArrayBuffer> => {
     const options = {
       responseType: 'arraybuffer' as const,
     };
@@ -24,5 +24,6 @@ export class TileService {
       responseType: 'arraybuffer' as const,
     };
     return firstValueFrom(this.httpClient.get(`https://api.mapbox.com/v4/mapbox.terrain-rgb/${tileId.z}/${tileId.x}/${tileId.y}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`, options))
+    // return firstValueFrom(this.httpClient.get(`http://127.0.0.1:3000/`, options))
   }
 }

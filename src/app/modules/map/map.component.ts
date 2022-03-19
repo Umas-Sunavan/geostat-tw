@@ -1,6 +1,6 @@
 import { AfterContentInit, AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { TileId } from 'src/app/shared/models/TileId';
-import { BoxGeometry, BufferGeometry, Camera, Color, CurvePath, ExtrudeBufferGeometry, ExtrudeGeometry, Line, LineBasicMaterial, LineCurve, Material, Mesh, MeshBasicMaterial, MeshNormalMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PointLight, Raycaster, Renderer, Scene, Shape, ShapeBufferGeometry, ShapeGeometry, Vector, Vector2, Vector3, Vector3Tuple, WebGLRenderer, DoubleSide, Texture, Plane, WebGLRenderTarget } from 'three';
+import { BoxGeometry, BufferGeometry, Camera, Color, CurvePath, ExtrudeBufferGeometry, ExtrudeGeometry, Line, LineBasicMaterial, LineCurve, Material, Mesh, MeshBasicMaterial, MeshNormalMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PointLight, Raycaster, Renderer, Scene, Shape, ShapeBufferGeometry, ShapeGeometry, Vector, Vector2, Vector3, Vector3Tuple, WebGLRenderer, DoubleSide, Texture, Plane, WebGLRenderTarget, TextureLoader } from 'three';
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { AnimateService } from './three-services/animate.service';
@@ -106,22 +106,58 @@ export class MapComponent implements OnInit, AfterViewInit {
       y: 108,
       z: 8
     }
-    const arrayBuffer = await this.tileService.getHeightBuffer(initTileId);
-    const base64 = this.arrayBufferToBase64(arrayBuffer)
-    const heightTexture = this.getTextureByTextureLoader(base64)
-
-    const vertextShaderScript = this.vertexshader.nativeElement.textContent || ""
-    const fragmentShaderScript = this.fragmentshader.nativeElement.textContent || ""
-    this.animateService.initShaderMaterial(heightTexture, vertextShaderScript, fragmentShaderScript)
+    const src = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${8}/${212}/${108}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`
+    this.getDataUrl(src , async (dataURL) => {
+      const heightTexture = await this.getTextureByTextureLoader(dataURL)
+      this.tilePlanes.forEach( tilePlane => {
+        tilePlane.material.map = heightTexture
+      })
+    })
     
-    const renderTargetMaterial = new MeshPhongMaterial({
-      displacementMap: this.animateService.renderTarget.texture,
-      wireframe: true,
-      displacementScale:10
-    })
-    this.tilePlanes.forEach( tilePlane => {
-      tilePlane.material = renderTargetMaterial
-    })
+  }
+
+  getDataUrl = (src:string, onGetUrl: (dataURL:string) => void) => {
+    var img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      const canvas = this.createCanvasFromImage(img)
+      const context = canvas.getContext("2d")
+      if(!context) throw new Error("no context");
+      const imageData = context.getImageData(0, 0, 256, 256)
+      this.convertRawToHeight(imageData)
+      context.putImageData(imageData, 0, 0)
+      const dataURL = canvas.toDataURL('png');
+      onGetUrl(dataURL);
+    };
+    img.src = src;
+    if (img.complete || img.complete === undefined) {
+      img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+      img.src = src;
+    }
+  }
+
+  convertRawToHeight = (imageData:ImageData) => {
+
+    for (let i = 0; i < imageData.data.length; i+=4) {
+      const r = imageData.data[i]
+      const g = imageData.data[i+1]
+      const b = imageData.data[i+2]
+      const height = -10000 + ( (r * 256 * 256 + g * 256 + b) * 0.1)
+      const normalHeight = (height) / 400
+      const byteHeight = Math.floor(normalHeight * 256)
+      imageData.data[i] = byteHeight
+      imageData.data[i+1] = byteHeight
+      imageData.data[i+2] = byteHeight
+    }
+  }
+
+  createCanvasFromImage = (img: HTMLImageElement) => {
+    const canvas: HTMLCanvasElement = document.createElement('CANVAS') as HTMLCanvasElement
+    const context = canvas.getContext('2d')!;
+    canvas.height = 256;
+    canvas.width = 256;
+    context.drawImage(img, 0, 0);
+    return canvas
   }
 
   getShaderPlane = ( texture: Texture) => {
@@ -153,10 +189,11 @@ export class MapComponent implements OnInit, AfterViewInit {
 
     const tiles = this.getAllTilesFromLevel8(initTileId)
     for (const tileId of tiles) {
-      const arrayBuffer = await this.tileService.getTextureTile(tileId);
+      const arrayBuffer = await this.tileService.getTextureBuffer(tileId);
       const base64 = this.arrayBufferToBase64(arrayBuffer)
-      const texture = this.getTextureByTextureLoader(base64)
+      const texture = await this.getTextureByTextureLoader(base64)
       const tilePlane = this.getPlane(10)
+      tilePlane.material.map = texture
       tilePlane.position.setX((tileId.x - initTileId.x) * 10)
       tilePlane.position.setZ((tileId.y - initTileId.y) * 10)
       tilePlane.rotateX(-Math.PI * 0.5)
@@ -197,8 +234,18 @@ export class MapComponent implements OnInit, AfterViewInit {
     return texture
   }
 
-  getTextureByTextureLoader = (base64: string) => {
-    return new THREE.TextureLoader().load(base64);
+  getTextureByTextureLoader = async (base64: string): Promise<Texture> => {    
+    const textureLoader = new TextureLoader()
+    try {
+      
+    const texture = await textureLoader.loadAsync(base64);
+    return texture
+    } catch (error) {
+      console.error(error);
+      throw new Error(JSON.stringify(error));
+      
+    }
+    
   }
 
   arrayBufferToBase64 = (buffer: ArrayBuffer) => {

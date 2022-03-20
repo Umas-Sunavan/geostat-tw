@@ -121,35 +121,42 @@ export class MapComponent implements OnInit, AfterViewInit {
   applytHeightTile = async (tiles: Tile[]) => {
     for (let i = 0; i < tiles.length; i++) {
       const tile = tiles[i];
-      const onGetDataUrl = async (dataURL:string) => {
-        if (!tile.mesh) throw new Error("no mesh to apply height texture");
-        const heightTexture = await this.getTextureByTextureLoader(dataURL)
-        tile.mesh.material.displacementMap = heightTexture
-        tile.mesh.material.map = heightTexture
-        tile.mesh.material.needsUpdate = true;
-      }
       const src = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${tile.id.z}/${tile.id.x}/${tile.id.y}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`
       const leftSrc = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${tile.id.z}/${tile.id.x-1}/${tile.id.y}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`
       const topSrc = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${tile.id.z}/${tile.id.x}/${tile.id.y-1}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`
-      this.getDataUrl(src, leftSrc, topSrc , onGetDataUrl)
+      const {canvas, imageData, leftImageData, topImageData} = await this.loadImages(src, leftSrc, topSrc)
+      const dataUrl = await this.getHeightDataUrl(canvas, imageData, leftImageData, topImageData)
+      if (!tile.mesh) throw new Error("no mesh to apply height texture");
+      const heightTexture = await this.getTextureByTextureLoader(dataUrl)
+      tile.mesh.material.displacementMap = heightTexture
+      tile.mesh.material.map = heightTexture
+      tile.mesh.material.needsUpdate = true;
     }
     
   }
 
-  getDataUrl = (src:string, leftSrc:string, topSrc:string, onGetUrl: (dataURL:string) => void) => {
-    // to connect all edges, one should use neightbor tile's data
-      this.loadImage( src, (imageData, canvas) => {
-        this.loadImage( leftSrc, leftImageData => {
-          this.loadImage( topSrc, topImageData => {
-            this.convertRawToHeight(imageData, leftImageData, topImageData)
-            const context = canvas.getContext("2d")
-            if (!context) throw new Error("No Context!");
-            context.putImageData(imageData, 0, 0)
-            const dataURL = canvas.toDataURL('png');
-            onGetUrl(dataURL);
+  loadImages = (src:string, leftSrc:string, topSrc:string): Promise<{canvas: HTMLCanvasElement, imageData: ImageData, leftImageData: ImageData, topImageData: ImageData}> => {
+    return new Promise( (resolve, reject) => {
+      // to connect all edges, one should use neightbor tile's data
+        this.loadImage( src, (imageData, canvas) => {
+          this.loadImage( leftSrc, leftImageData => {
+            this.loadImage( topSrc, topImageData => {
+              resolve({canvas, imageData, leftImageData, topImageData})
+            })
           })
         })
-      })
+    })
+  }
+
+  getHeightDataUrl = (canvas: HTMLCanvasElement, imageData: ImageData, leftImageData: ImageData, topImageData: ImageData): Promise<string> => {
+    return new Promise( (resolve, reject) => {
+      this.convertRawToHeight(imageData, leftImageData, topImageData)
+      const context = canvas.getContext("2d")
+      if (!context) throw new Error("No Context!");
+      context.putImageData(imageData, 0, 0)
+      const dataURL = canvas.toDataURL('png');
+      resolve(dataURL)
+    })
   }
 
   loadImage = (src:string, onImageLoaded: (imageData:ImageData, canvas: HTMLCanvasElement) => void) => {
@@ -170,13 +177,13 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   convertRawToHeight = (imageData:ImageData, leftImageData: ImageData, topImapeData: ImageData) => {
-    // use bottom edge height
+    // connect top edge
     for (let x = 0; x < topImapeData.width; x++) {
       const bottomEdgePxPosition = this.getBottomEdgePxPosition(topImapeData, x)
       this.setupHeight(bottomEdgePxPosition, topImapeData, imageData, x, 0)
     }
     for (let y = 1; y < imageData.height; y++) {
-      // use right edge height
+      // connect left edge
       const rightEdgePxPosition = this.getRightEdgePxPosition(leftImageData, y)
       this.setupHeight(rightEdgePxPosition, leftImageData, imageData, 0, y)
 

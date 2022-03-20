@@ -9,6 +9,7 @@ import { LightService } from './three-services/light.service';
 import { RendererService } from './three-services/renderer.service';
 import { SceneService } from './three-services/scene.service';
 import { TileService } from './tile-services/tile.service';
+import { Tile } from 'src/app/shared/models/TileId copy';
 
 
 @Component({
@@ -59,8 +60,8 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   getPlane = (size: number = 50) => {
-    const planGeo = new PlaneGeometry(size, size, size, size)
-    const planMaterial = new MeshBasicMaterial({ color: 0xffffff, side: DoubleSide })
+    const planGeo = new PlaneGeometry(size, size, 100, 100)
+    const planMaterial = new MeshStandardMaterial({ color: 0xffffff, side: DoubleSide })
     const plane = new Mesh(planGeo, planMaterial)
     return plane
   }
@@ -96,27 +97,62 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   initTile = async () => {
-    await this.initTextureTile()
-    await this.initHeightTile()
-  }
-
-  initHeightTile = async () => {
     const initTileId: TileId = {
       x: 212,
       y: 108,
       z: 8
     }
-    const src = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${8}/${212}/${108}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`
-    this.getDataUrl(src , async (dataURL) => {
-      const heightTexture = await this.getTextureByTextureLoader(dataURL)
-      this.tilePlanes.forEach( tilePlane => {
-        tilePlane.material.map = heightTexture
-      })
+    const tileIds = this.getTileIdsOfLevel8(initTileId)
+    const tiles = tileIds.map( (id):Tile => {return {id: id,mesh: undefined}})
+    this.initTileMesh(tiles, initTileId)
+    await this.applyTexture(tiles)
+    await this.applytHeightTile(tiles)
+    this.addTilesToScene(tiles)
+  }
+
+  addTilesToScene = (tiles: Tile[]) => {
+    tiles.forEach( tile => {
+      if (!tile.mesh) throw new Error("no mesh to add to scene");
+      const tile3d = tile.mesh as Object3D
+      this.scene.add(tile3d)
     })
+  }
+
+  applytHeightTile = async (tiles: Tile[]) => {
+    for (let i = 0; i < tiles.length; i++) {
+      const tile = tiles[i];
+      const onGetDataUrl = async (dataURL:string) => {
+        if (!tile.mesh) throw new Error("no mesh to apply height texture");
+        const heightTexture = await this.getTextureByTextureLoader(dataURL)
+        tile.mesh.material.displacementMap = heightTexture
+        tile.mesh.material.map = heightTexture
+        tile.mesh.material.needsUpdate = true;
+      }
+      const src = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${tile.id.z}/${tile.id.x}/${tile.id.y}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`
+      const leftSrc = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${tile.id.z}/${tile.id.x-1}/${tile.id.y}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`
+      const topSrc = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${tile.id.z}/${tile.id.x}/${tile.id.y-1}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`
+      this.getDataUrl(src, leftSrc, topSrc , onGetDataUrl)
+    }
     
   }
 
-  getDataUrl = (src:string, onGetUrl: (dataURL:string) => void) => {
+  getDataUrl = (src:string, leftSrc:string, topSrc:string, onGetUrl: (dataURL:string) => void) => {
+    // to connect all edges, one should use neightbor tile's data
+      this.loadImage( src, (imageData, canvas) => {
+        this.loadImage( leftSrc, leftImageData => {
+          this.loadImage( topSrc, topImageData => {
+            this.convertRawToHeight(imageData, leftImageData, topImageData)
+            const context = canvas.getContext("2d")
+            if (!context) throw new Error("No Context!");
+            context.putImageData(imageData, 0, 0)
+            const dataURL = canvas.toDataURL('png');
+            onGetUrl(dataURL);
+          })
+        })
+      })
+  }
+
+  loadImage = (src:string, onImageLoaded: (imageData:ImageData, canvas: HTMLCanvasElement) => void) => {
     var img = new Image();
     img.crossOrigin = 'Anonymous';
     img.onload = () => {
@@ -124,10 +160,7 @@ export class MapComponent implements OnInit, AfterViewInit {
       const context = canvas.getContext("2d")
       if(!context) throw new Error("no context");
       const imageData = context.getImageData(0, 0, 256, 256)
-      this.convertRawToHeight(imageData)
-      context.putImageData(imageData, 0, 0)
-      const dataURL = canvas.toDataURL('png');
-      onGetUrl(dataURL);
+      onImageLoaded(imageData, canvas)
     };
     img.src = src;
     if (img.complete || img.complete === undefined) {
@@ -136,19 +169,55 @@ export class MapComponent implements OnInit, AfterViewInit {
     }
   }
 
-  convertRawToHeight = (imageData:ImageData) => {
-
-    for (let i = 0; i < imageData.data.length; i+=4) {
-      const r = imageData.data[i]
-      const g = imageData.data[i+1]
-      const b = imageData.data[i+2]
-      const height = -10000 + ( (r * 256 * 256 + g * 256 + b) * 0.1)
-      const normalHeight = (height) / 400
-      const byteHeight = Math.floor(normalHeight * 256)
-      imageData.data[i] = byteHeight
-      imageData.data[i+1] = byteHeight
-      imageData.data[i+2] = byteHeight
+  convertRawToHeight = (imageData:ImageData, leftImageData: ImageData, topImapeData: ImageData) => {
+    // use bottom edge height
+    for (let x = 0; x < topImapeData.width; x++) {
+      const bottomEdgePxPosition = this.getBottomEdgePxPosition(topImapeData, x)
+      this.setupHeight(bottomEdgePxPosition, topImapeData, imageData, x, 0)
     }
+    for (let y = 1; y < imageData.height; y++) {
+      // use right edge height
+      const rightEdgePxPosition = this.getRightEdgePxPosition(leftImageData, y)
+      this.setupHeight(rightEdgePxPosition, leftImageData, imageData, 0, y)
+
+      for (let x = 1; x < imageData.width; x++) {
+          const pxPosition = (y * imageData.width + x)
+          this.setupHeight(pxPosition, imageData, imageData, x, y)
+      }      
+    }
+  }
+
+  getRightEdgePxPosition = (tile: ImageData, y: number) => (tile.width) * (y+1) - 1
+
+  getBottomEdgePxPosition = (tile: ImageData, x: number) => (tile.height - 1) * tile.width + x
+
+  setupHeight = (pxPosition:number,sourceTile: ImageData, outputTile: ImageData, x:number, y:number) => {
+    const height = this.getHeight(pxPosition, sourceTile)
+    this.applytHeight(outputTile, x, y, height)
+  }
+
+  applytHeight = (imageData: ImageData, x: number, y: number, height: number) => {
+    const colorPosition = (y * imageData.width + x) * 4
+    imageData.data[colorPosition] = height
+    imageData.data[colorPosition+1] = height
+    imageData.data[colorPosition+2] = height
+  }
+
+  getHeight = (pxPosition: number, imageData: ImageData) => {
+    const colorPosition = pxPosition * 4
+    const r = imageData.data[colorPosition]
+    const g = imageData.data[colorPosition+1]
+    const b = imageData.data[colorPosition+2]
+    const height = this.getHeightFromColors(r,g,b)
+    return height
+  }
+
+  getHeightFromColors = (r: number, g: number, b: number) => {
+    const height = -10000 + ( (r * 256 * 256 + g * 256 + b) * 0.1)
+    // 1946.6 ~ -10.8
+    const normalHeight = (height + 10.8) / 3800
+    const byteHeight = Math.floor(normalHeight * 256)
+    return byteHeight
   }
 
   createCanvasFromImage = (img: HTMLImageElement) => {
@@ -176,33 +245,31 @@ export class MapComponent implements OnInit, AfterViewInit {
       vertexShader: vertextShaderScript,
       fragmentShader: fragmentShaderScript
     } );
-    const planeGeo = new PlaneGeometry( 10, 10, 1, 1)
+    const planeGeo = new PlaneGeometry( 10, 10, 20, 20)
     return new THREE.Mesh( planeGeo, shaderMaterial );
   }
 
-  initTextureTile = async () => {
-    const initTileId: TileId = {
-      x: 212,
-      y: 108,
-      z: 8
-    }
-
-    const tiles = this.getAllTilesFromLevel8(initTileId)
-    for (const tileId of tiles) {
-      const arrayBuffer = await this.tileService.getTextureBuffer(tileId);
+  applyTexture = async (tiles: Tile[]) => {
+    for (const tile of tiles) {
+      const arrayBuffer = await this.tileService.getTextureBuffer(tile.id);      
       const base64 = this.arrayBufferToBase64(arrayBuffer)
       const texture = await this.getTextureByTextureLoader(base64)
-      const tilePlane = this.getPlane(10)
-      tilePlane.material.map = texture
-      tilePlane.position.setX((tileId.x - initTileId.x) * 10)
-      tilePlane.position.setZ((tileId.y - initTileId.y) * 10)
-      tilePlane.rotateX(-Math.PI * 0.5)
-      this.scene.add(tilePlane)
-      this.tilePlanes.push(tilePlane)
+      if (!tile.mesh) throw new Error("no mesh to apply texture!");
+      tile.mesh.material.map = texture       
     }
   }
 
-  getAllTilesFromLevel8 = (initTileId: TileId) => {
+  initTileMesh = (tiles: Tile[], initTileId: TileId) => {
+    for (const tile of tiles) {
+      const mesh = this.getPlane(10)
+      mesh.position.setX((tile.id.x - initTileId.x) * 10)
+      mesh.position.setZ((tile.id.y - initTileId.y) * 10)
+      mesh.rotateX(-Math.PI * 0.5)
+      tile.mesh = mesh
+    }
+  }
+
+  getTileIdsOfLevel8 = (initTileId: TileId) => {
     const tiles = []
     for (let x = 0; x < 4; x++) {
       for (let y = 0; y < 5; y++) {
@@ -215,12 +282,6 @@ export class MapComponent implements OnInit, AfterViewInit {
       }
     }
     return tiles
-  }
-
-  applyTexture = (texture: Texture, plane: Mesh<PlaneGeometry, MeshBasicMaterial>) => {
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    plane.material.map = texture
   }
 
   getTextureByImageClass = (base64: string) => {
@@ -236,16 +297,7 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   getTextureByTextureLoader = async (base64: string): Promise<Texture> => {    
     const textureLoader = new TextureLoader()
-    try {
-      
-    const texture = await textureLoader.loadAsync(base64);
-    return texture
-    } catch (error) {
-      console.error(error);
-      throw new Error(JSON.stringify(error));
-      
-    }
-    
+    return await textureLoader.loadAsync(base64);
   }
 
   arrayBufferToBase64 = (buffer: ArrayBuffer) => {

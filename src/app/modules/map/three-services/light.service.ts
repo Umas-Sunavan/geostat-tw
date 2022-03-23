@@ -10,7 +10,7 @@ export class LightService {
 
   makeLight = (scene: Scene) => {
     const light = new PointLight(0xffffff, 2.0)
-    light.position.set(0, 10, 10)
+    light.position.set(0, 20, 10)
     const pointLightHelper = new PointLightHelper(light, 5, 0x000000)
     scene.add(light)
     scene.add(pointLightHelper)

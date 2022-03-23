@@ -9,7 +9,7 @@ export class CameraService {
   constructor() { }
 
   makeCamera = (w:number = 600, h: number = 450) => {
-    const camera = new PerspectiveCamera(45, w / h, 1, 1000)
+    const camera = new PerspectiveCamera(45, w / h, 0.01, 1000)
     camera.position.set(80, 80, 80)
     return camera
     

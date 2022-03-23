@@ -1,49 +1,14 @@
 <p>map works!</p>
-<div #canvasContainer></div>
-<p type="x-shader/x-vertex" id="vertexshader" #vertexshader>
-
-    {{
-        '
-        uniform float amplitude;
-        varying vec3 vNormal;
-        varying vec2 vUv;
-        attribute vec4 a_position;
-        
-        void main() {
-
-            vNormal = normal;
-            vUv = ( 0.5 + amplitude ) * uv + vec2( amplitude );
-
-            vec3 newPosition = position + amplitude * normal;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
-
-        }
-    '
-    }}
-
-</p>
-
-<p type="x-shader/x-fragment" id="fragmentshader" #fragmentshader>
-
-    {{
-        '
-        varying vec3 vNormal;
-        varying vec2 vUv;
-
-        uniform vec3 color;
-        uniform sampler2D colorTexture;
-
-        void main() {
-
-            vec3 light = vec3( 0.5, 0.2, 1.0 );
-            vec4 tcolorNormal = texture2D( colorTexture, vUv );
-            vec4 tcolorByte = tcolorNormal * 255.0;
-            float evelation = -10000.0 + ((tcolorByte.r * 256.0 * 256.0 + tcolorByte.g * 256.0 + tcolorByte.b ) * 0.1);
-            float elevationNormal = evelation * 1.0/255.0;
-            elevationNormal =( elevationNormal + 5.0) / 6.0;
-            gl_FragColor = vec4(elevationNormal, elevationNormal, elevationNormal, 1.0);
-        }
-    '
-    }}
-
-</p>
+<div #canvasContainer class="canvas-container"></div>
+<button (click)="removeRoughTileOnHtml(currentRoughTiles)">remove</button>
+<button (click)="addDetailTileOnHtml(currentRoughTiles)">addDetail</button>
+<p>current rought tile distance is {{nearestTileDistance}}</p>
+<p>current rought tile id is {{currentRoughTiles | json}}</p>
+<!-- <h3>removed tiles</h3>
+<ul>
+    <li *ngFor="let tile of removedTiles">{{tile.tileId | json}}, {{tile.time}}</li>
+</ul> -->
+<h3>added tiles</h3>
+<ul>
+    <li *ngFor="let tile of addedTiles">{{tile.tileId | json}},  {{tile.time}}</li>
+</ul>

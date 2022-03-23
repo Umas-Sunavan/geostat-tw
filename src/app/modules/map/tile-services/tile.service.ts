@@ -27,7 +27,11 @@ export class TileService {
     return firstValueFrom(this.httpClient.get(`https://tile.openstreetmap.org/${tileId.z}/${tileId.x}/${tileId.y}.png`, options))
   }
 
-  getHeightTileSrc = (z: number, x: number, y: number) => `https://api.mapbox.com/v4/mapbox.terrain-rgb/${z}/${x}/${y}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`
+  getHeightTileSrc = (z: number, x: number, y: number) => {
+    console.log({z,x,y});
+    return `http://localhost:3000/${z}/${x}/${y}.pngraw`
+    // return `https://api.mapbox.com/v4/mapbox.terrain-rgb/${z}/${x}/${y}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`
+  }
 
   getTileIdsOfLevel8 = (initTileId: TileId): TileId[] => {
     const tiles = []
@@ -46,18 +50,26 @@ export class TileService {
 
   initTileMesh = (tiles: Tile[], initTileId: TileId) => {
     for (const tile of tiles) {
-      const mesh = this.getPlane(10)
-      mesh.position.setX((tile.id.x - initTileId.x) * 10)
-      mesh.position.setZ((tile.id.y - initTileId.y) * 10)
+      const tileResolution = tile.id.z
+      const rate = Math.pow(2,tileResolution-8) // Magnificate Rate
+      const tileWidth = 12 / rate
+      const meshName = `planeZ${tile.id.z}X${tile.id.x}Y${tile.id.y}`
+      const mesh = this.getPlane(tileWidth, meshName)
+      const initTileX = initTileId.x * rate
+      const initTileY = initTileId.y * rate
+      const offset = 0.5      
+      mesh.position.setX(((tile.id.x - initTileX + offset)) * tileWidth)
+      mesh.position.setZ(((tile.id.y - initTileY + offset)) * tileWidth)
       mesh.rotateX(-Math.PI * 0.5)
       tile.mesh = mesh
     }
   } 
 
-  getPlane = (size: number = 50) => {
+  getPlane = (size: number = 50, planeName: string = 'planeDefalut') => {
     const planGeo = new PlaneGeometry(size, size, 100, 100)
     const planMaterial = new MeshStandardMaterial({ color: 0xffffff, side: DoubleSide })
     const plane = new Mesh(planGeo, planMaterial)
+    plane.name = planeName
     return plane
   }
 }

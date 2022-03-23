@@ -10,6 +10,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 export class AnimateService {
 
   onFrameRender!: BehaviorSubject<{ renderer: WebGLRenderer, raycaster: Raycaster }>
+  onIntersect: BehaviorSubject<Intersection<Object3D<Event>>[]> = new BehaviorSubject([] as Intersection<Object3D<Event>>[])
   raycaster = new Raycaster();
   intersectedObjs: Object3D[] = []
   mouse?: Vector2
@@ -19,7 +20,7 @@ export class AnimateService {
   }
 
 
-  animate = (renderer: WebGLRenderer, scene: Scene, camera: Camera, orbitControl: OrbitControls, mouse: Vector2, frameMax: number = 1200) => {
+  animate = (renderer: WebGLRenderer, scene: Scene, camera: Camera, orbitControl: OrbitControls, mouse: Vector2, frameMax: number = 3600) => {
     if (renderer.info.render.frame > frameMax) return
     this.raycaster.setFromCamera(mouse, camera);
     requestAnimationFrame(() => {
@@ -34,15 +35,19 @@ export class AnimateService {
   }
 
   onIntersections = () => {
-    this.intersectedObjs.forEach((obj: Object3D) => {
-      const intersects = this.raycaster.intersectObject(obj)
-      intersects.forEach(intersect => {
-        this.onIntersection(intersect, obj)
-      })
-    })
+    const intersects:Intersection<Object3D<Event>>[] = this.raycaster.intersectObjects(this.intersectedObjs)
+    this.onIntersect.next(intersects)    
+    // this.intersectedObjs.forEach((obj: Object3D) => {
+      // const intersects = this.raycaster.intersectObject(obj)
+    //   intersects.forEach(intersect => {
+    //     this.onIntersection(intersect, obj)
+    //   })
+    // })
   }
 
   onIntersection = (intersect: Intersection, obj: Object3D) => {
+    console.log(intersect.point.toArray());
+    
   }
 
   initAnimate = (renderer: WebGLRenderer) => {
@@ -50,7 +55,6 @@ export class AnimateService {
   }
 
   passIntersetObject = (objects: Object3D[]) => {
-    console.log(objects);
     this.intersectedObjs = objects
   }
 

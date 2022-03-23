@@ -18,7 +18,8 @@ export class TextureService {
       const base64 = this.arrayBufferToBase64(arrayBuffer)
       const texture = await this.getTextureByTextureLoader(base64)
       if (!tile.mesh) throw new Error("no mesh to apply texture!");
-      tile.mesh.material.map = texture       
+      tile.mesh.material.map = texture
+      tile.mesh.material.needsUpdate = true;
     }
   }
 
@@ -33,8 +34,10 @@ export class TextureService {
   }
 
   applyDisplacementTexture = async (tiles: Tile[]) => {
-    for (let i = 0; i < tiles.length; i++) {
-      const tile = tiles[i];
+    tiles.forEach( async (tile: Tile, i) => {
+
+    // for (let i = 0; i < tiles.length; i++) {
+      // const tile = tiles[i];
       const src = this.tileService.getHeightTileSrc(tile.id.z, tile.id.x, tile.id.y)
       const leftSrc = this.tileService.getHeightTileSrc(tile.id.z, tile.id.x - 1, tile.id.y)
       const topSrc = this.tileService.getHeightTileSrc(tile.id.z, tile.id.x, tile.id.y - 1)
@@ -45,7 +48,8 @@ export class TextureService {
       tile.mesh.material.displacementMap = heightTexture
       // tile.mesh.material.map = heightTexture
       tile.mesh.material.needsUpdate = true;
-    }
+    // }
+    })
   }
 
   getTextureByTextureLoader = async (base64: string): Promise<Texture> => {    

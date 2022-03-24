@@ -2,7 +2,7 @@ import { HttpClient, HttpParams, HttpParamsOptions } from '@angular/common/http'
 import { Injectable } from '@angular/core';
 import { finalize, map, firstValueFrom } from 'rxjs';
 import { TileId } from 'src/app/shared/models/TileId';
-import { Tile } from 'src/app/shared/models/TileId copy';
+import { Tile } from 'src/app/shared/models/Tile';
 import { DoubleSide, Mesh, MeshStandardMaterial, PlaneGeometry, Texture, TextureLoader } from 'three';
 
 @Injectable({

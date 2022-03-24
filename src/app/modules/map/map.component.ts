@@ -9,9 +9,10 @@ import { LightService } from './three-services/light.service';
 import { RendererService } from './three-services/renderer.service';
 import { SceneService } from './three-services/scene.service';
 import { TileService } from './tile-services/tile.service';
-import { Tile } from 'src/app/shared/models/TileId copy';
+import { Tile } from 'src/app/shared/models/Tile';
 import { TextureService } from './tile-services/texture.service';
-import { last, lastValueFrom } from 'rxjs';
+import { filter, last, lastValueFrom } from 'rxjs';
+import { TileDistanceMap } from 'src/app/shared/models/TileDistanceMap';
 
 
 @Component({
@@ -124,8 +125,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.animateService.passIntersetObject(objToDetectIntersect)
 
     // await this.textureService.applyTexture(newTiles)
-    this.textureService.applyTexture(newTiles)
-    console.log(this.tiles.map(tile => tile.id.z).join());
+    this.textureService.applyMockTexture(newTiles)
     this.addTilesToScene(newTiles)
     this.addedTiles.push({time: new Date().toISOString(), tileId: newTiles.map( tile => tile.id)})
   }

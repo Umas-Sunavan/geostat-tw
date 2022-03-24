@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Tile } from 'src/app/shared/models/TileId copy';
-import { Texture, TextureLoader } from 'three';
+import { Tile } from 'src/app/shared/models/Tile';
+import { Color, Texture, TextureLoader } from 'three';
 import { TileService } from './tile.service';
 
 @Injectable({
@@ -19,6 +19,22 @@ export class TextureService {
       const texture = await this.getTextureByTextureLoader(base64)
       if (!tile.mesh) throw new Error("no mesh to apply texture!");
       tile.mesh.material.map = texture
+      tile.mesh.material.needsUpdate = true;
+    }
+  }
+
+  applyMockTexture = async (tiles: Tile[]) => {
+    for (const tile of tiles) {
+      const getRandomByte = () => Math.floor(Math.random()*255)
+      const r = getRandomByte().toString(16)
+      const g = getRandomByte().toString(16)
+      const b = getRandomByte().toString(16)
+      const color = new Color(+('0x'+r+g+b))
+      // const arrayBuffer = await this.tileService.getTextureBuffer(tile.id);      
+      // const base64 = this.arrayBufferToBase64(arrayBuffer)
+      // const texture = await this.getTextureByTextureLoader(base64)
+      if (!tile.mesh) throw new Error("no mesh to apply texture!");
+      tile.mesh.material.color = color
       tile.mesh.material.needsUpdate = true;
     }
   }

@@ -10,8 +10,10 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 export class AnimateService {
 
   onFrameRender!: BehaviorSubject<{ renderer: WebGLRenderer, raycaster: Raycaster }>
-  onIntersect: BehaviorSubject<Intersection<Object3D<Event>>[]> = new BehaviorSubject([] as Intersection<Object3D<Event>>[])
-  raycaster = new Raycaster();
+  onMouseIntersect: BehaviorSubject<Intersection<Object3D<Event>>[]> = new BehaviorSubject([] as Intersection<Object3D<Event>>[])
+  onCanvasIntersect: BehaviorSubject<Intersection<Object3D<Event>>[]> = new BehaviorSubject([] as Intersection<Object3D<Event>>[])
+  mouseRaycaster = new Raycaster();
+  cavasCenterRaycaster = new Raycaster()
   intersectedObjs: Object3D[] = []
   mouse?: Vector2
 
@@ -22,10 +24,12 @@ export class AnimateService {
 
   animate = (renderer: WebGLRenderer, scene: Scene, camera: Camera, orbitControl: OrbitControls, mouse: Vector2, frameMax: number = 3600) => {
     if (renderer.info.render.frame > frameMax) return
-    this.raycaster.setFromCamera(mouse, camera);
+    this.mouseRaycaster.setFromCamera(mouse, camera);
+    
+    this.cavasCenterRaycaster.setFromCamera(new Vector2(0,0), camera);
     requestAnimationFrame(() => {
       this.animate(renderer, scene, camera, orbitControl, mouse)
-      this.onFrameRender.next({ renderer: renderer, raycaster: this.raycaster })
+      this.onFrameRender.next({ renderer: renderer, raycaster: this.mouseRaycaster })
     });
 
     renderer.render(scene, camera);
@@ -35,14 +39,10 @@ export class AnimateService {
   }
 
   onIntersections = () => {
-    const intersects:Intersection<Object3D<Event>>[] = this.raycaster.intersectObjects(this.intersectedObjs)
-    this.onIntersect.next(intersects)    
-    // this.intersectedObjs.forEach((obj: Object3D) => {
-      // const intersects = this.raycaster.intersectObject(obj)
-    //   intersects.forEach(intersect => {
-    //     this.onIntersection(intersect, obj)
-    //   })
-    // })
+    const intersects:Intersection<Object3D<Event>>[] = this.mouseRaycaster.intersectObjects(this.intersectedObjs)
+    this.onMouseIntersect.next(intersects)    
+    const canvasCenterIntersects:Intersection<Object3D<Event>>[] = this.cavasCenterRaycaster.intersectObjects(this.intersectedObjs)
+    this.onCanvasIntersect.next(canvasCenterIntersects)    
   }
 
   onIntersection = (intersect: Intersection, obj: Object3D) => {
@@ -51,7 +51,7 @@ export class AnimateService {
   }
 
   initAnimate = (renderer: WebGLRenderer) => {
-    this.onFrameRender = new BehaviorSubject({ renderer: renderer, raycaster: this.raycaster })
+    this.onFrameRender = new BehaviorSubject({ renderer: renderer, raycaster: this.mouseRaycaster })
   }
 
   passIntersetObject = (objects: Object3D[]) => {

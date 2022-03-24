@@ -43,6 +43,7 @@ export class MapComponent implements OnInit, AfterViewInit {
   mousePosition: Vector2 = new Vector2(0, 0)
   plane!: Object3D
   tiles: Tile[] = []
+  lines:Line<BufferGeometry, LineBasicMaterial>[] = []
 
   // attribute to display on HTML
   nearestTileId: string = '{x: 0, y: 0, z:0}'
@@ -50,6 +51,8 @@ export class MapComponent implements OnInit, AfterViewInit {
   currentRoughTiles: Tile[] = []
   removedTiles:  { time: string, tileId:TileId[]}[] = []
   addedTiles: { time: string, tileId:TileId[]}[] = []
+  center:number[] = []
+  distances:number[] = []
 
   ngOnInit(): void {
   }
@@ -75,7 +78,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.camera = this.cameraService.makeCamera(canvasDimention)
     this.scene.add(this.camera)
     this.orbitControl = new OrbitControls(this.camera, this.renderer.domElement);
-    this.animateService.animate(this.renderer, this.scene, this.camera, this.orbitControl, this.mousePosition, 3600)
+    this.animateService.animate(this.renderer, this.scene, this.camera, this.orbitControl, this.mousePosition, 600)
     this.animateService.initAnimate(this.renderer)
     this.box = this.getBox()
     this.plane = this.tileService.getPlane()
@@ -137,8 +140,8 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   onMouseScroll = async () => {
-    const roughTile:Tile[] = await this.tileNominatedToTrunDetail()
-    this.currentRoughTiles = roughTile
+    const roughTiles:Tile[] = await this.selectTileToTrunDetail()
+    this.currentRoughTiles = roughTiles
     try {
       await this.removeRoughTileOnHtml(this.currentRoughTiles)
       await this.addDetailTileOnHtml(this.currentRoughTiles)
@@ -157,52 +160,97 @@ export class MapComponent implements OnInit, AfterViewInit {
     return enoughTiles && (minResolustion !== initialResolution)
   }
 
-  tileNominatedToTrunDetail = async () => {
-    const getTileDistances = (tilesToGetDistance: Tile[]) => {
-      const distances: {tile: Tile, distance: number}[] = []
-      const cameraPosition = this.camera.position.clone()
-      tilesToGetDistance.forEach( tile => {
-        if (!tile.mesh) return
-        const distance = cameraPosition.distanceTo(tile.mesh.position)
-        distances.push({ tile, distance})
-      })
-      return distances
+  selectTileToTrunDetail = async () => {
+    const _getThreshold = (tile: Tile) => {
+      switch (tile.id.z) {
+        case 9:
+          return 8
+        case 8:
+          return 20
+        default:
+          return 20/ ((tile.id.z-8) * (tile.id.z-8)) - 1/(tile.id.z-8) - 0.14
+      }
     }
-    // const getThreshold = (tile: Tile) => (600 / tile.id.z) * 1/ ((tile.id.z-7) * (tile.id.z-7))
-    const getThreshold = (tile: Tile) => tile.id.z === 9 ? 8 : tile.id.z === 8 ? 20: 20/ ((tile.id.z-8) * (tile.id.z-8)) - 1/(tile.id.z-8) - 0.14
-    // 應該要加入「加入更精緻tile」按鈕，紀錄每一個最適合的縮放大小，再下參數,
-    const getTileBeLookedAt = () => {
-      const intersect = this.animateService.onIntersect.value[0]
+    const _getTileBeLookedAt = () => {
+      const intersect = this.animateService.onCanvasIntersect.value[0]
       if (intersect) {
-        const mesh = intersect.object as Object3D as Mesh<PlaneGeometry, MeshStandardMaterial>
-        const name = intersect.object.name
+        const intersectMesh = intersect.object as Object3D as Mesh<PlaneGeometry, MeshStandardMaterial>
+        const intersectName = intersect.object.name
         const regexToken = 'planeZ([0-9]+)X([0-9]+)Y([0-9]+)';
-        const idArray = name.match(regexToken)        
+        const idArray = intersectName.match(regexToken)        
         if(idArray && idArray.length === 4 && +idArray[1]) {
           const id = {z: +idArray[1], x: +idArray[2], y: +idArray[3]}
-          const tile: Tile = { mesh, id}
+          const tile: Tile = { mesh: intersectMesh, id}
           return tile
         }
       }
       return
     }
-    const tileClosesToCameraTarget = getTileBeLookedAt()
-    if (tileClosesToCameraTarget) {
-      const tileDistances: {tile: Tile, distance: number}[] = getTileDistances([tileClosesToCameraTarget]).sort((a,b) => a.distance-b.distance)
-      const closeToCamera: Tile[] = tileDistances.filter( ({tile, distance}) => {
-        console.log(distance, getThreshold(tile));
+    const _getTileCameraDistances = (tiles: Tile[]) => {
+      const distances: {tile: Tile, distance: number}[] = []
+      const cameraPosition = this.camera.position.clone()
+      const _getDistance = (tile: Tile) => {
+        if (tile.mesh) {
+          const distance = cameraPosition.distanceTo(tile.mesh.position)
+          distances.push({ tile, distance})
+        } else {
+          console.error('no mesh to detail');
+        }
+      }
+      tiles.forEach( tile => _getDistance(tile))
+      return distances
+    }
+    const _getCloseEnoughToCamera = (tileDistances: {tile: Tile, distance: number}[]) => {
+      return tileDistances.filter( ({tile, distance}) => {
         if(tile) this.nearestTileId = JSON.stringify(tile.id)
         this.nearestTileDistance = distance
-        if (distance < getThreshold(tile)) {
-          console.log(getThreshold(tile));
-          
-        }
-        return distance < getThreshold(tile)
+        return distance < _getThreshold(tile)
       }).map( ({tile, distance}) => tile)
-      // const minResolution = this.tiles.map(tile => tile.id.z).sort( (a,b) => b-a)[0]
-      // const closeEnoughMinResToTurnDetail = closeToCamera.filter( tile => tile.id.z === minResolution)
-      return closeToCamera
+    }
+    const _getTilesCloseToCanvasCenter = () => {
+      const _getTilePositionCenter = (tile: Tile) => {
+        const rate = Math.pow(2, tile.id.z-8) // Magnificate Rate
+        const tileWidth = 1/rate * 12
+        const tileCenterOffset = tileWidth/2
+        const tileCenterX = tileWidth * (tile.id.x - (this.tileService.initTileId.x * rate)) + tileCenterOffset
+        const tileCenterY = tileWidth * (tile.id.y - this.tileService.initTileId.y * rate) + tileCenterOffset        
+        return new Vector3(tileCenterX, 0,tileCenterY)
+      }
+      const cameraLookAt = this.animateService.onCanvasIntersect.value[0].point     
+      this.lines.map( line => line.removeFromParent())
+      this.lines = [] 
+      const lengthMappings = this.tiles.map( tile => {
+        const positionCenter = _getTilePositionCenter(tile)        
+        const distanceToCameraLookAt = new Vector3().subVectors(positionCenter, cameraLookAt).length()
+        const lineMaterial = new LineBasicMaterial({ color: 0xff0000, linewidth: 3})
+        const lineGeo = new BufferGeometry()
+        const vertices = new Float32Array([
+          positionCenter.x, positionCenter.y, positionCenter.z,
+          cameraLookAt.x, cameraLookAt.y, cameraLookAt.z
+        ])
+        lineGeo.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+        const line = new Line(lineGeo, lineMaterial)
+        this.lines.push(line)
+        this.scene.add(line)
+        this.center = [positionCenter.x, positionCenter.y, positionCenter.z]
+        const mapping: TileDistanceMap = { tile, distance: distanceToCameraLookAt}
+        return mapping
+      })
 
+      const sortMappings = lengthMappings.sort( (a,b) => a.distance - b.distance)
+      this.distances = sortMappings.map( m => m.distance)
+      const sliceMappings = sortMappings.slice(0,4)
+      const tiles = sliceMappings.map( mapping => mapping.tile)
+      return tiles
+    }
+
+    // const tilesBeenLooked = _getTileBeLookedAt()
+    const tilesBeenLooked = _getTilesCloseToCanvasCenter()
+    if (tilesBeenLooked) {
+    
+      const tileDistances: {tile: Tile, distance: number}[] = _getTileCameraDistances(tilesBeenLooked).sort((a,b) => a.distance-b.distance)
+      let selectedTile: Tile[] = _getCloseEnoughToCamera(tileDistances)
+      return selectedTile
     } else {
       return []
     }
@@ -232,9 +280,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     roughTiles.forEach(roughTile => {
       const regexToken = `planeZ${roughTile.id.z}X${roughTile.id.x}Y${roughTile.id.y}`
       const regex = new RegExp(regexToken);
-      const roughTile3d = this.scene.children.find( mesh => regex.test(mesh.name))
-      console.log(roughTile3d?.name, regexToken, this.scene.children.map(plane => plane.name).join(', '));
-      
+      const roughTile3d = this.scene.children.find( mesh => regex.test(mesh.name))      
       if (roughTile3d) {
         roughTile3d.removeFromParent()
         this.tiles = this.removeTileFromTileArray(roughTile, this.tiles)

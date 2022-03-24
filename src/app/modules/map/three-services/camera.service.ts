@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { OrthographicCamera, PerspectiveCamera, Scene } from 'three';
+import { OrthographicCamera, PerspectiveCamera, Scene, Vector2 } from 'three';
 
 @Injectable({
   providedIn: 'root'
@@ -8,8 +8,8 @@ export class CameraService {
 
   constructor() { }
 
-  makeCamera = (w:number = 600, h: number = 450) => {
-    const camera = new PerspectiveCamera(45, w / h, 0.01, 1000)
+  makeCamera = (dimention: Vector2) => {
+    const camera = new PerspectiveCamera(45, dimention.x / dimention.y, 0.01, 1000)
     camera.position.set(80, 80, 80)
     return camera
     

@@ -10,8 +10,8 @@ export class RendererService {
 
   renderer = new WebGLRenderer({ precision: 'lowp' })
 
-  makeRenderer = (domToAppend: ElementRef<HTMLCanvasElement>, w: number = 600, h: number = 450) => {
-    this.renderer.setSize(w, h)
+  makeRenderer = (domToAppend: ElementRef<HTMLCanvasElement>, canvasDimention: Vector2) => {
+    this.renderer.setSize(canvasDimention.x, canvasDimention.y)
     domToAppend.nativeElement.appendChild(this.renderer.domElement)
     return this.renderer
   }

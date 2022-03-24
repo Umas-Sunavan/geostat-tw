@@ -67,11 +67,12 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   initThree = () => {
+    const canvasDimention = new Vector2(600, 450)
     this.scene = this.sceneService.makeScene()
-    this.renderer = this.rendererService.makeRenderer(this.canvasContainer)
+    this.renderer = this.rendererService.makeRenderer(this.canvasContainer, canvasDimention)
     this.renderer.domElement.addEventListener('mousemove', this.onMouseMove)
     this.canvasContainer.nativeElement.addEventListener('mousewheel', this.onMouseScroll)
-    this.camera = this.cameraService.makeCamera()
+    this.camera = this.cameraService.makeCamera(canvasDimention)
     this.scene.add(this.camera)
     this.orbitControl = new OrbitControls(this.camera, this.renderer.domElement);
     this.animateService.animate(this.renderer, this.scene, this.camera, this.orbitControl, this.mousePosition, 3600)

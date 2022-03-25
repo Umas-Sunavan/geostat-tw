@@ -2,15 +2,6 @@
 <div #canvasContainer class="canvas-container"></div>
 <button (click)="removeRoughTileOnHtml(currentRoughTiles)">remove</button>
 <button (click)="addDetailTileOnHtml(currentRoughTiles)">addDetail</button>
-<p>{{center}}</p>
-<!-- <p>{{distances}}</p> -->
-<p>current rought tile distance is {{nearestTileDistance}}</p>
-<p>current rought tile id is {{currentRoughTiles | json}}</p>
-<!-- <h3>removed tiles</h3>
-<ul>
-    <li *ngFor="let tile of removedTiles">{{tile.tileId | json}}, {{tile.time}}</li>
-</ul> -->
-<h3>added tiles</h3>
-<ul>
-    <li *ngFor="let tile of addedTiles">{{tile.tileId | json}},  {{tile.time}}</li>
-</ul>
+<p *ngFor="let tile of tileLog.tiles">id: {{tile.id | json}}, length: {{tile.length}},cameraDistance: {{tile.cameraDistance}} threshold: {{tile.threshold}}</p>
+<p *ngFor="let tile of tileLog.slicedTiles">slicedTiles: {{tile.id | json}}</p>
+<p *ngFor="let tile of tileLog.closeEnoughToCamera">closeEnoughToCamera: {{tile.id | json}}</p>

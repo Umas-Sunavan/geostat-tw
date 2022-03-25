@@ -53,6 +53,11 @@ export class MapComponent implements OnInit, AfterViewInit {
   addedTiles: { time: string, tileId:TileId[]}[] = []
   center:number[] = []
   distances:number[] = []
+  tileLog: { tiles: 
+    { tile: Tile, id: TileId, length: number, threshold: number, cameraDistance: number}[], 
+    slicedTiles: Tile[], 
+    closeEnoughToCamera: Tile[], 
+    } = { tiles: [], slicedTiles: [], closeEnoughToCamera: []}
 
   ngOnInit(): void {
   }
@@ -75,6 +80,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.renderer = this.rendererService.makeRenderer(this.canvasContainer, canvasDimention)
     this.renderer.domElement.addEventListener('mousemove', this.onMouseMove)
     this.canvasContainer.nativeElement.addEventListener('mousewheel', this.onMouseScroll)
+    this.canvasContainer.nativeElement.addEventListener('mouseup', this.onMouseUp)
     this.camera = this.cameraService.makeCamera(canvasDimention)
     this.scene.add(this.camera)
     this.orbitControl = new OrbitControls(this.camera, this.renderer.domElement);
@@ -124,7 +130,6 @@ export class MapComponent implements OnInit, AfterViewInit {
     const newTiles = this.getDetailedTile(roughTiles)
     this.tiles.push( ...newTiles)
     this.tileService.initTileMesh(newTiles, this.tileService.initTileId)
-    // add new mesh so it needs to be updated
     const objToDetectIntersect = this.tiles.map( tile => tile.mesh as Object3D)
     this.animateService.passIntersetObject(objToDetectIntersect)
 
@@ -140,15 +145,165 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   onMouseScroll = async () => {
-    const roughTiles:Tile[] = await this.selectTileToTrunDetail()
-    this.currentRoughTiles = roughTiles
-    try {
-      await this.removeRoughTileOnHtml(this.currentRoughTiles)
-      await this.addDetailTileOnHtml(this.currentRoughTiles)
-    } catch (error) {
-      console.warn('abandon removing ', this.currentRoughTiles.map( tile => JSON.stringify(tile.id)).join(', '));
-      
+    await this.updateTilesResolution()
+  }
+
+  onMouseUp = async () => {
+    await this.updateTilesResolution()
+  }
+
+  updateTilesResolution = async () => {
+    // const tilesToUpdate = this.getTilesCloseToCanvasCenter(this.tiles, 4)
+    const canvasCenter: Vector3 = this.getCanvasCenter()
+    const tilesToUpdate = this.tilesCloseToCanvasCenter(this.tiles, canvasCenter)
+    console.log(tilesToUpdate);
+    
+    const cameraZoomedEnough = this.canTurnDetail(tilesToUpdate)
+    if (tilesToUpdate) {
+      if (cameraZoomedEnough) {
+        this.currentRoughTiles = tilesToUpdate
+        try {
+          await this.removeRoughTileOnHtml(tilesToUpdate)
+          await this.addDetailTileOnHtml(tilesToUpdate)
+        } catch (error) {
+          console.warn('abandon removing ', tilesToUpdate.map( tile => JSON.stringify(tile.id)).join(', '));
+        }
+      }
     }
+  }
+
+  getCanvasCenter = () => this.animateService.onCanvasIntersect.value[0].point
+
+  tilesCloseToCanvasCenter = (tiles: Tile[], canvasCenter: Vector3) => {
+    const _clearDebugLines = () => {
+      this.lines.map( line => line.removeFromParent())
+      this.lines = [] 
+    }
+    const _showDebuggerLines = (positionCenter: Vector3, cameraLookAt: Vector3, color: number = 0xff0000) => {
+      const lineMaterial = new LineBasicMaterial({ color: color, linewidth: 3})
+      const lineGeo = new BufferGeometry()
+      const vertices = new Float32Array([
+        positionCenter.x, positionCenter.y, positionCenter.z,
+        cameraLookAt.x, cameraLookAt.y, cameraLookAt.z
+      ])
+      lineGeo.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+      const line = new Line(lineGeo, lineMaterial)
+      this.lines.push(line)
+      this.scene.add(line)
+    }
+    const getTileCenter = (tile: Tile) => {
+      const rate = Math.pow(2, tile.id.z-8) // Magnificate Rate
+      const tileWidth = 1/rate * 12
+      const tileCenterOffset = tileWidth/2
+      const tileCenterX = tileWidth * (tile.id.x - (this.tileService.initTileId.x * rate)) + tileCenterOffset
+      const tileCenterY = tileWidth * (tile.id.y - this.tileService.initTileId.y * rate) + tileCenterOffset        
+      return new Vector3(tileCenterX, 0,tileCenterY)
+    }
+    const getTileCorner = (tile:Tile) => {      
+      const rate = Math.pow(2, tile.id.z-8) // Magnificate Rate
+      const tileWidth = 1/rate * 12
+      const tileCenterX = tileWidth * (tile.id.x - (this.tileService.initTileId.x * rate))
+      const tileCenterY = tileWidth * (tile.id.y - this.tileService.initTileId.y * rate)        
+      return new Vector3(tileCenterX, 0,tileCenterY)
+    }
+    _clearDebugLines()
+    return tiles.filter( tile => {
+      const tileCenter = getTileCenter(tile)
+      const tileCorner = getTileCorner(tile)
+      const tileCenterToCanvasCenter = new Vector3().subVectors( tileCenter, canvasCenter).length()
+      const tileCornerToCanvasCenter = new Vector3().subVectors( tileCenter, tileCorner).length()
+      const tileCornerToOppositeCorner = tileCornerToCanvasCenter * 2
+      const tileCloseToCanvasCenter = tileCenterToCanvasCenter < tileCornerToOppositeCorner      
+      _showDebuggerLines(tileCorner, canvasCenter)
+      _showDebuggerLines(tileCenter, tileCorner, 0x000000)
+      return tileCloseToCanvasCenter
+    })
+  }
+
+  canTurnDetail = (tiles: Tile[]) => {
+    const _getTileCameraDistances = (tiles: Tile[]) => {
+      const distances: {tile: Tile, distance: number}[] = []
+      const cameraPosition = this.camera.position.clone()
+      const _getDistance = (tile: Tile) => {
+        if (tile.mesh) {
+          const distance = cameraPosition.distanceTo(tile.mesh.position)
+          distances.push({ tile, distance})
+        } else {
+          console.error('no mesh to detail');
+        }
+      }
+      tiles.forEach( tile => _getDistance(tile))
+      return distances
+    }
+    const _getThreshold = (tile: Tile) => {
+      switch (tile.id.z) {
+        case 9:
+          return 8
+        case 8:
+          return 20
+        default:
+          return 20/ ((tile.id.z-8) * (tile.id.z-8)) - 1/(tile.id.z-8) - 0.14
+      }
+    }
+    const lengthMapping = _getTileCameraDistances(tiles)
+    const canTrunDetail = lengthMapping.some( ({tile, distance}) => {
+      const foundTileInLog = this.tileLog.tiles.find( tileInLog => (tileInLog.id.z === tile.id.z) && (tileInLog.id.x === tile.id.x) && (tileInLog.id.y === tile.id.y) )
+      if(foundTileInLog) {
+        foundTileInLog.threshold = _getThreshold(tile)
+        foundTileInLog.cameraDistance = Math.floor(distance*100)/100
+      }
+      return distance < _getThreshold(tile)
+    })
+    return canTrunDetail
+  }
+
+  getTilesCloseToCanvasCenter = (tiles: Tile[], count: number) => {
+    const _clearDebugLines = () => {
+      this.lines.map( line => line.removeFromParent())
+      this.lines = [] 
+    }
+    const _getTilePositionCenter = (tile: Tile) => {
+      const rate = Math.pow(2, tile.id.z-8) // Magnificate Rate
+      const tileWidth = 1/rate * 12
+      const tileCenterOffset = tileWidth/2
+      const tileCenterX = tileWidth * (tile.id.x - (this.tileService.initTileId.x * rate)) + tileCenterOffset
+      const tileCenterY = tileWidth * (tile.id.y - this.tileService.initTileId.y * rate) + tileCenterOffset        
+      return new Vector3(tileCenterX, 0,tileCenterY)
+    }
+    const _showDebuggerLines = (positionCenter: Vector3, cameraLookAt: Vector3, ) => {
+      const lineMaterial = new LineBasicMaterial({ color: 0xff0000, linewidth: 3})
+      const lineGeo = new BufferGeometry()
+      const vertices = new Float32Array([
+        positionCenter.x, positionCenter.y, positionCenter.z,
+        cameraLookAt.x, cameraLookAt.y, cameraLookAt.z
+      ])
+      lineGeo.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+      const line = new Line(lineGeo, lineMaterial)
+      this.lines.push(line)
+      this.scene.add(line)
+    }
+    const mapDistances = (tiles: Tile[]) => {
+      this.tileLog.tiles = []
+      const lengthMappings = tiles.map( tile => {
+        const positionCenter = _getTilePositionCenter(tile)        
+        const distanceToCameraLookAt = new Vector3().subVectors(positionCenter, canvasCenter).length()
+        // _showDebuggerLines(positionCenter, canvasCenter)
+        this.tileLog.tiles.push({ tile, id: tile.id, length: Math.floor(distanceToCameraLookAt*100)/100, threshold: -1, cameraDistance: -1})        
+        const mapping: TileDistanceMap = { tile, distance: distanceToCameraLookAt}
+        return mapping
+      })
+      this.tileLog.tiles = this.tileLog.tiles.sort( (a,b) => a.length - b.length)
+      return lengthMappings
+    }
+
+    // _clearDebugLines()
+    const canvasCenter = this.animateService.onCanvasIntersect.value[0].point
+    let distancesMapping: TileDistanceMap[] = mapDistances(tiles)
+    distancesMapping = distancesMapping.sort( (a,b) => a.distance - b.distance)
+    distancesMapping = distancesMapping.slice(0,count)
+    const resultTiles = distancesMapping.map( mapping => mapping.tile)
+    this.tileLog.slicedTiles = resultTiles
+    return resultTiles
   }
 
   hasEnoughDetailedTiles = (maxHighResolutionTileCount: number) => {
@@ -160,32 +315,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     return enoughTiles && (minResolustion !== initialResolution)
   }
 
-  selectTileToTrunDetail = async () => {
-    const _getThreshold = (tile: Tile) => {
-      switch (tile.id.z) {
-        case 9:
-          return 8
-        case 8:
-          return 20
-        default:
-          return 20/ ((tile.id.z-8) * (tile.id.z-8)) - 1/(tile.id.z-8) - 0.14
-      }
-    }
-    const _getTileBeLookedAt = () => {
-      const intersect = this.animateService.onCanvasIntersect.value[0]
-      if (intersect) {
-        const intersectMesh = intersect.object as Object3D as Mesh<PlaneGeometry, MeshStandardMaterial>
-        const intersectName = intersect.object.name
-        const regexToken = 'planeZ([0-9]+)X([0-9]+)Y([0-9]+)';
-        const idArray = intersectName.match(regexToken)        
-        if(idArray && idArray.length === 4 && +idArray[1]) {
-          const id = {z: +idArray[1], x: +idArray[2], y: +idArray[3]}
-          const tile: Tile = { mesh: intersectMesh, id}
-          return tile
-        }
-      }
-      return
-    }
+  selectTileToTrunDetail = async (tileClosesToCenter: Tile[]) => {
     const _getTileCameraDistances = (tiles: Tile[]) => {
       const distances: {tile: Tile, distance: number}[] = []
       const cameraPosition = this.camera.position.clone()
@@ -201,59 +331,33 @@ export class MapComponent implements OnInit, AfterViewInit {
       return distances
     }
     const _getCloseEnoughToCamera = (tileDistances: {tile: Tile, distance: number}[]) => {
+      const _getThreshold = (tile: Tile) => {
+        switch (tile.id.z) {
+          case 9:
+            return 8
+          case 8:
+            return 20
+          default:
+            return 20/ ((tile.id.z-8) * (tile.id.z-8)) - 1/(tile.id.z-8) - 0.14
+        }
+      }
       return tileDistances.filter( ({tile, distance}) => {
         if(tile) this.nearestTileId = JSON.stringify(tile.id)
         this.nearestTileDistance = distance
+        const foundTileInLog = this.tileLog.tiles.find( tileInLog => (tileInLog.id.z === tile.id.z) && (tileInLog.id.x === tile.id.x) && (tileInLog.id.y === tile.id.y) )
+        if(foundTileInLog) {
+          foundTileInLog.threshold = _getThreshold(tile)
+          foundTileInLog.cameraDistance = Math.floor(distance*100)/100
+        }
         return distance < _getThreshold(tile)
       }).map( ({tile, distance}) => tile)
     }
-    const _getTilesCloseToCanvasCenter = () => {
-      const _getTilePositionCenter = (tile: Tile) => {
-        const rate = Math.pow(2, tile.id.z-8) // Magnificate Rate
-        const tileWidth = 1/rate * 12
-        const tileCenterOffset = tileWidth/2
-        const tileCenterX = tileWidth * (tile.id.x - (this.tileService.initTileId.x * rate)) + tileCenterOffset
-        const tileCenterY = tileWidth * (tile.id.y - this.tileService.initTileId.y * rate) + tileCenterOffset        
-        return new Vector3(tileCenterX, 0,tileCenterY)
-      }
-      const cameraLookAt = this.animateService.onCanvasIntersect.value[0].point     
-      this.lines.map( line => line.removeFromParent())
-      this.lines = [] 
-      const lengthMappings = this.tiles.map( tile => {
-        const positionCenter = _getTilePositionCenter(tile)        
-        const distanceToCameraLookAt = new Vector3().subVectors(positionCenter, cameraLookAt).length()
-        const lineMaterial = new LineBasicMaterial({ color: 0xff0000, linewidth: 3})
-        const lineGeo = new BufferGeometry()
-        const vertices = new Float32Array([
-          positionCenter.x, positionCenter.y, positionCenter.z,
-          cameraLookAt.x, cameraLookAt.y, cameraLookAt.z
-        ])
-        lineGeo.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-        const line = new Line(lineGeo, lineMaterial)
-        this.lines.push(line)
-        this.scene.add(line)
-        this.center = [positionCenter.x, positionCenter.y, positionCenter.z]
-        const mapping: TileDistanceMap = { tile, distance: distanceToCameraLookAt}
-        return mapping
-      })
-
-      const sortMappings = lengthMappings.sort( (a,b) => a.distance - b.distance)
-      this.distances = sortMappings.map( m => m.distance)
-      const sliceMappings = sortMappings.slice(0,4)
-      const tiles = sliceMappings.map( mapping => mapping.tile)
-      return tiles
-    }
 
     // const tilesBeenLooked = _getTileBeLookedAt()
-    const tilesBeenLooked = _getTilesCloseToCanvasCenter()
-    if (tilesBeenLooked) {
-    
-      const tileDistances: {tile: Tile, distance: number}[] = _getTileCameraDistances(tilesBeenLooked).sort((a,b) => a.distance-b.distance)
+      const tileDistances: {tile: Tile, distance: number}[] = _getTileCameraDistances(tileClosesToCenter).sort((a,b) => a.distance-b.distance)
       let selectedTile: Tile[] = _getCloseEnoughToCamera(tileDistances)
+      this.tileLog.closeEnoughToCamera = selectedTile
       return selectedTile
-    } else {
-      return []
-    }
   }
 
   getDetailedTile = (fromTiles: Tile[]) => {

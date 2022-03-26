@@ -60,6 +60,7 @@ export class TileService {
       const offset = 0.5      
       mesh.position.setX(((tile.id.x - initTileX + offset)) * tileWidth)
       mesh.position.setZ(((tile.id.y - initTileY + offset)) * tileWidth)
+      mesh.position.setY(tile.id.z * 0.3)
       mesh.rotateX(-Math.PI * 0.5)
       tile.mesh = mesh
     }
@@ -71,5 +72,19 @@ export class TileService {
     const plane = new Mesh(planGeo, planMaterial)
     plane.name = planeName
     return plane
+  }
+
+  isTileEqual = (atile: Tile, bTile: Tile) => {
+    const sameX = atile.id.x === bTile.id.x
+    const sameY = atile.id.y === bTile.id.y
+    const sameZ = atile.id.z === bTile.id.z
+    return sameX && sameY && sameZ
+  }
+
+  isTileIdEqual = (aId: TileId, bId: TileId) => {
+    const sameX = aId.x === bId.x
+    const sameY = aId.y === bId.y
+    const sameZ = aId.z === bId.z
+    return sameX && sameY && sameZ
   }
 }

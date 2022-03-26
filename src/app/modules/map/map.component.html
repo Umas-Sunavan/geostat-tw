@@ -1,7 +1,9 @@
 <p>map works!</p>
 <div #canvasContainer class="canvas-container"></div>
-<button (click)="removeRoughTileOnHtml(currentRoughTiles)">remove</button>
+<button (click)="removeTileOnHtml(currentRoughTiles)">remove</button>
 <button (click)="addDetailTileOnHtml(currentRoughTiles)">addDetail</button>
-<p *ngFor="let tile of tileLog.tiles">id: {{tile.id | json}}, length: {{tile.length}},cameraDistance: {{tile.cameraDistance}} threshold: {{tile.threshold}}</p>
-<p *ngFor="let tile of tileLog.slicedTiles">slicedTiles: {{tile.id | json}}</p>
-<p *ngFor="let tile of tileLog.closeEnoughToCamera">closeEnoughToCamera: {{tile.id | json}}</p>
+<!-- <p *ngFor="let tile of mergeTileData">
+    {{tile.fromBlurredTile| json}}
+    {{tile.siblings| json}}
+    {{tile.siblingsExist| json}}
+</p> -->

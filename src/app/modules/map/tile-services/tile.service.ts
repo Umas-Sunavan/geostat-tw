@@ -20,6 +20,24 @@ export class TileService {
     z: 8
   }
 
+  textureMapppingCacheAndId: { texture: ArrayBuffer, id: TileId}[] = []
+
+  getTextureFromCache = async (tileId: TileId) => {
+    const mappingInCache = this.textureMapppingCacheAndId.find( mapping => this.isTileIdEqual(tileId, mapping.id))
+    
+    if (mappingInCache){
+      console.log(mappingInCache);
+      return mappingInCache.texture
+    } else {
+      console.log('get from internet');
+      
+      const newTexutre = await this.getTextureBuffer(tileId)
+      const newMapping = { id: tileId, texture: newTexutre}
+      this.textureMapppingCacheAndId.push(newMapping)
+      return newTexutre
+    }
+  }
+
   getTextureBuffer = async (tileId: TileId): Promise<ArrayBuffer> => {
     const options = {
       responseType: 'arraybuffer' as const,
@@ -68,7 +86,7 @@ export class TileService {
 
   getPlane = (size: number = 50, planeName: string = 'planeDefalut') => {
     const planGeo = new PlaneGeometry(size, size, 100, 100)
-    const planMaterial = new MeshStandardMaterial({ color: 0xffffff, side: DoubleSide })
+    const planMaterial = new MeshStandardMaterial({ color: 0xffffff, side: DoubleSide})
     const plane = new Mesh(planGeo, planMaterial)
     plane.name = planeName
     return plane

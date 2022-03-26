@@ -14,7 +14,7 @@ export class TextureService {
 
   applyTexture = async (tiles: Tile[]) => {
     for (const tile of tiles) {
-      const arrayBuffer = await this.tileService.getTextureBuffer(tile.id);      
+      const arrayBuffer = await this.tileService.getTextureFromCache(tile.id);      
       const base64 = this.arrayBufferToBase64(arrayBuffer)
       const texture = await this.getTextureByTextureLoader(base64)
       if (!tile.mesh) throw new Error("no mesh to apply texture!");

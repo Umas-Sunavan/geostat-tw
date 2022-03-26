@@ -78,7 +78,7 @@ export class TileService {
       const offset = 0.5      
       mesh.position.setX(((tile.id.x - initTileX + offset)) * tileWidth)
       mesh.position.setZ(((tile.id.y - initTileY + offset)) * tileWidth)
-      mesh.position.setY(tile.id.z * 0.3)
+      // mesh.position.setY(tile.id.z * 0.3)
       mesh.rotateX(-Math.PI * 0.5)
       tile.mesh = mesh
     }

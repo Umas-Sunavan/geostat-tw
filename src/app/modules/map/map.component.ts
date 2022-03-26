@@ -114,15 +114,23 @@ export class MapComponent implements OnInit, AfterViewInit {
   initTile = async () => {
     const initTileId = this.tileService.initTileId
     const tileIds = this.tileService.getTileIdsOfLevel8(initTileId)
-    this.tiles = tileIds.map( (id):Tile => {return {id: id,mesh: undefined}})
-    this.tileService.initTileMesh(this.tiles, initTileId)
-    const objToDetectIntersect = this.tiles.map( tile => tile.mesh as Object3D)
+    const tilesWithoutMesh = tileIds.map( (id):Tile => {return {id: id,mesh: undefined}})
+    const tiles = await this.getTileMesh(tilesWithoutMesh, initTileId) 
+    this.updateTileToRaycaster(tiles)
+    this.tiles = tiles
+    this.addTilesToScene(tiles)
+  }
+
+  getTileMesh = async (tiles:Tile[], initTileId: TileId) => {
+    this.tileService.initTileMesh(tiles, initTileId)
+    await this.textureService.applyTexture(tiles)
+    // await this.textureService.applyDisplacementTexture(tiles)
+    return tiles
+  }
+
+  updateTileToRaycaster = (tiles: Tile[]) => {
+    const objToDetectIntersect = tiles.map( tile => tile.mesh as Object3D)
     this.animateService.passIntersetObject(objToDetectIntersect)
-    await this.textureService.applyTexture(this.tiles)
-    await this.textureService.applyDisplacementTexture(this.tiles)
-    this.addTilesToScene(this.tiles)
-    console.log(this.tiles);
-    
   }
 
   addTilesToScene = (tiles: Tile[]) => {
@@ -139,14 +147,10 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   addTileOnHtml = async (tiles: Tile[]) => {
-    this.tiles.push( ...tiles)    
-    this.tileService.initTileMesh(tiles, this.tileService.initTileId)
-    const objToDetectIntersect = this.tiles.map( tile => tile.mesh as Object3D)
-    this.animateService.passIntersetObject(objToDetectIntersect)
-
-    await this.textureService.applyTexture(tiles)
-    // this.textureService.applyMockTexture(tiles)
-    this.addTilesToScene(tiles)
+    this.tiles.push( ...tiles)
+    const newTiles = await this.getTileMesh(tiles, this.tileService.initTileId)
+    this.updateTileToRaycaster(this.tiles)
+    this.addTilesToScene(newTiles)
     this.addedTiles.push({time: new Date().toISOString(), tileId: tiles.map( tile => tile.id)})
   }
 
@@ -164,39 +168,41 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   updateTilesResolution = async () => {
-    const canvasCenter: Vector3 = this.getCanvasCenter()
-    const tilesToTurnDetail = this.tilesCloseToCanvasCenter(this.tiles, canvasCenter)    
-    const tilesToTurnBlur = this.tilesFarToCanvasCenter(this.tiles, canvasCenter)
-    const cameraZoomedEnough = this.canTurnDetail(tilesToTurnDetail)
-    if (tilesToTurnDetail && canvasCenter) {
-      if (cameraZoomedEnough) {
-        try {
-          this.currentRoughTiles = tilesToTurnDetail
-          await this.removeTileOnHtml(tilesToTurnDetail)
-          console.log(tilesToTurnDetail);
-          await this.addDetailTileOnHtml(tilesToTurnDetail)
-          
-        } catch (error) {
-          console.warn('abandon removing ', tilesToTurnDetail.map( tile => JSON.stringify(tile.id)).join(', '));
+    const canvasCenter: Vector3| undefined = this.getCanvasCenter()
+    if (canvasCenter) {
+      const tilesToTurnDetail = this.tilesCloseToCanvasCenter(this.tiles, canvasCenter)    
+      const tilesToTurnBlur = this.tilesFarToCanvasCenter(this.tiles, canvasCenter)
+      const cameraZoomedEnough = this.canTurnDetail(tilesToTurnDetail)
+      if (tilesToTurnDetail) {
+        if (cameraZoomedEnough) {
+          try {
+            this.currentRoughTiles = tilesToTurnDetail
+            await this.removeTileOnHtml(tilesToTurnDetail)
+            await this.addDetailTileOnHtml(tilesToTurnDetail)
+            
+          } catch (error) {
+            console.warn('abandon removing ', tilesToTurnDetail.map( tile => JSON.stringify(tile.id)).join(', '));
+          }
         }
+  
+        const tilesFarToCamera = this.tilesFarToCamera(this.tiles, this.camera.position)
+        const tilesToMerge:Tile[] = []
+        tilesToMerge.push(...tilesToTurnBlur, ...tilesFarToCamera)
+        const uniqueTilesToMerge:Tile[] = []
+        tilesToMerge.forEach( tile => {
+          const duplicate = uniqueTilesToMerge.some( uniqueTile => {
+            return this.tileService.isTileEqual(uniqueTile, tile)
+          })
+          if (!duplicate) {
+            uniqueTilesToMerge.push(tile)
+          }
+        })
+  
+  
+        const tilesSiblingsCanMerge = this.checkSiblingsCanMerge(tilesToMerge, canvasCenter)
+        await this.mergeTile(tilesSiblingsCanMerge)
       }
 
-      const tilesFarToCamera = this.tilesFarToCamera(this.tiles, this.camera.position)
-      const tilesToMerge:Tile[] = []
-      tilesToMerge.push(...tilesToTurnBlur, ...tilesFarToCamera)
-      const uniqueTilesToMerge:Tile[] = []
-      tilesToMerge.forEach( tile => {
-        const duplicate = uniqueTilesToMerge.some( uniqueTile => {
-          return this.tileService.isTileEqual(uniqueTile, tile)
-        })
-        if (!duplicate) {
-          uniqueTilesToMerge.push(tile)
-        }
-      })
-
-
-      const tilesSiblingsCanMerge = this.checkSiblingsCanMerge(tilesToMerge, canvasCenter)
-      await this.mergeTile(tilesSiblingsCanMerge)
     }
 
   }
@@ -304,7 +310,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     return { z, x, y}
   }
 
-  getCanvasCenter = () => this.animateService.onCanvasIntersect.value[0].point
+  getCanvasCenter = ():Vector3|undefined => this.animateService.onCanvasIntersect.value[0]?.point
 
   tilesCloseToCanvasCenter = (tiles: Tile[], canvasCenter: Vector3) => {
     const _clearDebugLines = () => {

@@ -15,7 +15,7 @@ export class TextureService {
 
   applyTexture = async (tiles: Tile[]) => {
     for (const tile of tiles) {
-      const arrayBuffer = await this.tileService.getTextureFromCache(tile.id);      
+      const arrayBuffer = await this.tileService.getTextureFromCache(tile.id);
       const base64 = this.arrayBufferToBase64(arrayBuffer)
       const texture = await this.getTextureByTextureLoader(base64)
       if (!tile.mesh) throw new Error("no mesh to apply texture!");
@@ -26,11 +26,11 @@ export class TextureService {
 
   applyMockTexture = async (tiles: Tile[]) => {
     for (const tile of tiles) {
-      const getRandomByte = () => Math.floor(Math.random()*255)
+      const getRandomByte = () => Math.floor(Math.random() * 255)
       const r = getRandomByte().toString(16)
       const g = getRandomByte().toString(16)
       const b = getRandomByte().toString(16)
-      const color = new Color(+('0x'+r+g+b))
+      const color = new Color(+('0x' + r + g + b))
       // const arrayBuffer = await this.tileService.getTextureBuffer(tile.id);      
       // const base64 = this.arrayBufferToBase64(arrayBuffer)
       // const texture = await this.getTextureByTextureLoader(base64)
@@ -52,49 +52,49 @@ export class TextureService {
   }
 
   applyDisplacementTexture = async (tiles: Tile[]) => {
-    tiles.forEach( async (tile: Tile, i) => {
+    tiles.forEach(async (tile: Tile, i) => {
 
-    // for (let i = 0; i < tiles.length; i++) {
+      // for (let i = 0; i < tiles.length; i++) {
       // const tile = tiles[i];
       const src = this.tileService.getHeightTileSrc(tile.id.z, tile.id.x, tile.id.y)
       const leftSrc = this.tileService.getHeightTileSrc(tile.id.z, tile.id.x - 1, tile.id.y)
       const topSrc = this.tileService.getHeightTileSrc(tile.id.z, tile.id.x, tile.id.y - 1)
-      const {canvas, imageData, leftImageData, topImageData} = await this.loadImagesFromSrc(src, leftSrc, topSrc)
+      const { canvas, imageData, leftImageData, topImageData } = await this.loadImagesFromSrc(src, leftSrc, topSrc)
       const dataUrl = await this.getHeightDataUrl(canvas, imageData, leftImageData, topImageData)
       if (!tile.mesh) throw new Error("no mesh to apply height texture");
       const heightTexture = await this.getTextureByTextureLoader(dataUrl)
       tile.mesh.material.displacementMap = heightTexture
       // tile.mesh.material.map = heightTexture
       tile.mesh.material.needsUpdate = true;
-    // }
+      // }
     })
   }
 
-  getTextureByTextureLoader = async (base64: string): Promise<Texture> => {    
+  getTextureByTextureLoader = async (base64: string): Promise<Texture> => {
     const textureLoader = new TextureLoader()
     return await textureLoader.loadAsync(base64);
   }
 
-  loadImagesFromSrc = (src:string, leftSrc:string, topSrc:string): Promise<{canvas: HTMLCanvasElement, imageData: ImageData, leftImageData: ImageData, topImageData: ImageData}> => {
-    return new Promise( (resolve, reject) => {
+  loadImagesFromSrc = (src: string, leftSrc: string, topSrc: string): Promise<{ canvas: HTMLCanvasElement, imageData: ImageData, leftImageData: ImageData, topImageData: ImageData }> => {
+    return new Promise((resolve, reject) => {
       // to connect all edges, one should use neightbor tile's data
-        this.loadImage( src, (imageData, canvas) => {
-          this.loadImage( leftSrc, leftImageData => {
-            this.loadImage( topSrc, topImageData => {
-              resolve({canvas, imageData, leftImageData, topImageData})
-            })
+      this.loadImage(src, (imageData, canvas) => {
+        this.loadImage(leftSrc, leftImageData => {
+          this.loadImage(topSrc, topImageData => {
+            resolve({ canvas, imageData, leftImageData, topImageData })
           })
         })
+      })
     })
   }
 
-  loadImage = (src:string, onImageLoaded: (imageData:ImageData, canvas: HTMLCanvasElement) => void) => {
+  loadImage = (src: string, onImageLoaded: (imageData: ImageData, canvas: HTMLCanvasElement) => void) => {
     var img = new Image();
     img.crossOrigin = 'Anonymous';
     img.onload = () => {
       const canvas = this.createCanvasFromImage(img)
       const context = canvas.getContext("2d")
-      if(!context) throw new Error("no context");
+      if (!context) throw new Error("no context");
       const imageData = context.getImageData(0, 0, 256, 256)
       onImageLoaded(imageData, canvas)
     };
@@ -115,7 +115,7 @@ export class TextureService {
   }
 
   getHeightDataUrl = (canvas: HTMLCanvasElement, imageData: ImageData, leftImageData: ImageData, topImageData: ImageData): Promise<string> => {
-    return new Promise( (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.convertRawToHeight(imageData, leftImageData, topImageData)
       const context = canvas.getContext("2d")
       if (!context) throw new Error("No Context!");
@@ -125,7 +125,7 @@ export class TextureService {
     })
   }
 
-  convertRawToHeight = (imageData:ImageData, leftImageData: ImageData, topImapeData: ImageData) => {
+  convertRawToHeight = (imageData: ImageData, leftImageData: ImageData, topImapeData: ImageData) => {
     // connect top edge
     for (let x = 0; x < topImapeData.width; x++) {
       const bottomEdgePxPosition = this.getBottomEdgePxPosition(topImapeData, x)
@@ -137,17 +137,17 @@ export class TextureService {
       this.setupHeight(rightEdgePxPosition, leftImageData, imageData, 0, y)
 
       for (let x = 1; x < imageData.width; x++) {
-          const pxPosition = (y * imageData.width + x)
-          this.setupHeight(pxPosition, imageData, imageData, x, y)
-      }      
+        const pxPosition = (y * imageData.width + x)
+        this.setupHeight(pxPosition, imageData, imageData, x, y)
+      }
     }
   }
 
-  getRightEdgePxPosition = (tile: ImageData, y: number) => (tile.width) * (y+1) - 1
+  getRightEdgePxPosition = (tile: ImageData, y: number) => (tile.width) * (y + 1) - 1
 
   getBottomEdgePxPosition = (tile: ImageData, x: number) => (tile.height - 1) * tile.width + x
 
-  setupHeight = (pxPosition:number,sourceTile: ImageData, outputTile: ImageData, x:number, y:number) => {
+  setupHeight = (pxPosition: number, sourceTile: ImageData, outputTile: ImageData, x: number, y: number) => {
     const height = this.getHeight(pxPosition, sourceTile)
     this.applytHeight(outputTile, x, y, height)
   }
@@ -155,14 +155,14 @@ export class TextureService {
   getHeight = (pxPosition: number, imageData: ImageData) => {
     const colorPosition = pxPosition * 4
     const r = imageData.data[colorPosition]
-    const g = imageData.data[colorPosition+1]
-    const b = imageData.data[colorPosition+2]
-    const height = this.getHeightFromColors(r,g,b)
+    const g = imageData.data[colorPosition + 1]
+    const b = imageData.data[colorPosition + 2]
+    const height = this.getHeightFromColors(r, g, b)
     return height
   }
 
   getHeightFromColors = (r: number, g: number, b: number) => {
-    const height = -10000 + ( (r * 256 * 256 + g * 256 + b) * 0.1)
+    const height = -10000 + ((r * 256 * 256 + g * 256 + b) * 0.1)
     // 1946.6 ~ -10.8
     const normalHeight = (height + 10.8) / 3800
     const byteHeight = Math.floor(normalHeight * 256)
@@ -172,8 +172,8 @@ export class TextureService {
   applytHeight = (imageData: ImageData, x: number, y: number, height: number) => {
     const colorPosition = (y * imageData.width + x) * 4
     imageData.data[colorPosition] = height
-    imageData.data[colorPosition+1] = height
-    imageData.data[colorPosition+2] = height
+    imageData.data[colorPosition + 1] = height
+    imageData.data[colorPosition + 2] = height
   }
 
 }

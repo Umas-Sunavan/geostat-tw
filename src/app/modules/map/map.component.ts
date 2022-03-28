@@ -12,7 +12,6 @@ import { TileService } from './tile-services/tile.service';
 import { Tile } from 'src/app/shared/models/Tile';
 import { TextureService } from './tile-services/texture.service';
 import { BehaviorSubject, concatMap, delay, exhaustMap, filter, interval, last, lastValueFrom, map, Observable, of, Subject, Subscriber, switchMap, take, tap } from 'rxjs';
-import { TileDistanceMap } from 'src/app/shared/models/TileDistanceMap';
 
 
 @Component({
@@ -46,7 +45,6 @@ export class MapComponent implements OnInit, AfterViewInit {
   plane!: Object3D
   tiles: Tile[] = []
   lines: Line<BufferGeometry, LineBasicMaterial>[] = []
-  isLoadingTile: boolean = false
   onUserUpdateCamera: Subject<string> = new BehaviorSubject('')
   queueToUpdateResolution!: Observable<string>
   
@@ -152,16 +150,10 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   addTile = async (tiles: Tile[]) => {
     // including adding to the scene and model(binding data)
-    console.log(tiles.map(tile => JSON.stringify(tile.id)).join('\n '));
-
     this.tiles.push(...tiles)
     const newTiles = await this.getTileMesh(tiles, this.tileService.initTileId)
     this.updateTileToRaycaster(this.tiles)
     this.addTilesToScene(newTiles)
-  }
-
-  removeTileOnHtml = async (roughTiles: Tile[]) => {
-    this.removeTileBtIds(roughTiles)
   }
 
   onMouseScroll = async () => {
@@ -178,15 +170,7 @@ export class MapComponent implements OnInit, AfterViewInit {
       const tilesToTurnParent = this.tilesFarToCanvasCenter(fromTiles, canvasCenter)
       const tilesToMerge: Tile[] = []
       tilesToMerge.push(...tilesToTurnParent, ...tilesFarToCamera)
-      const uniqueTilesToMerge: Tile[] = []
-      tilesToMerge.forEach(tile => {
-        const duplicate = uniqueTilesToMerge.some(uniqueTile => {
-          return this.tileService.isTileEqual(uniqueTile, tile)
-        })
-        if (!duplicate) {
-          uniqueTilesToMerge.push(tile)
-        }
-      })
+      const uniqueTilesToMerge: Tile[] = this.makeUniqueTilesByIds(tilesToMerge)
       const tilesSiblingsCanMerge = this.checkSiblingsCanMerge(tilesToMerge, canvasCenter)
       return tilesSiblingsCanMerge
     }
@@ -197,8 +181,7 @@ export class MapComponent implements OnInit, AfterViewInit {
         if (cameraZoomedEnough) {
           try {
             await this.addChildTileOnHtml(tilesToTurnChild)
-            await this.removeTileOnHtml(tilesToTurnChild)
-
+            await this.removeTileByModel(tilesToTurnChild)
           } catch (error) {
             console.warn('abandon removing ', tilesToTurnChild.map(tile => JSON.stringify(tile.id)).join(', '));
           }
@@ -215,9 +198,7 @@ export class MapComponent implements OnInit, AfterViewInit {
       }
 
     }
-
-    this.isLoadingTile = false
-    return 'sovled'
+    return ''
   }
 
   tilesFarToCamera = (tiles: Tile[], camera: Vector3) => {
@@ -242,17 +223,29 @@ export class MapComponent implements OnInit, AfterViewInit {
     })
   }
 
+  makeUniqueTiles = (array: TileId[]) => {
+    const uniqueArray: TileId[] = []
+    array.forEach(tileId => {
+        const isDuplicate = uniqueArray.some(id => this.tileService.isTileIdEqual(id, tileId))
+        if (!isDuplicate) {
+          uniqueArray.push(tileId)
+        }
+    })
+    return uniqueArray
+  }
+
+  makeUniqueTilesByIds = (array: Tile[]) => {
+    const uniqueArray: Tile[] = []
+    array.forEach(tile => {
+        const isDuplicate = uniqueArray.some(uniqueTile => this.tileService.isTileIdEqual(tile.id, uniqueTile.id))
+        if (!isDuplicate) {
+          uniqueArray.push(tile)
+        }
+    })
+    return uniqueArray
+  }
+
   mergeTile = async (tilesToMerge: Tile[]) => {
-    const makeUniqueArray = (array: TileId[]) => {
-      const uniqueArray: TileId[] = []
-      array.forEach(tileId => {
-          const isDuplicate = uniqueArray.some(id => this.tileService.isTileIdEqual(id, tileId))
-          if (!isDuplicate) {
-            uniqueArray.push(tileId)
-          }
-      })
-      return uniqueArray
-    }
 
     const addTiles = async (tiles: Tile[]) => {
       for (const tile of tiles) {
@@ -299,7 +292,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     }
 
     const parentTileIdsToAdd = tilesToMerge.map( parentTile => this.getParentredIdFromChildTile(parentTile.id))
-    const uniqueParentTileIdsToAdd = makeUniqueArray(parentTileIdsToAdd)
+    const uniqueParentTileIdsToAdd = this.makeUniqueTiles(parentTileIdsToAdd)
     const childTileIds = this.getChildTileIdsFromId(uniqueParentTileIdsToAdd)
     const uniqueParentTileToAdd = uniqueParentTileIdsToAdd.map( tileId => {return {id: tileId} as Tile})
     await addTiles(uniqueParentTileToAdd)
@@ -526,19 +519,24 @@ export class MapComponent implements OnInit, AfterViewInit {
     return newTileIds
   }
 
-  removeTileBtIds = (roughTiles: Tile[]) => {
-    roughTiles.forEach(tile => this.removeTileById(tile))
+  removeTileByIds = (roughTileIds: TileId[]) => {
+    roughTileIds.forEach(id => this.removeTileById(id))
   }
 
-  removeTileById = (tile: Tile) => {
-    const regexToken = `planeZ${tile.id.z}X${tile.id.x}Y${tile.id.y}`
+  removeTileByModel = async (tiles: Tile[]) => {
+    const tildIds = tiles.map( tile => tile.id)
+    this.removeTileByIds(tildIds)
+  }
+
+  removeTileById = (tileId: TileId) => {
+    const regexToken = `planeZ${tileId.z}X${tileId.x}Y${tileId.y}`
     const regex = new RegExp(regexToken);
     const tile3d = this.scene.children.find(mesh => regex.test(mesh.name))
     if (tile3d) {
       this.removeTileFromScene(tile3d)
-      this.tiles = this.removeTileFromTileArray(tile, this.tiles)
+      this.tiles = this.removeTileFromArrayById(tileId, this.tiles)
     } else {
-      console.error(JSON.stringify(tile.id), new Date().toISOString());
+      console.error(JSON.stringify(tileId), new Date().toISOString());
       throw new Error("no tile to remove");
     }
   }
@@ -546,7 +544,7 @@ export class MapComponent implements OnInit, AfterViewInit {
   removeTile = (tile:Tile) => {
     if (tile.mesh) {
       this.removeTileFromScene(tile.mesh)
-      this.tiles = this.removeTileFromTileArray(tile, this.tiles)
+      this.tiles = this.removeTileFromArrayById(tile.id, this.tiles)
     } else {
       throw new Error("No mesh to remove tile");
     }
@@ -554,7 +552,7 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   removeTileFromScene = (tile3d: Object3D<THREE.Event>) => tile3d.removeFromParent()
   removeTilesFromScene = (tiles: Tile[]) => tiles.forEach(tile => tile.mesh?.removeFromParent())
-  removeTileFromTileArray = (tileToRemove: Tile, array: Tile[]): Tile[] => array.filter(tile => !this.tileService.isTileEqual(tile, tileToRemove))
+  removeTileFromArrayById = (tileIdToRemove: TileId, array: Tile[]): Tile[] => array.filter(tile => !this.tileService.isTileIdEqual(tile.id, tileIdToRemove))
 
   getTileById = (fromTiles: Tile[], byId: TileId) => fromTiles.find(tile => {
     const found = this.tileService.isTileIdEqual(tile.id, byId)

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { delay, lastValueFrom, of, take } from 'rxjs';
 import { Tile } from 'src/app/shared/models/Tile';
 import { Color, Texture, TextureLoader } from 'three';
 import { TileService } from './tile.service';
@@ -37,6 +38,7 @@ export class TextureService {
       tile.mesh.material.color = color
       tile.mesh.material.needsUpdate = true;
     }
+    // return lastValueFrom(of('').pipe(delay(1000) ))
   }
 
   arrayBufferToBase64 = (buffer: ArrayBuffer) => {

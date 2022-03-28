@@ -11,7 +11,7 @@ import { SceneService } from './three-services/scene.service';
 import { TileService } from './tile-services/tile.service';
 import { Tile } from 'src/app/shared/models/Tile';
 import { TextureService } from './tile-services/texture.service';
-import { filter, last, lastValueFrom } from 'rxjs';
+import { BehaviorSubject, concatMap, delay, exhaustMap, filter, interval, last, lastValueFrom, map, Observable, of, Subject, Subscriber, switchMap, take, tap } from 'rxjs';
 import { TileDistanceMap } from 'src/app/shared/models/TileDistanceMap';
 
 
@@ -30,7 +30,8 @@ export class MapComponent implements OnInit, AfterViewInit {
     private lightService: LightService,
     private tileService: TileService,
     private textureService: TextureService,
-  ) { }
+  ) {
+  }
 
   @ViewChild('canvasContainer') canvasContainer!: ElementRef<HTMLCanvasElement>;
   scene: Scene = new Scene()
@@ -44,7 +45,17 @@ export class MapComponent implements OnInit, AfterViewInit {
   plane!: Object3D
   tiles: Tile[] = []
   lines:Line<BufferGeometry, LineBasicMaterial>[] = []
-
+  isLoadingTile: boolean = false
+  onUserUpdateCamera: Subject<any> = new BehaviorSubject('papayaww')
+  tilesUpdateResolutionQueue: Observable<string> = new Observable( subscriber => {
+    console.log('tilesNeedUpdate');    
+    this.updateTilesResolution().then( next => {
+      subscriber.next(next)
+    })
+  })
+  tileUpdateQueue: Observable<any> = new Observable( subscriber => {
+    subscriber.next()
+  })
   // attribute to display on HTML
   nearestTileId: string = '{x: 0, y: 0, z:0}'
   nearestTileDistance: number = 0
@@ -63,8 +74,20 @@ export class MapComponent implements OnInit, AfterViewInit {
     siblings: TileId[]
     siblingsExist: boolean
   }[] = []
+  
 
   ngOnInit(): void {
+    this.onUserUpdateCamera.pipe( switchMap( value => {
+      // delay to abandon frequent emissions
+      console.log('abandon');
+      
+      return of(value).pipe( delay(1000))
+    })).pipe( 
+      concatMap((ev) => this.tilesUpdateResolutionQueue.pipe(take(1)))
+    ).subscribe( value => {
+      console.log(value);
+      
+    })
   }
 
   async ngAfterViewInit() {
@@ -147,6 +170,8 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   addTileOnHtml = async (tiles: Tile[]) => {
+    console.log(tiles.map(tile => JSON.stringify(tile.id)).join('\n '));
+    
     this.tiles.push( ...tiles)
     const newTiles = await this.getTileMesh(tiles, this.tileService.initTileId)
     this.updateTileToRaycaster(this.tiles)
@@ -160,51 +185,73 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   onMouseScroll = async () => {
-    await this.updateTilesResolution()
+    // if (!this.isLoadingTile) {
+    //   this.isLoadingTile = true
+    //   console.log(this.isLoadingTile);
+      
+      this.onUserUpdateCamera.next(this.isLoadingTile)
+      // await this.updateTilesResolution()
+    // }
   }
 
   onMouseUp = async () => {
-    await this.updateTilesResolution()
+    // if (!this.isLoadingTile) {
+    //   this.isLoadingTile = true
+    //   console.log(this.isLoadingTile);
+      
+      this.onUserUpdateCamera.next(this.isLoadingTile)
+    //   await this.updateTilesResolution()
+    // }
   }
 
   updateTilesResolution = async () => {
-    const canvasCenter: Vector3| undefined = this.getCanvasCenter()
-    if (canvasCenter) {
-      const tilesToTurnDetail = this.tilesCloseToCanvasCenter(this.tiles, canvasCenter)    
-      const tilesToTurnBlur = this.tilesFarToCanvasCenter(this.tiles, canvasCenter)
+    const getMergingTiles = (fromTiles: Tile[], cameraPosition:Vector3, canvasCenter: Vector3) => {
+      const tilesFarToCamera = this.tilesFarToCamera(fromTiles, cameraPosition)  
+      const tilesToTurnBlur = this.tilesFarToCanvasCenter(fromTiles, canvasCenter)
+      const tilesToMerge:Tile[] = []
+      tilesToMerge.push(...tilesToTurnBlur, ...tilesFarToCamera)
+      const uniqueTilesToMerge:Tile[] = []
+      tilesToMerge.forEach( tile => {
+        const duplicate = uniqueTilesToMerge.some( uniqueTile => {
+          return this.tileService.isTileEqual(uniqueTile, tile)
+        })
+        if (!duplicate) {
+          uniqueTilesToMerge.push(tile)
+        }
+      })
+      const tilesSiblingsCanMerge = this.checkSiblingsCanMerge(tilesToMerge, canvasCenter)
+      return tilesSiblingsCanMerge
+    }
+    const splitTiles = async (fromTiles: Tile[], canvasCenter: Vector3) => {
+      const tilesToTurnDetail = this.tilesCloseToCanvasCenter(fromTiles, canvasCenter)  
       const cameraZoomedEnough = this.canTurnDetail(tilesToTurnDetail)
       if (tilesToTurnDetail) {
         if (cameraZoomedEnough) {
           try {
-            this.currentRoughTiles = tilesToTurnDetail
-            await this.removeTileOnHtml(tilesToTurnDetail)
+            this.currentRoughTiles = tilesToTurnDetail            
             await this.addDetailTileOnHtml(tilesToTurnDetail)
+            await this.removeTileOnHtml(tilesToTurnDetail)
             
           } catch (error) {
             console.warn('abandon removing ', tilesToTurnDetail.map( tile => JSON.stringify(tile.id)).join(', '));
           }
         }
-  
-        const tilesFarToCamera = this.tilesFarToCamera(this.tiles, this.camera.position)
-        const tilesToMerge:Tile[] = []
-        tilesToMerge.push(...tilesToTurnBlur, ...tilesFarToCamera)
-        const uniqueTilesToMerge:Tile[] = []
-        tilesToMerge.forEach( tile => {
-          const duplicate = uniqueTilesToMerge.some( uniqueTile => {
-            return this.tileService.isTileEqual(uniqueTile, tile)
-          })
-          if (!duplicate) {
-            uniqueTilesToMerge.push(tile)
-          }
-        })
-  
-  
-        const tilesSiblingsCanMerge = this.checkSiblingsCanMerge(tilesToMerge, canvasCenter)
-        await this.mergeTile(tilesSiblingsCanMerge)
+      }
+    }
+    // await lastValueFrom(of('').pipe(delay(500)))
+    const canvasCenter: Vector3| undefined = this.getCanvasCenter()
+    if (canvasCenter) {
+      await splitTiles(this.tiles, canvasCenter)
+      let tilesToMerge = getMergingTiles(this.tiles, this.camera.position, canvasCenter)
+      while (tilesToMerge.length !== 0) {          
+        await this.mergeTile(tilesToMerge)
+        tilesToMerge = getMergingTiles(this.tiles, this.camera.position, canvasCenter)
       }
 
     }
 
+    this.isLoadingTile = false    
+    return 'sovled'
   }
 
   tilesFarToCamera = (tiles: Tile[], camera: Vector3) => {
@@ -246,7 +293,12 @@ export class MapComponent implements OnInit, AfterViewInit {
       
       if (blurTileId.z > 7) {
         const blurTile: Tile = {id: blurTileId}
-        this.addTileOnHtml([blurTile])
+        await this.addTileOnHtml([blurTile])
+        if(blurTile.mesh) {
+          blurTile.mesh.traverse( object3d => {
+            object3d.visible = false
+          })
+        }
       }
     }
 
@@ -262,7 +314,15 @@ export class MapComponent implements OnInit, AfterViewInit {
       } else {
         throw new Error("incorrect tile mesh mapping");
       }
-    }    
+    }
+    for (const blurTileId of blurTileIds) {
+      const tile = this.tiles.find( tile => this.tileService.isTileIdEqual(tile.id, blurTileId))
+      if(tile?.mesh) {
+        tile.mesh.traverse( object3d => {
+          object3d.visible = true
+        })
+      }
+    }
   }
 
   checkSiblingsCanMerge = (tiles: Tile[], canvasCenter: Vector3) => {

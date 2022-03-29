@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Observable, of } from 'rxjs';
-import { BoxGeometry, Camera, Color, DirectionalLight, Intersection, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, Raycaster, Renderer, RepeatWrapping, Scene, ShaderMaterial, Texture, Vector2, WebGLRenderer, WebGLRenderTarget } from 'three';
+import { BoxGeometry, Camera, Color, DirectionalLight, Intersection, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, Raycaster, Renderer, RepeatWrapping, Scene, ShaderMaterial, Texture, Vector2, Vector3, WebGLRenderer, WebGLRenderTarget } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 @Injectable({
@@ -61,5 +61,8 @@ export class AnimateService {
   updateMouse = (mouse: Vector2) => {
     this.mouse = mouse
   }
+
+  getCanvasCenter = (): Vector3 | undefined => this.onCanvasIntersect.value[0]?.point
+
   
 }

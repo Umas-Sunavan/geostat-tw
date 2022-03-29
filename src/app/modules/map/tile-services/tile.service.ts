@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams, HttpParamsOptions } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { finalize, map, firstValueFrom } from 'rxjs';
+import { finalize, map, firstValueFrom, BehaviorSubject, switchMap, of, delay, concatMap, take, Observable } from 'rxjs';
 import { TileId } from 'src/app/shared/models/TileId';
 import { Tile } from 'src/app/shared/models/Tile';
 import { DoubleSide, Mesh, MeshStandardMaterial, PlaneGeometry, Texture, TextureLoader } from 'three';
@@ -11,7 +11,6 @@ import { DoubleSide, Mesh, MeshStandardMaterial, PlaneGeometry, Texture, Texture
 export class TileService {
 
   constructor(
-    private httpClient: HttpClient
   ) { }
 
   initTileId: TileId = {
@@ -20,36 +19,9 @@ export class TileService {
     z: 8
   }
 
-  textureMapppingCacheAndId: { texture: ArrayBuffer, id: TileId }[] = []
+  onUserUpdateCamera: BehaviorSubject<string> = new BehaviorSubject('')
 
-  getTextureFromCache = async (tileId: TileId) => {
-    const mappingInCache = this.textureMapppingCacheAndId.find(mapping => this.isTileIdEqual(tileId, mapping.id))
-
-    if (mappingInCache) {
-      console.log(mappingInCache);
-      return mappingInCache.texture
-    } else {
-      console.log('get from internet');
-
-      const newTexutre = await this.getTextureBuffer(tileId)
-      const newMapping = { id: tileId, texture: newTexutre }
-      this.textureMapppingCacheAndId.push(newMapping)
-      return newTexutre
-    }
-  }
-
-  getTextureBuffer = async (tileId: TileId): Promise<ArrayBuffer> => {
-    const options = {
-      responseType: 'arraybuffer' as const,
-    };
-    return firstValueFrom(this.httpClient.get(`https://tile.openstreetmap.org/${tileId.z}/${tileId.x}/${tileId.y}.png`, options))
-  }
-
-  getHeightTileSrc = (z: number, x: number, y: number) => {
-    console.log({ z, x, y });
-    return `http://localhost:3000/${z}/${x}/${y}.pngraw`
-    // return `https://api.mapbox.com/v4/mapbox.terrain-rgb/${z}/${x}/${y}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`
-  }
+  queueToUpdateResolution!: Observable<string>
 
   getTileIdsOfLevel8 = (initTileId: TileId): TileId[] => {
     const tiles = []
@@ -84,6 +56,27 @@ export class TileService {
     }
   }
 
+  initTileMeshById = (tileIds: TileId[], initTileId: TileId) => {
+    const tiles:Tile[] = []
+    for (const tileId of tileIds) {
+      const tileResolution = tileId.z
+      const rate = Math.pow(2, tileResolution - 8) // Magnificate Rate
+      const tileWidth = 12 / rate
+      const meshName = `planeZ${tileId.z}X${tileId.x}Y${tileId.y}`
+      const mesh = this.getPlane(tileWidth, meshName)
+      const initTileX = initTileId.x * rate
+      const initTileY = initTileId.y * rate
+      const offset = 0.5
+      mesh.position.setX(((tileId.x - initTileX + offset)) * tileWidth)
+      mesh.position.setZ(((tileId.y - initTileY + offset)) * tileWidth)
+      // mesh.position.setY(tileId.z * 0.3)
+      mesh.rotateX(-Math.PI * 0.5)
+      const tile:Tile = { id: tileId, mesh: mesh}
+      tiles.push(tile)
+    }
+    return tiles
+  }
+
   getPlane = (size: number = 50, planeName: string = 'planeDefalut') => {
     const planGeo = new PlaneGeometry(size, size, 100, 100)
     const planMaterial = new MeshStandardMaterial({ color: 0xffffff, side: DoubleSide })
@@ -92,17 +85,11 @@ export class TileService {
     return plane
   }
 
-  isTileEqual = (atile: Tile, bTile: Tile) => {
-    const sameX = atile.id.x === bTile.id.x
-    const sameY = atile.id.y === bTile.id.y
-    const sameZ = atile.id.z === bTile.id.z
-    return sameX && sameY && sameZ
-  }
-
-  isTileIdEqual = (aId: TileId, bId: TileId) => {
-    const sameX = aId.x === bId.x
-    const sameY = aId.y === bId.y
-    const sameZ = aId.z === bId.z
-    return sameX && sameY && sameZ
+  initOnUserUpdateResolution = () => {
+    this.onUserUpdateCamera.pipe(
+      switchMap(value => of(value).pipe(delay(1000))) // abandon too-frequent emission
+    ).pipe(
+      concatMap(() => this.queueToUpdateResolution.pipe(take(1))) // add emission to queue
+    ).subscribe()
   }
 }

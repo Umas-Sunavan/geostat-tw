@@ -67,8 +67,6 @@ export class TileService {
   checkSiblingsCanMerge = (tilesToCheck: Tile[], model:Tile[]) => {
     const _checkTilesAllExist = (tileIdsToCheck: TileId[]) => {
       const existMap = tileIdsToCheck.map(tileIdToCheck => {
-        // console.log(tileIdToCheck, tile.id);
-        
         const isExist = model.some(tile => this.tileUtilsService.isTileIdEqual(tileIdToCheck, tile.id))
         return { tile: tileIdToCheck, isExist: isExist }
       })
@@ -80,14 +78,6 @@ export class TileService {
       if (parentFromId) {
         const siblingIds = this.tileUtilsService.calculateChildTileIdsFromId(parentFromId)
         const siblingsExist = _checkTilesAllExist(siblingIds)
-        console.log('siblingsExist', tile);
-        
-        if (tile.mesh && siblingsExist) {
-          tile.mesh.position.setY(4)
-        }
-        if (tile.mesh && !siblingsExist) {
-          tile.mesh.position.setY(2)
-        }
         const siblingsAllFarToCanvasCenter = true
         return siblingsExist && siblingsAllFarToCanvasCenter
       } else {
@@ -143,6 +133,8 @@ export class TileService {
           tile.mesh.traverse(object3d => {
             object3d.visible = true
           })
+        } else {
+          throw new Error("incorrect tile mesh mapping");
         }
       }
     }
@@ -169,35 +161,49 @@ export class TileService {
     return tilesToMerge
   }
 
+  splitTiles = async (tilesToSplit:Tile[], _fromTiles: Tile[], scene:Scene) => {
+    const tileIdsToSplit = tilesToSplit.map( tile => tile.id)
+    _fromTiles = await this.tileUtilsService.addChildTile(tileIdsToSplit, _fromTiles, scene)
+    _fromTiles = this.tileUtilsService.removeTileByIds(tileIdsToSplit, _fromTiles, scene)
+    return _fromTiles
+  }
+
   updateTilesResolution = async (model: Tile[], scene:Scene, camera: Camera):Promise<Tile[]> => {
 
-    const splitTiles = async (fromTiles: Tile[], canvasCenter: Vector3) => {
-      const tilesToSplit = this.tileUtilsService.tilesCloseToCanvasCenter(fromTiles, canvasCenter)
-      const cameraZoomedEnough = this.tileUtilsService.isAnyTileCloseToCamera(tilesToSplit, camera)
-      if (tilesToSplit) {
-        if (cameraZoomedEnough) {
-          try {
-            const tileIdsToSplit = tilesToSplit.map( tile => tile.id)
-            model = await this.tileUtilsService.addChildTile(tileIdsToSplit, fromTiles, scene)
-            fromTiles = this.tileUtilsService.removeTileByIds(tileIdsToSplit, fromTiles, scene)
-          } catch (error) {
-            console.warn('abandon removing ', tilesToSplit.map(tile => JSON.stringify(tile.id)).join(', '));
-          }
+    const checkSplitTiles = async (fromTiles: Tile[], canvasCenter: Vector3) => {
+      let tilesToSplit = this.tileUtilsService.tilesCloseToCanvasCenter(fromTiles, canvasCenter)
+      let cameraZoomedEnough = this.tileUtilsService.isAnyTileCloseToCamera(tilesToSplit, camera)
+      let repeatCheck = tilesToSplit.length > 0 && cameraZoomedEnough
+      while (repeatCheck) {
+        try {
+          fromTiles = await this.splitTiles(tilesToSplit, fromTiles, scene)
+        } catch (error) {
+          console.warn('abandon removing ', tilesToSplit.map(tile => JSON.stringify(tile.id)).join(', '));
         }
+        cameraZoomedEnough = this.tileUtilsService.isAnyTileCloseToCamera(tilesToSplit, camera)
+        tilesToSplit = this.tileUtilsService.tilesCloseToCanvasCenter(fromTiles, canvasCenter)
+        repeatCheck = tilesToSplit.length > 0 && cameraZoomedEnough
       }
       return fromTiles
     }
+
+    const checkMergeTiles = async (_model: Tile[], canvasCenter: Vector3) => {
+      let tilesToMerge = this.getMergingTiles(_model, camera.position, canvasCenter)
+      while (tilesToMerge.length !== 0) {
+        try {
+          _model = await this.mergeTile(tilesToMerge, _model, scene)
+          tilesToMerge = this.getMergingTiles(_model, camera.position, canvasCenter)
+        } catch (error) {
+          console.warn('abandon merging')
+          console.warn(error)
+        }
+      }
+      return _model
+    }
     const canvasCenter: Vector3 | undefined = this.animateService.getCanvasCenter()
     if (canvasCenter) {
-      model = await splitTiles(model, canvasCenter)
-      let tilesToMerge = this.getMergingTiles(model, camera.position, canvasCenter)
-      while (tilesToMerge.length !== 0) {
-        console.log(tilesToMerge);
-        model = await this.mergeTile(tilesToMerge, model, scene)
-        await lastValueFrom(of(1000).pipe(delay(2000)))
-        tilesToMerge = this.getMergingTiles(model, camera.position, canvasCenter)
-        console.log(tilesToMerge);
-      }
+      model = await checkSplitTiles(model, canvasCenter)
+      model = await checkMergeTiles(model, canvasCenter)
     }
     return model
   }

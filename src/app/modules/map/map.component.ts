@@ -53,8 +53,8 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   initQueueToUpdateResolution = () => {
     this.queueToUpdateResolution = new Observable(subscriber => {
-      this.updateTilesResolution().then(next => {
-        subscriber.next(next)
+      this.updateTilesResolution(this.tiles).then(next => {
+        subscriber.next()
       })
     })
   }
@@ -174,7 +174,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.onUserUpdateCamera.next('')
   }
 
-  updateTilesResolution = async () => {
+  updateTilesResolution = async (model: Tile[]):Promise<Tile[]> => {
     const getMergingTiles = (fromTiles: Tile[], cameraPosition: Vector3, canvasCenter: Vector3) => {
       const tilesFarToCamera = this.tilesFarToCamera(fromTiles, cameraPosition)
       const tilesToTurnParent = this.tileUtilsService.tilesFarToCanvasCenter(fromTiles, canvasCenter)
@@ -199,18 +199,22 @@ export class MapComponent implements OnInit, AfterViewInit {
           }
         }
       }
+      return this.tiles
     }
     const canvasCenter: Vector3 | undefined = this.animateService.getCanvasCenter()
     if (canvasCenter) {
-      await splitTiles(this.tiles, canvasCenter)
-      let tilesToMerge = getMergingTiles(this.tiles, this.camera.position, canvasCenter)
+      model = await splitTiles(model, canvasCenter)
+      let tilesToMerge = getMergingTiles(model, this.camera.position, canvasCenter)
+      
       while (tilesToMerge.length !== 0) {
-        console.log(tilesToMerge);
-        await this.mergeTile(tilesToMerge)
-        tilesToMerge = getMergingTiles(this.tiles, this.camera.position, canvasCenter)
+        console.log('tilesToMerge', tilesToMerge);
+        console.log('model', model);
+        await this.mergeTile(tilesToMerge, model)
+        console.log('merged model', model);
+        tilesToMerge = getMergingTiles(model, this.camera.position, canvasCenter)
       }
     }
-    return ''
+    return model
   }
 
   tilesFarToCamera = (tiles: Tile[], camera: Vector3) => {
@@ -247,48 +251,60 @@ export class MapComponent implements OnInit, AfterViewInit {
     return uniqueArray
   }
 
-  mergeTile = async (tilesToMerge: Tile[]) => {
+  mergeTile = async (tilesToMerge: Tile[], model:Tile[]) => {
 
-    const addTilesByIds = async (tileIds: TileId[]) => {
+    const addTilesByIds = async (tileIds: TileId[], tiles: Tile[]) => {
       for (const tileId of tileIds) {
         if (tileId.z > 7) {
-          await this.addTilesById([tileId], this.tiles)
+          tiles = await this.addTilesById([tileId], tiles)
         }
       }
+      console.log(tiles);
+      return tiles
+      
     }
 
-    const hideTiles = async (tiles: Tile[]) => {
+    const hideTiles = (tiles: Tile[]) => {
       for (const tile of tiles) {
         if (tile.id.z > 7) {
           if (tile.mesh) {
             tile.mesh.traverse(object3d => {
               object3d.visible = false
             })
+          } else {
+            console.log(tiles);
+            
+            throw new Error("incorrect tile mesh mapping");
           }
         }
       }
+      return tiles
     }
 
-    const removeTiles = (tileIds: TileId[]) => {
+    const removeTiles = (tileIds: TileId[], tiles: Tile[]) => {
       for (const id of tileIds) {
-        const tile = this.tileUtilsService.getTileById(this.tiles, id)
+        const tile = this.tileUtilsService.getTileById(tiles, id)
         if (tile?.mesh) {
           if (tile.id.z > 8) {
-            this.tiles = this.tileUtilsService.removeTile(tile, this.tiles)
+            tiles = this.tileUtilsService.removeTile(tile, tiles)
+            console.log('did remove', tile.id);
           }
         } else {
           throw new Error("incorrect tile mesh mapping");
         }
       } 
+      return tiles
     }
 
-    const showTiles = (tileIds: TileId[]) => {
+    const showTiles = (tileIds: TileId[], tiles: Tile[]) => {
       for (const tileId of tileIds) {
-        const tile = this.tiles.find(tile => this.tileUtilsService.isTileIdEqual(tile.id, tileId))
+        const tile = tiles.find(tile => this.tileUtilsService.isTileIdEqual(tile.id, tileId))
         if (tile?.mesh) {
           tile.mesh.traverse(object3d => {
             object3d.visible = true
           })
+        } else {
+          throw new Error("incorrect tile mesh mapping");
         }
       }
     }
@@ -296,11 +312,17 @@ export class MapComponent implements OnInit, AfterViewInit {
     const parentTileIdsToAdd = tilesToMerge.map( parentTile => this.tileUtilsService.getIdFromChildTile(parentTile.id))
     const uniqueParentTileIdsToAdd = this.makeUniqueTiles(parentTileIdsToAdd)
     const childTileIds = this.tileUtilsService.calculateChildTileIdsFromIds(uniqueParentTileIdsToAdd)
-    const uniqueParentTileToAdd = uniqueParentTileIdsToAdd.map( tileId => {return {id: tileId} as Tile})
-    await addTilesByIds(uniqueParentTileIdsToAdd)
-    hideTiles(uniqueParentTileToAdd)
-    removeTiles(childTileIds)
-    showTiles(uniqueParentTileIdsToAdd)
+    let uniqueParentTileToAdd = uniqueParentTileIdsToAdd.map( tileId => {return {id: tileId} as Tile})
+    // console.log('start', model);
+    // console.log('uniqueParentTileToAdd', uniqueParentTileToAdd);
+    this.tiles = await addTilesByIds(uniqueParentTileIdsToAdd, this.tiles)
+    console.log('addTilesByIds', this.tiles, uniqueParentTileToAdd);
+    uniqueParentTileToAdd = hideTiles(uniqueParentTileToAdd)
+    this.tiles = removeTiles(childTileIds, this.tiles)
+    // console.log('removeTiles', childTileIds);
+    showTiles(uniqueParentTileIdsToAdd, this.tiles)
+    console.log('showTiles', this.tiles.length);
+    // return this.tiles
   }
 
   checkSiblingsCanMerge = (tiles: Tile[], canvasCenter: Vector3) => {

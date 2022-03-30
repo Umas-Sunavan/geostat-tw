@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Tile } from 'src/app/shared/models/Tile';
 import { TileId } from 'src/app/shared/models/TileId';
-import { Camera, Object3D, Scene, Vector3 } from 'three';
+import { Camera, DoubleSide, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Scene, Vector3 } from 'three';
+import { AnimateService } from '../three-services/animate.service';
+import { TextureService } from './texture.service';
 import { TileService } from './tile.service';
 
 @Injectable({
@@ -10,8 +12,15 @@ import { TileService } from './tile.service';
 export class TileUtilsService {
 
   constructor(
-    private tileService: TileService
+    private animateService:AnimateService,
+    private textureService: TextureService,
   ) { }
+
+  initTileId: TileId = {
+    x: 212,
+    y: 108,
+    z: 8
+  }
 
   // comparison
 
@@ -29,6 +38,40 @@ export class TileUtilsService {
     return sameX && sameY && sameZ
   }
 
+  tilesFilterDuplicateByIds = (array: TileId[]) => {
+    const uniqueArray: TileId[] = []
+    array.forEach(tileId => {
+        const isDuplicate = uniqueArray.some(id => this.isTileIdEqual(id, tileId))
+        if (!isDuplicate) {
+          uniqueArray.push(tileId)
+        }
+    })
+    return uniqueArray
+  }
+
+  tilesFilterDuplicate = (array: Tile[]) => {
+    const uniqueArray: Tile[] = []
+    array.forEach(tile => {
+        const isDuplicate = uniqueArray.some(uniqueTile => this.isTileIdEqual(tile.id, uniqueTile.id))
+        if (!isDuplicate) {
+          uniqueArray.push(tile)
+        }
+    })
+    return uniqueArray
+  }
+
+  tilesFarToCamera = (tiles: Tile[], camera: Vector3) => {
+    return tiles.filter(tile => {
+      if (tile.mesh) {
+        const distance = new Vector3().subVectors(tile.mesh.position, camera).length()
+        const threshold = this.getDistanceThresholdOfTileToCamera(tile)
+        return distance > threshold * 10
+      }
+      throw new Error("there are tiles missing mesh in runtime");
+
+    })
+  }
+
   // accessing
 
   getTileById = (fromTiles: Tile[], byId: TileId) => fromTiles.find(tile => {
@@ -42,7 +85,73 @@ export class TileUtilsService {
     const y = Math.floor(id.y / 2)
     return { z, x, y }
   }
+
+  // init tile
+
+  initTileMeshById = (tileIds: TileId[]) => {
+    const tiles:Tile[] = []
+    for (const tileId of tileIds) {
+      const tileResolution = tileId.z
+      const rate = Math.pow(2, tileResolution - 8) // Magnificate Rate
+      const tileWidth = 12 / rate
+      const meshName = `planeZ${tileId.z}X${tileId.x}Y${tileId.y}`
+      const mesh = this.getPlane(tileWidth, meshName)
+      const initTileX = this.initTileId.x * rate
+      const initTileY = this.initTileId.y * rate
+      const offset = 0.5
+      mesh.position.setX(((tileId.x - initTileX + offset)) * tileWidth)
+      mesh.position.setZ(((tileId.y - initTileY + offset)) * tileWidth)
+      // mesh.position.setY(tileId.z * 0.3)
+      mesh.rotateX(-Math.PI * 0.5)
+      const tile:Tile = { id: tileId, mesh: mesh}
+      tiles.push(tile)
+    }
+    return tiles
+  }
+
+  // add tile
+
+  addTilesById = async (tileIds: TileId[], tiles: Tile[], scene: Scene) => {
+    // including adding to the scene and model(binding data)
+    const newTiles = await this.getTileMeshById(tileIds)
+    tiles.push(...newTiles)
+    this.updateTileToRaycaster(tiles)
+    this.addTilesToScene(newTiles, scene)
+    return tiles
+  }
+
+  addChildTile = async (parentTileIds: TileId[], model: Tile[], scene:Scene) => {
+    const newTileIds = this.calculateChildTileIdsFromIds(parentTileIds)
+    model = await this.addTilesById(newTileIds, model, scene)
+    return model
+  }
+
+  addTilesToScene = (tiles: Tile[], scene: Scene) => {
+    tiles.forEach(tile => {
+      if (!tile.mesh) throw new Error("no mesh to add to scene");
+      const tile3d = tile.mesh as Object3D
+      scene.add(tile3d)
+    })
+  }
   
+  // create
+
+  getTileMeshById = async (tileIds: TileId[]) => {
+    const tiles = this.initTileMeshById(tileIds)
+    await this.textureService.applyMockTexture(tiles)
+    // await this.textureService.applyDisplacementTexture(tiles)
+    return tiles
+  }
+
+  getPlane = (size: number = 50, planeName: string = 'planeDefalut') => {
+    const planGeo = new PlaneGeometry(size, size, 100, 100)
+    const planMaterial = new MeshStandardMaterial({ color: 0xffffff, side: DoubleSide })
+    const plane = new Mesh(planGeo, planMaterial)
+    plane.name = planeName
+    return plane
+  }
+
+
   // remove tile
 
   removeTileFromModalById = (tileIdToRemove: TileId, array: Tile[]): Tile[] => array.filter(tile => !this.isTileIdEqual(tile.id, tileIdToRemove))
@@ -112,16 +221,16 @@ export class TileUtilsService {
     const rate = Math.pow(2, tile.id.z - 8) // Magnificate Rate
     const tileWidth = 1 / rate * 12
     const tileCenterOffset = tileWidth / 2
-    const tileCenterX = tileWidth * (tile.id.x - (this.tileService.initTileId.x * rate)) + tileCenterOffset
-    const tileCenterY = tileWidth * (tile.id.y - this.tileService.initTileId.y * rate) + tileCenterOffset
+    const tileCenterX = tileWidth * (tile.id.x - (this.initTileId.x * rate)) + tileCenterOffset
+    const tileCenterY = tileWidth * (tile.id.y - this.initTileId.y * rate) + tileCenterOffset
     return new Vector3(tileCenterX, 0, tileCenterY)
   }
 
   getTileCorner = (tile: Tile) => {
     const rate = Math.pow(2, tile.id.z - 8) // Magnificate Rate
     const tileWidth = 1 / rate * 12
-    const tileCenterX = tileWidth * (tile.id.x - (this.tileService.initTileId.x * rate))
-    const tileCenterY = tileWidth * (tile.id.y - this.tileService.initTileId.y * rate)
+    const tileCenterX = tileWidth * (tile.id.x - (this.initTileId.x * rate))
+    const tileCenterY = tileWidth * (tile.id.y - this.initTileId.y * rate)
     return new Vector3(tileCenterX, 0, tileCenterY)
   }
 
@@ -182,6 +291,13 @@ export class TileUtilsService {
       const tileCloseToCanvasCenter = tileCenterToCanvasCenter < tileCornerToOppositeCorner
       return tileCloseToCanvasCenter
     })
+  }
+
+  // update
+
+  updateTileToRaycaster = (tiles: Tile[]) => {
+    const objToDetectIntersect = tiles.map(tile => tile.mesh as Object3D)
+    this.animateService.passIntersetObject(objToDetectIntersect)
   }
 
 

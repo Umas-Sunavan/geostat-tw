@@ -13,7 +13,6 @@ import { TileService } from './tile.service';
 export class TextureService {
 
   constructor(
-    private tileUtilsService: TileUtilsService,
     private httpClient: HttpClient
   ) { }
 
@@ -32,7 +31,8 @@ export class TextureService {
   }
 
   getTextureFromCache = async (tileId: TileId) => {
-    const mappingInCache = this.textureMapppingCacheAndId.find(mapping => this.tileUtilsService.isTileIdEqual(tileId, mapping.id))
+    const mappingInCache = this.textureMapppingCacheAndId.find(mapping => 
+      this.isTileIdEqualInTextureService(tileId, mapping.id))
 
     if (mappingInCache) {
       console.log(mappingInCache);
@@ -210,6 +210,13 @@ export class TextureService {
     console.log({ z, x, y });
     return `http://localhost:3000/${z}/${x}/${y}.pngraw`
     // return `https://api.mapbox.com/v4/mapbox.terrain-rgb/${z}/${x}/${y}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`
+  }
+
+  isTileIdEqualInTextureService = (aId: TileId, bId: TileId) => {
+    const sameX = aId.x === bId.x
+    const sameY = aId.y === bId.y
+    const sameZ = aId.z === bId.z
+    return sameX && sameY && sameZ
   }
 
 }

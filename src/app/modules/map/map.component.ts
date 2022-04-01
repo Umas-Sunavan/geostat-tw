@@ -11,10 +11,16 @@ import { SceneService } from './three-services/scene.service';
 import { TileService } from './tile-services/tile.service';
 import { Tile } from 'src/app/shared/models/Tile';
 import { TextureService } from './tile-services/texture.service';
-import { BehaviorSubject, concatMap, delay, exhaustMap, filter, interval, last, lastValueFrom, map, Observable, of, Subject, Subscriber, switchMap, take, tap, timeout } from 'rxjs';
+import { BehaviorSubject, concatMap, delay, exhaustMap, filter, forkJoin, from, interval, last, lastValueFrom, map, mapTo, merge, mergeMap, Observable, of, Subject, Subscriber, switchMap, take, tap, timeout, timer } from 'rxjs';
 import { TileUtilsService } from './tile-services/tile-utils.service';
 import { Point } from 'src/app/shared/models/Point';
 import { TileLonglatCalculationService } from './tile-services/tile-longlat-calculation.service';
+import { GoogleSheetRawData } from 'src/app/shared/models/GoogleSheetRawData';
+import { HttpClient } from '@angular/common/http';
+import { GeoencodingRaw } from 'src/app/shared/models/Geoencoding';
+import { AddressTitleMapping } from 'src/app/shared/models/AddressTitleMapping';
+import { GeoencodingTitleMapping } from 'src/app/shared/models/GeoencodingTitleMapping';
+import { LonLatTitleMapping } from 'src/app/shared/models/AddressTitleMapping copy';
 
 
 @Component({
@@ -32,7 +38,8 @@ export class MapComponent implements OnInit, AfterViewInit {
     private lightService: LightService,
     private tileService: TileService,
     private tileUtilsService: TileUtilsService,
-    private tileLonLatCalculation: TileLonglatCalculationService
+    private tileLonLatCalculation: TileLonglatCalculationService,
+    private httpClient: HttpClient,
   ) {
     this.initQueueToUpdateResolution()
   }
@@ -79,6 +86,10 @@ export class MapComponent implements OnInit, AfterViewInit {
   async ngAfterViewInit() {
     this.initThree()
     await this.initTile()
+    this.getGoogleSheetInfo().subscribe( next => {
+      console.log(next);
+      
+    })
     this.points.push( 
     {
       id: 1,
@@ -245,5 +256,177 @@ export class MapComponent implements OnInit, AfterViewInit {
     mesh.position.set(point.position3d.x,normalizedHeight,point.position3d.z)
     return mesh
   }
+
+  getGoogleSheetInfo = (googeSheetId: string = '1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM'): Observable<LonLatTitleMapping[]> => {
+    console.log('googeSheetId: ', googeSheetId);
+    const options = {
+      responseType: 'text' as 'json',
+    };
+    return this.httpClient.get<GoogleSheetRawData>(`https://docs.google.com/spreadsheets/d/1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM/gviz/tq?`, options).pipe(
+      this.convertGoogleSheetToAddress,
+      this.convertAddressToRawGeoencoding,
+      this.convertGoogleGeoencodingToLonLat,
+      tap( value => console.log(value))
+      // this.filterMalfunctionStation,
+      // this.averageHeightInDuplicateDistrict,
+      // this.averageToneInDuplicateDistrict,
+      // this.filterDuplicatedDistrict,
+    )
+  }
+
+  convertGoogleGeoencodingToLonLat = map( (geometries: GeoencodingTitleMapping[]): LonLatTitleMapping[] => {
+      return geometries.map( eachGeometry => {
+        const location = eachGeometry.raw.results[0].geometry.location
+        return {lonLat: new Vector2(location.lat, location.lng), title: eachGeometry.title}
+      })
+  })
+
+  convertAddressToRawGeoencoding = mergeMap( (next: AddressTitleMapping[]): Observable<GeoencodingTitleMapping[]>=> {
+      let allRequests = next.map(({title, address}) => {
+        const encodedAddress = encodeURIComponent(address)
+        const request = this.getGeoLonLat(encodedAddress, title)
+        return request
+      });
+      const groups = this.groupRequest(allRequests)
+      return from(groups).pipe( concatMap( forEachGroup => forkJoin(forEachGroup)))
+  })
+
+  groupRequest = (rqs:Observable<{raw: GeoencodingRaw, title: string}>[]): Observable<{raw: GeoencodingRaw, title: string}>[][] => {
+    const groups = []        
+    for (let i = 0; i < rqs.length; i+=10) {
+      const emptyGroup = new Array(10).fill(i)
+      const mappedGroup = emptyGroup.map( (groupId, index) => rqs[groupId + index])
+      const solidGroup = mappedGroup.filter( (rq) => Boolean(rq) )
+      groups.push(solidGroup)
+    }
+    return groups
+  }
+
+  getGeoLonLat = (address: string, title: string): Observable<{raw: GeoencodingRaw, title: string}> => {
+    return this.httpClient.get<GeoencodingRaw>(`https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=AIzaSyAAQr-IWEpmXbcOk3trYWMMcasLuIBZ280`)
+    .pipe( map( next => {return {raw: next, title: title}}))
+  }
+
+  getMockGeoLonLat = (address: string, title: string): Observable<{raw: GeoencodingRaw, title: string}> => {
+    let randomDelay = Math.floor(Math.random()*5000)
+    return of(
+      {"results": [
+        {
+            "address_components": [
+                {
+                    "long_name": "2樓",
+                    "short_name": "2樓",
+                    "types": [
+                        "subpremise"
+                    ]
+                },
+                {
+                    "long_name": "3號",
+                    "short_name": "3號",
+                    "types": [
+                        "street_number"
+                    ]
+                },
+                {
+                    "long_name": "Beiping West Road",
+                    "short_name": "Beiping W Rd",
+                    "types": [
+                        "route"
+                    ]
+                },
+                {
+                    "long_name": "黎明里",
+                    "short_name": "黎明里",
+                    "types": [
+                        "administrative_area_level_4",
+                        "political"
+                    ]
+                },
+                {
+                    "long_name": "Zhongzheng District",
+                    "short_name": "Zhongzheng District",
+                    "types": [
+                        "administrative_area_level_3",
+                        "political"
+                    ]
+                },
+                {
+                    "long_name": "Taipei City",
+                    "short_name": "Taipei City",
+                    "types": [
+                        "administrative_area_level_1",
+                        "political"
+                    ]
+                },
+                {
+                    "long_name": "Taiwan",
+                    "short_name": "TW",
+                    "types": [
+                        "country",
+                        "political"
+                    ]
+                },
+                {
+                    "long_name": "100",
+                    "short_name": "100",
+                    "types": [
+                        "postal_code"
+                    ]
+                }
+            ],
+            "formatted_address": "100, Taiwan, Taipei City, Zhongzheng District, Beiping W Rd, 3號2樓",
+            "geometry": {
+                "location": {
+                    "lat": 25.0477467,
+                    "lng": 121.5169983
+                },
+                "location_type": "ROOFTOP",
+                "viewport": {
+                    "northeast": {
+                        "lat": 25.0490956802915,
+                        "lng": 121.5183472802915
+                    },
+                    "southwest": {
+                        "lat": 25.04639771970849,
+                        "lng": 121.5156493197085
+                    }
+                }
+            },
+            "place_id": "ChIJxeVZh3KpQjQR0ESgIfL9Ug0",
+            "types": [
+                "subpremise"
+            ]
+        }
+      ],
+        "status": "OK"
+      } as GeoencodingRaw).pipe( delay(randomDelay), map( next => {return {raw: next, title: title}}))
+  }
+  
+  convertGoogleSheetToAddress = map((rawdata): AddressTitleMapping[] => {
+    rawdata = this.removeExtraText(rawdata as string)    
+    const raw = <GoogleSheetRawData>JSON.parse(rawdata as string)    
+    const titleandAddress: any[] = raw.table.rows
+      .filter((row, index) => row.c[0]?.v !== '落點名稱')
+      .map((row, index) => {
+        let title = ""
+        let address = ""
+        if (row.c) {
+          title = row.c[0].v
+          address = row.c[1].v
+        } 
+        return {
+          title,
+          address,
+        }
+      })
+    return titleandAddress
+  })
+
+  removeExtraText = (text:string) => {
+    const tokenToReplaceOnStart = `/*O_o*/\ngoogle.visualization.Query.setResponse(`
+    const tokenToReplaceOnend = `);`
+    return text.replace(tokenToReplaceOnStart, '').replace(tokenToReplaceOnend, '')
+  }
+
 
 }

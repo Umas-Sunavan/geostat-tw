@@ -1,2 +1,19 @@
 <p>map works!</p>
 <div #canvasContainer class="canvas-container"></div>
+<div class="slidecontainer">
+    <label for="wireframeOpacity">wireframeOpacity: {{wireframeOpacity}}</label>
+    <input type="range" min="0" max="1" value="0.1" step="0.01" id="wireframeOpacity" 
+    (change)="sliderChange($event, 'wireframeOpacity')" [(ngModel)]="wireframeOpacity">
+
+    <label for="color">color: {{color}}</label>
+    <input type="color" value="#ff0000" id="color" 
+    (change)="sliderChange($event, 'color')" [(ngModel)]="color">
+    
+    <label for="normalBlending">normalBlending: {{normalBlendingOpacity}}</label>
+    <input type="range" min="0" max="1" value="0.1" step="0.01" id="normalBlending" 
+    (change)="sliderChange($event, 'normalBlending')" [(ngModel)]="normalBlendingOpacity">
+    
+    <label for="additiveBlending">additiveBlending: {{additiveBlendingOpacity}}</label>
+    <input type="range" min="0" max="1" value="0.1" step="0.01" id="additiveBlending" 
+    (change)="sliderChange($event, 'additiveBlending')" [(ngModel)]="additiveBlendingOpacity">
+</div>

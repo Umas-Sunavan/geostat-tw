@@ -9,6 +9,7 @@ import { FooterComponent } from './core/layouts/footer/footer/footer.component';
 import { MapComponent } from './modules/map/map.component';
 import { DashboardComponent } from './modules/dashboard/dashboard.component';
 import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -18,11 +19,13 @@ import { HttpClientModule } from '@angular/common/http';
     AuthComponent,
     HeaderComponent,
     FooterComponent,
+    
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
+    FormsModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

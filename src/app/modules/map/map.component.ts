@@ -18,9 +18,10 @@ import { TileLonglatCalculationService } from './tile-services/tile-longlat-calc
 import { GoogleSheetRawData } from 'src/app/shared/models/GoogleSheetRawData';
 import { HttpClient } from '@angular/common/http';
 import { GeoencodingRaw } from 'src/app/shared/models/Geoencoding';
-import { AddressTitleMapping } from 'src/app/shared/models/AddressTitleMapping';
-import { GeoencodingTitleMapping } from 'src/app/shared/models/GeoencodingTitleMapping';
-import { LonLatTitleMapping } from 'src/app/shared/models/AddressTitleMapping copy';
+import { PointFromSheet } from 'src/app/shared/models/PointFromSheet';
+import { PointDataMappingLonLat } from 'src/app/shared/models/PointDataMappingLonLat';
+import { PointDataMappingGeoencodingRaw as PointDataMappingGeoencodingRaw } from 'src/app/shared/models/PointFromSheetMappingGeoendodingRaw';
+import { PointDataService } from './point-services/point-data.service';
 
 
 @Component({
@@ -39,7 +40,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     private tileService: TileService,
     private tileUtilsService: TileUtilsService,
     private tileLonLatCalculation: TileLonglatCalculationService,
-    private httpClient: HttpClient,
+    private pointDataService: PointDataService,
   ) {
     this.initQueueToUpdateResolution()
   }
@@ -60,6 +61,12 @@ export class MapComponent implements OnInit, AfterViewInit {
   queueToUpdateResolution!: Observable<string>
   tilesToMerge: Tile[] = []
   points: Point[] = []
+
+  // view
+  wireframeOpacity = 0.1
+  additiveBlendingOpacity = 0.1
+  normalBlendingOpacity = 0.1
+  color = '#ff0000'
   
 
   initQueueToUpdateResolution = () => {
@@ -69,6 +76,55 @@ export class MapComponent implements OnInit, AfterViewInit {
         subscriber.next()
       })
     })
+  }
+
+  sliderChange = (event: Event, option:string) => {
+    console.log(event, option);
+    switch (option) {
+      case 'wireframeOpacity':
+        this.points.forEach( point => {
+          point.mesh?.children.forEach( child => {
+            const isWireframe = child.name.match('wireframe')
+            if(isWireframe) {
+              console.log(child, isWireframe);
+              (<Mesh<CylinderGeometry, MeshPhongMaterial>>child).material.opacity = this.wireframeOpacity
+            }
+          })
+        })
+        break;
+      case 'normalBlending':
+        this.points.forEach( point => {
+          point.mesh?.children.forEach( child => {
+            const iSnormalBlending = child.name.match('normalBlending')
+            if(iSnormalBlending) {
+              console.log(child, iSnormalBlending);
+              (<Mesh<CylinderGeometry, MeshPhongMaterial>>child).material.opacity = this.normalBlendingOpacity
+            }
+          })
+        })
+      break;
+      case 'additiveBlending':
+        this.points.forEach( point => {
+          point.mesh?.children.forEach( child => {
+            const isAdditiveBlending = child.name.match('additiveBlending')
+            if(isAdditiveBlending) {
+              console.log(child, isAdditiveBlending);
+              (<Mesh<CylinderGeometry, MeshPhongMaterial>>child).material.opacity = this.additiveBlendingOpacity
+            }
+          })
+        })
+        break;
+      case 'color':
+        this.points.forEach( point => {
+          point.mesh?.children.forEach( child => {
+              (<Mesh<CylinderGeometry, MeshPhongMaterial>>child).material.color = new Color(this.color)
+          })
+        })
+        break;
+    
+      default:
+        break;
+    }
   }
 
   ngOnInit(): void {
@@ -86,57 +142,38 @@ export class MapComponent implements OnInit, AfterViewInit {
   async ngAfterViewInit() {
     this.initThree()
     await this.initTile()
-    this.getGoogleSheetInfo().subscribe( next => {
-      console.log(next);
-      
+    this.pointDataService.getGoogleSheetInfo().subscribe( dataFromSheet => {
+      const pointsData = this.formatPointsData(dataFromSheet)
+      this.points.push(...pointsData)
+      this.updatePoints(this.points)
     })
-    this.points.push( 
-    {
-      id: 1,
-      height: 5,
-      color: 0xff195d,
-      title: 'title',
-      address: 'address',
-      position3d: new Vector3(20,0,30),
-      positionTile: undefined,
-      positionLongLat: new Vector2(121.54155193158469, 25.060983371449666),
-      radius: 1
-    },
-    {
-      id: 2,
-      height: 5,
-      color: 0xff195d,
-      title: 'title',
-      address: 'address',
-      position3d: new Vector3(20,0,30),
-      positionTile: undefined,
-      positionLongLat: new Vector2(121.2871497245233, 25.01171859638522),
-      radius: 1
-    },
-    {
-      id: 3,
-      height: 5,
-      color: 0xff195d,
-      title: 'title',
-      address: 'address',
-      position3d: new Vector3(20,0,30),
-      positionTile: undefined,
-      positionLongLat: new Vector2(121.6352790037705, 24.993671939788907),
-      radius: 1
-    },
-    {
-      id: 4,
-      height: 5,
-      color: 0xff195d,
-      title: 'title',
-      address: 'address',
-      position3d: new Vector3(20,0,30),
-      positionTile: undefined,
-      positionLongLat: new Vector2(121.00113193826485, 24.802894365600768),
-      radius: 1
+  }
+
+  formatPointsData = (dataFromSheet: PointDataMappingLonLat[]):Point[] => {
+    const formatPosition3d = (lonLat: Vector2) => {
+      return new Vector3(lonLat.x, 0 , lonLat.y)
     }
-      )
-    this.initPoints(this.points)
+    const formatTilePosition = (lonLat: Vector2) => {
+      const lon = lonLat.x
+      const lat = lonLat.y
+      const tileX = this.tileLonLatCalculation.lat2tile(lat, 8)
+      const tileY = this.tileLonLatCalculation.lon2tile(lon, 8)
+      return new Vector2(tileX, tileY)
+    }
+
+    return dataFromSheet.map( point => {
+      return {
+        id: point.pointData.id,
+        height: 0.3,
+        color: 0xff195d,
+        title: point.pointData.title,
+        address: point.pointData.address,
+        position3d: formatPosition3d(point.lonLat),
+        positionTile: formatTilePosition(point.lonLat),
+        positionLongLat: point.lonLat,
+        radius: 0.1
+      }
+    })
   }
 
   getBox = () => {
@@ -162,8 +199,8 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.plane = this.tileUtilsService.getPlane()
     this.plane.rotateX(-Math.PI * 0.5)
     this.plane.position.setY(-0.1)
-    this.scene.add(this.box)
-    this.scene.add(this.plane)
+    // this.scene.add(this.box)
+    // this.scene.add(this.plane)
 
     this.animateService.onFrameRender.subscribe(({ renderer, raycaster }) => {
       // console.log(this.camera.position);
@@ -187,18 +224,23 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   onMouseScroll = async () => {
-    // this.onUserUpdateCamera.next('')
+    this.onUserUpdateCamera.next('')
   }
 
   onMouseUp = async () => {
-    // this.onUserUpdateCamera.next('')
+    this.onUserUpdateCamera.next('')
   }
 
-  initPoints = (points: Point[]) => {
+  updatePoints = (points: Point[]) => {
     points.forEach( point => {
-      if (!point.positionLongLat) throw new Error("No Longitude or latitude when converting to position 3D");
+      if (!point.mesh) return
+      point.mesh.removeFromParent()
+    })
+    points.forEach( point => {
+      if (!point.positionLongLat) throw new Error("No Longitude or latitude");
       point.position3d = this.longLatToPosition3d(point.positionLongLat)
       const columnGroup = this.getColumn3dLayers(point)
+      point.mesh = columnGroup      
       this.scene.add(columnGroup)
     })
   }
@@ -210,37 +252,41 @@ export class MapComponent implements OnInit, AfterViewInit {
     const tileY = this.tileLonLatCalculation.lat2tile(lat,8)
     const scenePositionX = (tileX - this.tileUtilsService.initTileId.x) * 12
     const scenePositionY = (tileY - this.tileUtilsService.initTileId.y) * 12
-    console.log(scenePositionX, scenePositionY);
     const position = new Vector3(scenePositionX, 0, scenePositionY)
     return position
   }
 
   getColumn3dLayers = (point: Point) => {
     const group = new THREE.Group();
-    const origionalMesh = this.getColumn3d(point, THREE.NormalBlending, false)
-    const lightingMesh = this.getColumn3d(point, THREE.AdditiveBlending, false)
-    const wireframe = this.getColumn3d(point, THREE.NormalBlending, true)
+    const origionalMesh = this.getColumn3d(point, THREE.NormalBlending, false, `column_${point.id}_normalBlending`, 0.2, this.color)
+    const lightingMesh = this.getColumn3d(point, THREE.AdditiveBlending, false, `column_${point.id}_additiveBlending`, 0.2, this.color)
+    const edges = new THREE.EdgesGeometry( origionalMesh.geometry );
+    const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 0.4, transparent: true } ) );
+    group.add( line );
     group.add(origionalMesh)
     group.add(lightingMesh)
-    group.add(wireframe)
     return group
   }
 
-  getColumn3d = (point: Point, blending: any, wireframe: boolean):Mesh<CylinderGeometry, MeshPhongMaterial> => {
+  getColumn3d = (point: Point, blending: any, wireframe: boolean, name:string, opacity: number, color: string):Mesh<CylinderGeometry, MeshPhongMaterial> => {
     if (!point.position3d) throw new Error("No Longitude or latitude when initing mesh");
     let material
+    const colorR = color.slice(1,3)
+    const colorG = color.slice(3,5)
+    const colorB = color.slice(5,7)
+    const colorNumber = `0x${colorR}${colorG}${colorB}`
     if (wireframe) {
       material = new MeshPhongMaterial( {
         transparent: true,
         opacity: 0.05,
-        color: 0x000000,
+        color: parseInt(colorNumber, 16),
         wireframe: true,
       })
     } else {
       material = new MeshPhongMaterial( {
         transparent: true,
         opacity: 0.2,
-        color: point.color,
+        color: parseInt(colorNumber, 16),
         blending: blending,
         side: DoubleSide
       })
@@ -250,61 +296,12 @@ export class MapComponent implements OnInit, AfterViewInit {
     const height = point.height
     const radialSegments = 18
     const heightSegments = 5
-    const geometry = new CylinderGeometry( bottomRadius, topRadius, height, radialSegments, heightSegments, true, )
+    const geometry = new CylinderGeometry( bottomRadius, topRadius, height, radialSegments, heightSegments, false, )
     const mesh = new Mesh(geometry, material)
     const normalizedHeight = point.position3d.y + height / 2
-    mesh.position.set(point.position3d.x,normalizedHeight,point.position3d.z)
+    mesh.geometry.translate(point.position3d.x,normalizedHeight-0.01,point.position3d.z)
+    mesh.name = name
     return mesh
-  }
-
-  getGoogleSheetInfo = (googeSheetId: string = '1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM'): Observable<LonLatTitleMapping[]> => {
-    console.log('googeSheetId: ', googeSheetId);
-    const options = {
-      responseType: 'text' as 'json',
-    };
-    return this.httpClient.get<GoogleSheetRawData>(`https://docs.google.com/spreadsheets/d/1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM/gviz/tq?`, options).pipe(
-      this.convertGoogleSheetToAddress,
-      this.convertAddressToRawGeoencoding,
-      this.convertGoogleGeoencodingToLonLat,
-      tap( value => console.log(value))
-      // this.filterMalfunctionStation,
-      // this.averageHeightInDuplicateDistrict,
-      // this.averageToneInDuplicateDistrict,
-      // this.filterDuplicatedDistrict,
-    )
-  }
-
-  convertGoogleGeoencodingToLonLat = map( (geometries: GeoencodingTitleMapping[]): LonLatTitleMapping[] => {
-      return geometries.map( eachGeometry => {
-        const location = eachGeometry.raw.results[0].geometry.location
-        return {lonLat: new Vector2(location.lat, location.lng), title: eachGeometry.title}
-      })
-  })
-
-  convertAddressToRawGeoencoding = mergeMap( (next: AddressTitleMapping[]): Observable<GeoencodingTitleMapping[]>=> {
-      let allRequests = next.map(({title, address}) => {
-        const encodedAddress = encodeURIComponent(address)
-        const request = this.getGeoLonLat(encodedAddress, title)
-        return request
-      });
-      const groups = this.groupRequest(allRequests)
-      return from(groups).pipe( concatMap( forEachGroup => forkJoin(forEachGroup)))
-  })
-
-  groupRequest = (rqs:Observable<{raw: GeoencodingRaw, title: string}>[]): Observable<{raw: GeoencodingRaw, title: string}>[][] => {
-    const groups = []        
-    for (let i = 0; i < rqs.length; i+=10) {
-      const emptyGroup = new Array(10).fill(i)
-      const mappedGroup = emptyGroup.map( (groupId, index) => rqs[groupId + index])
-      const solidGroup = mappedGroup.filter( (rq) => Boolean(rq) )
-      groups.push(solidGroup)
-    }
-    return groups
-  }
-
-  getGeoLonLat = (address: string, title: string): Observable<{raw: GeoencodingRaw, title: string}> => {
-    return this.httpClient.get<GeoencodingRaw>(`https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=AIzaSyAAQr-IWEpmXbcOk3trYWMMcasLuIBZ280`)
-    .pipe( map( next => {return {raw: next, title: title}}))
   }
 
   getMockGeoLonLat = (address: string, title: string): Observable<{raw: GeoencodingRaw, title: string}> => {
@@ -400,32 +397,6 @@ export class MapComponent implements OnInit, AfterViewInit {
       ],
         "status": "OK"
       } as GeoencodingRaw).pipe( delay(randomDelay), map( next => {return {raw: next, title: title}}))
-  }
-  
-  convertGoogleSheetToAddress = map((rawdata): AddressTitleMapping[] => {
-    rawdata = this.removeExtraText(rawdata as string)    
-    const raw = <GoogleSheetRawData>JSON.parse(rawdata as string)    
-    const titleandAddress: any[] = raw.table.rows
-      .filter((row, index) => row.c[0]?.v !== '落點名稱')
-      .map((row, index) => {
-        let title = ""
-        let address = ""
-        if (row.c) {
-          title = row.c[0].v
-          address = row.c[1].v
-        } 
-        return {
-          title,
-          address,
-        }
-      })
-    return titleandAddress
-  })
-
-  removeExtraText = (text:string) => {
-    const tokenToReplaceOnStart = `/*O_o*/\ngoogle.visualization.Query.setResponse(`
-    const tokenToReplaceOnend = `);`
-    return text.replace(tokenToReplaceOnStart, '').replace(tokenToReplaceOnend, '')
   }
 
 

@@ -65,7 +65,7 @@ export class TileUtilsService {
       if (tile.mesh) {
         const distance = new Vector3().subVectors(tile.mesh.position, camera).length()
         const threshold = this.getDistanceThresholdOfTileToCamera(tile)
-        return distance > threshold * 10
+        return distance > threshold * 20
       }
       throw new Error("there are tiles missing mesh in runtime");
 
@@ -138,7 +138,8 @@ export class TileUtilsService {
 
   getTileMeshById = async (tileIds: TileId[]) => {
     const tiles = this.initTileMeshById(tileIds)
-    await this.textureService.applyTexture(tiles)
+    // await this.textureService.applyTexture(tiles)
+    await this.textureService.applyMockTexture(tiles)
     // await this.textureService.applyDisplacementTexture(tiles)
     return tiles
   }
@@ -253,6 +254,8 @@ export class TileUtilsService {
     }
     const lengthMapping = _getTileCameraDistances(tiles)
     const canTrunChild = lengthMapping.some(({ tile, distance }) => {
+      console.log(tile.id.z, this.getDistanceThresholdOfTileToCamera(tile));
+      
       return distance < this.getDistanceThresholdOfTileToCamera(tile)
     })
     return canTrunChild
@@ -261,11 +264,11 @@ export class TileUtilsService {
   getDistanceThresholdOfTileToCamera = (tile: Tile) => {
     switch (tile.id.z) {
       case 9:
-        return 8
+        return 4
       case 8:
-        return 20
+        return 10
       default:
-        return 20 / ((tile.id.z - 8) * (tile.id.z - 8)) - 1 / (tile.id.z - 8) - 0.14
+        return 10 / ((tile.id.z - 8) * (tile.id.z - 8)) - 1 / (tile.id.z - 8) - 0.14
     }
   }
 

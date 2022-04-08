@@ -21,7 +21,9 @@ import { GeoencodingRaw } from 'src/app/shared/models/Geoencoding';
 import { PointFromSheet } from 'src/app/shared/models/PointFromSheet';
 import { PointDataMappingLonLat } from 'src/app/shared/models/PointDataMappingLonLat';
 import { PointDataMappingGeoencodingRaw as PointDataMappingGeoencodingRaw } from 'src/app/shared/models/PointFromSheetMappingGeoendodingRaw';
-import { PointDataService } from './point-services/point-data.service';
+import { PointLocationsService } from './point-services/point-locations.service';
+import { PointDimensionService } from './point-services/point-dimension.service';
+
 
 
 @Component({
@@ -40,7 +42,8 @@ export class MapComponent implements OnInit, AfterViewInit {
     private tileService: TileService,
     private tileUtilsService: TileUtilsService,
     private tileLonLatCalculation: TileLonglatCalculationService,
-    private pointDataService: PointDataService,
+    private pointDataService: PointLocationsService,
+    private pointDimensionService: PointDimensionService,
   ) {
     this.initQueueToUpdateResolution()
   }
@@ -127,8 +130,12 @@ export class MapComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.initOnUserUpdateResolution()
+    this.pointDimensionService.loadDimensions().subscribe( next => {
+      console.log(next);
+    })
+    this.pointDimensionService.writeUserData()
   }
 
   initOnUserUpdateResolution = () => {

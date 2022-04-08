@@ -11,7 +11,7 @@ import { Vector2 } from 'three';
 @Injectable({
   providedIn: 'root'
 })
-export class PointDataService {
+export class PointLocationsService {
 
   constructor(
     private httpClient: HttpClient,

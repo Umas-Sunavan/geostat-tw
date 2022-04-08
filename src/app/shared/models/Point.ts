@@ -1,4 +1,4 @@
-import { Mesh, MeshBasicMaterial, MeshPhongMaterial, MeshStandardMaterial, PlaneGeometry, Vector2, Vector3 } from "three";
+import { Group, Mesh, MeshBasicMaterial, MeshPhongMaterial, MeshStandardMaterial, PlaneGeometry, Vector2, Vector3 } from "three";
 import { TileId } from "./TileId";
 
 export interface Point {
@@ -11,5 +11,5 @@ export interface Point {
     position3d?: Vector3;
     positionTile?: Vector2;
     positionLongLat?: Vector2;
-    mesh?: Mesh<PlaneGeometry, MeshStandardMaterial>
+    mesh?: Group
 }

@@ -9,11 +9,13 @@ export interface GoogleSheetRawData {
         label: string;
         type: string;
       }[];
-      rows: {
-        c: {
-          v: string;
-        }[];
-      }[];
+      rows: PointDataRowInSheet[];
       parsedNumHeaders: number;
     }
+}
+
+export interface PointDataRowInSheet {
+  c: {
+    v: string;
+  }[];
 }

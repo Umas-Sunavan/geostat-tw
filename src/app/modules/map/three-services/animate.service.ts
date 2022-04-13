@@ -15,6 +15,11 @@ export class AnimateService {
   mouseRaycaster = new Raycaster();
   cavasCenterRaycaster = new Raycaster()
   intersectedObjs: Object3D[] = []
+  isPaused: boolean = false
+  renderer?: WebGLRenderer
+  scene?: Scene
+  camera?: Camera
+  orbitControl?: OrbitControls
   mouse?: Vector2
 
   constructor(
@@ -22,20 +27,30 @@ export class AnimateService {
   }
 
 
-  animate = (renderer: WebGLRenderer, scene: Scene, camera: Camera, orbitControl: OrbitControls, mouse: Vector2, frameMax: number = 3600) => {
-    if (renderer.info.render.frame > frameMax) return
-    this.mouseRaycaster.setFromCamera(mouse, camera);
+  animate = (frameMax: number = 36000) => {
+    if(!this.renderer||!this.scene||!this.camera||!this.orbitControl||!this.mouse) return
+    if (this.renderer.info.render.frame > frameMax) return
+    if (this.isPaused) return 
+    this.mouseRaycaster.setFromCamera(this.mouse, this.camera);
     
-    this.cavasCenterRaycaster.setFromCamera(new Vector2(0,0), camera);
+    this.cavasCenterRaycaster.setFromCamera(new Vector2(0,0), this.camera);
     requestAnimationFrame(() => {
-      this.animate(renderer, scene, camera, orbitControl, mouse)
-      this.onFrameRender.next({ renderer: renderer, raycaster: this.mouseRaycaster })
+      this.animate()
+      if(!this.renderer) return
+      this.onFrameRender.next({ renderer: this.renderer, raycaster: this.mouseRaycaster })
     });
 
-    renderer.render(scene, camera);
+    this.renderer.render(this.scene, this.camera);
 
     // orbitControl.update()
     this.onIntersections()
+  }
+
+  pauseAnimation = () => this.isPaused = true
+
+  resumeAnimation = () => {
+    this.isPaused = false
+    this.animate()
   }
 
   onIntersections = () => {
@@ -50,16 +65,17 @@ export class AnimateService {
     
   }
 
-  initAnimate = (renderer: WebGLRenderer) => {
+  initAnimate = (renderer: WebGLRenderer, scene: Scene, camera: Camera, orbitControl: OrbitControls, mouse: Vector2) => {
     this.onFrameRender = new BehaviorSubject({ renderer: renderer, raycaster: this.mouseRaycaster })
+    this.renderer = renderer
+    this.scene = scene
+    this.camera = camera
+    this.orbitControl = orbitControl
+    this.mouse = mouse
   }
 
   passIntersetObject = (objects: Object3D[]) => {
     this.intersectedObjs = objects
-  }
-
-  updateMouse = (mouse: Vector2) => {
-    this.mouse = mouse
   }
 
   getCanvasCenter = (): Vector3 | undefined => this.onCanvasIntersect.value[0]?.point

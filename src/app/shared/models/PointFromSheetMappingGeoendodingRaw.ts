@@ -1,7 +1,7 @@
-import { PointFromSheet } from "./PointFromSheet";
+import { GoogleSheetPin } from "./PointFromSheet";
 import { GeoencodingRaw } from "./Geoencoding";
 
-export interface PointDataMappingGeoencodingRaw {
-    pointData: PointFromSheet;
+export interface GoogleSheetPinMappingGeoencodingRaw {
+    pointData: GoogleSheetPin;
     geoencodingRaw: GeoencodingRaw
 }

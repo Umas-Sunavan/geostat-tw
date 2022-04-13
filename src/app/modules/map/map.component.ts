@@ -13,16 +13,18 @@ import { Tile } from 'src/app/shared/models/Tile';
 import { TextureService } from './tile-services/texture.service';
 import { BehaviorSubject, concatMap, delay, exhaustMap, filter, forkJoin, from, interval, last, lastValueFrom, map, mapTo, merge, mergeMap, Observable, of, Subject, Subscriber, switchMap, take, tap, timeout, timer } from 'rxjs';
 import { TileUtilsService } from './tile-services/tile-utils.service';
-import { Point } from 'src/app/shared/models/Point';
+import { Pin } from 'src/app/shared/models/Point';
 import { TileLonglatCalculationService } from './tile-services/tile-longlat-calculation.service';
 import { GoogleSheetRawData } from 'src/app/shared/models/GoogleSheetRawData';
 import { HttpClient } from '@angular/common/http';
 import { GeoencodingRaw } from 'src/app/shared/models/Geoencoding';
-import { PointFromSheet } from 'src/app/shared/models/PointFromSheet';
-import { PointDataMappingLonLat } from 'src/app/shared/models/PointDataMappingLonLat';
-import { PointDataMappingGeoencodingRaw as PointDataMappingGeoencodingRaw } from 'src/app/shared/models/PointFromSheetMappingGeoendodingRaw';
+import { GoogleSheetPin } from 'src/app/shared/models/PointFromSheet';
+import { GoogleSheetPinMappingLonLat } from 'src/app/shared/models/PointDataMappingLonLat';
+import { GoogleSheetPinMappingGeoencodingRaw as GoogleSheetPinMappingGeoencodingRaw } from 'src/app/shared/models/PointFromSheetMappingGeoendodingRaw';
 import { PointLocationsService } from './point-services/point-locations.service';
 import { PointDimensionService } from './point-services/point-dimension.service';
+import { PointDimensionFromSheet } from 'src/app/shared/models/PointDimensionFromSheet';
+import { GoogleSheetPointDimension } from 'src/app/shared/models/GoogleSheetPointDimension';
 
 
 
@@ -63,7 +65,7 @@ export class MapComponent implements OnInit, AfterViewInit {
   onUserUpdateCamera: Subject<string> = new BehaviorSubject('')
   queueToUpdateResolution!: Observable<string>
   tilesToMerge: Tile[] = []
-  points: Point[] = []
+  pins: Pin[] = []
 
   // view
   wireframeOpacity = 0.1
@@ -85,7 +87,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     console.log(event, option);
     switch (option) {
       case 'wireframeOpacity':
-        this.points.forEach( point => {
+        this.pins.forEach( point => {
           point.mesh?.children.forEach( child => {
             const isWireframe = child.name.match('wireframe')
             if(isWireframe) {
@@ -96,7 +98,7 @@ export class MapComponent implements OnInit, AfterViewInit {
         })
         break;
       case 'normalBlending':
-        this.points.forEach( point => {
+        this.pins.forEach( point => {
           point.mesh?.children.forEach( child => {
             const iSnormalBlending = child.name.match('normalBlending')
             if(iSnormalBlending) {
@@ -107,7 +109,7 @@ export class MapComponent implements OnInit, AfterViewInit {
         })
       break;
       case 'additiveBlending':
-        this.points.forEach( point => {
+        this.pins.forEach( point => {
           point.mesh?.children.forEach( child => {
             const isAdditiveBlending = child.name.match('additiveBlending')
             if(isAdditiveBlending) {
@@ -118,7 +120,7 @@ export class MapComponent implements OnInit, AfterViewInit {
         })
         break;
       case 'color':
-        this.points.forEach( point => {
+        this.pins.forEach( point => {
           point.mesh?.children.forEach( child => {
               (<Mesh<CylinderGeometry, MeshPhongMaterial>>child).material.color = new Color(this.color)
           })
@@ -132,10 +134,22 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   async ngOnInit(): Promise<void> {
     this.initOnUserUpdateResolution()
-    this.pointDimensionService.loadDimensions().subscribe( next => {
-      console.log(next);
+    this.pointDimensionService.loadDimensions().subscribe( async (pointDimensions: GoogleSheetPointDimension) => {
+      console.log(pointDimensions);
+      for( const pointDimension in pointDimensions){
+        const pointDimensionData = pointDimensions[pointDimension];
+        const dimensionUrl = pointDimensionData.tableSource
+        const dimensionData:PointDimensionFromSheet[] = await lastValueFrom(this.pointDimensionService.getGoogleSheetPointDimension(dimensionUrl))
+        console.log(dimensionData);
+        this.mapDimensionWithPoint()
+      }
+      
     })
-    this.pointDimensionService.writeUserData()
+    // this.pointDimensionService.writeUserData()
+  }
+
+  mapDimensionWithPoint = () => {
+
   }
 
   initOnUserUpdateResolution = () => {
@@ -149,14 +163,16 @@ export class MapComponent implements OnInit, AfterViewInit {
   async ngAfterViewInit() {
     this.initThree()
     await this.initTile()
-    this.pointDataService.getGoogleSheetInfo().subscribe( dataFromSheet => {
-      const pointsData = this.formatPointsData(dataFromSheet)
-      this.points.push(...pointsData)
-      this.updatePoints(this.points)
-    })
+    const dataFromSheet = await lastValueFrom(this.pointDataService.getGoogleSheetInfo())
+    // this.pointDataService.getGoogleSheetInfo().subscribe( dataFromSheet => {
+    const pointsData = this.formatPointsData(dataFromSheet)
+    this.pins.push(...pointsData)
+    this.updatePoints(this.pins)
+    // })
+    
   }
 
-  formatPointsData = (dataFromSheet: PointDataMappingLonLat[]):Point[] => {
+  formatPointsData = (dataFromSheet: GoogleSheetPinMappingLonLat[]):Pin[] => {
     const formatPosition3d = (lonLat: Vector2) => {
       return new Vector3(lonLat.x, 0 , lonLat.y)
     }
@@ -200,8 +216,10 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.camera = this.cameraService.makeCamera(canvasDimention)
     this.scene.add(this.camera)
     this.orbitControl = new OrbitControls(this.camera, this.renderer.domElement);
-    this.animateService.animate(this.renderer, this.scene, this.camera, this.orbitControl, this.mousePosition, 600)
-    this.animateService.initAnimate(this.renderer)
+    console.log(this.renderer, this.scene, this.camera, this.orbitControl, this.mousePosition);
+    
+    this.animateService.initAnimate(this.renderer, this.scene, this.camera, this.orbitControl, this.mousePosition)
+    this.animateService.animate()
     this.box = this.getBox()
     this.plane = this.tileUtilsService.getPlane()
     this.plane.rotateX(-Math.PI * 0.5)
@@ -226,7 +244,6 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   onMouseMove = async (event: MouseEvent) => {
     const newPosition = this.rendererService.updateMouse(event)
-    this.animateService.updateMouse(newPosition)
     this.mousePosition.set(newPosition.x, newPosition.y)
   }
 
@@ -238,17 +255,25 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.onUserUpdateCamera.next('')
   }
 
-  updatePoints = (points: Point[]) => {
-    points.forEach( point => {
-      if (!point.mesh) return
-      point.mesh.removeFromParent()
-    })
+  updatePoints = (points: Pin[]) => {
+    this.removePoints(points)
+    this.initPoints(points)
+  }
+
+  initPoints = (points: Pin[]) => {
     points.forEach( point => {
       if (!point.positionLongLat) throw new Error("No Longitude or latitude");
       point.position3d = this.longLatToPosition3d(point.positionLongLat)
       const columnGroup = this.getColumn3dLayers(point)
       point.mesh = columnGroup      
       this.scene.add(columnGroup)
+    })
+  }
+
+  removePoints = (points: Pin[]) => {
+    points.forEach( point => {
+      if (!point.mesh) return
+      point.mesh.removeFromParent()
     })
   }
 
@@ -263,7 +288,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     return position
   }
 
-  getColumn3dLayers = (point: Point) => {
+  getColumn3dLayers = (point: Pin) => {
     const group = new THREE.Group();
     const origionalMesh = this.getColumn3d(point, THREE.NormalBlending, false, `column_${point.id}_normalBlending`, 0.2, this.color)
     const lightingMesh = this.getColumn3d(point, THREE.AdditiveBlending, false, `column_${point.id}_additiveBlending`, 0.2, this.color)
@@ -275,7 +300,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     return group
   }
 
-  getColumn3d = (point: Point, blending: any, wireframe: boolean, name:string, opacity: number, color: string):Mesh<CylinderGeometry, MeshPhongMaterial> => {
+  getColumn3d = (point: Pin, blending: any, wireframe: boolean, name:string, opacity: number, color: string):Mesh<CylinderGeometry, MeshPhongMaterial> => {
     if (!point.position3d) throw new Error("No Longitude or latitude when initing mesh");
     let material
     const colorR = color.slice(1,3)
@@ -404,6 +429,15 @@ export class MapComponent implements OnInit, AfterViewInit {
       ],
         "status": "OK"
       } as GeoencodingRaw).pipe( delay(randomDelay), map( next => {return {raw: next, title: title}}))
+  }
+
+  pauseAnimation = () => {
+    this.animateService.pauseAnimation()
+  }
+
+  resumeAnimation = () => {
+    this.animateService.resumeAnimation()
+
   }
 
 

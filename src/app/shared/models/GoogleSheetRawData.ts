@@ -9,12 +9,12 @@ export interface GoogleSheetRawData {
         label: string;
         type: string;
       }[];
-      rows: PointDataRowInSheet[];
+      rows: GoogleSheetRow[];
       parsedNumHeaders: number;
     }
 }
 
-export interface PointDataRowInSheet {
+export interface GoogleSheetRow {
   c: {
     v: string;
   }[];

@@ -1,7 +1,7 @@
 import { Group, Mesh, MeshBasicMaterial, MeshPhongMaterial, MeshStandardMaterial, PlaneGeometry, Vector2, Vector3 } from "three";
 import { TileId } from "./TileId";
 
-export interface Point {
+export interface Pin {
     id: number;
     height: number;
     radius: number;

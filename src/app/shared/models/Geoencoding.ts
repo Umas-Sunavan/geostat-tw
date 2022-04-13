@@ -40,13 +40,15 @@ export interface Viewport {
 }
 
 export interface Geometry {
-  bounds: Bounds;
+  bounds?: Bounds;
   location: Location;
   location_type: string;
   viewport: Viewport;
 }
 
 export interface Result {
+  plus_code?: any;
+  partial_match?: any;
   address_components: AddressComponent[];
   formatted_address: string;
   geometry: Geometry;

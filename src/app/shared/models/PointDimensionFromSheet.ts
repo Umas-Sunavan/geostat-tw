@@ -1,5 +1,5 @@
-export interface GoogleSheetPin {
+export interface PointDimensionFromSheet {
   id: number; // id is the row number on google sheet, starting with 0
-  address: string;
+  dimensionData: string;
   title: string;
 }

@@ -1,5 +1,8 @@
 export interface CategorySettings {
-  [key: string]: {
+  [key: string]: CategorySetting
+}
+
+export interface CategorySetting {
     deleted: Boolean,
     options: {
       cameraPosition: {
@@ -24,5 +27,4 @@ export interface CategorySettings {
     tableCreator: string,
     tableName: string,
     tableSource: string,
-  }
 }

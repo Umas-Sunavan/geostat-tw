@@ -10,21 +10,16 @@ import { RendererService } from './three-services/renderer.service';
 import { SceneService } from './three-services/scene.service';
 import { TileService } from './tile-services/tile.service';
 import { Tile } from 'src/app/shared/models/Tile';
-import { TextureService } from './tile-services/texture.service';
 import { BehaviorSubject, concatMap, delay, exhaustMap, filter, forkJoin, from, interval, last, lastValueFrom, map, mapTo, merge, mergeMap, Observable, of, Subject, Subscriber, switchMap, take, tap, timeout, timer } from 'rxjs';
 import { TileUtilsService } from './tile-services/tile-utils.service';
 import { Pin } from 'src/app/shared/models/Pin';
 import { TileLonglatCalculationService } from './tile-services/tile-longlat-calculation.service';
-import { GoogleSheetRawData } from 'src/app/shared/models/GoogleSheetRawData';
-import { HttpClient } from '@angular/common/http';
-import { GeoencodingRaw } from 'src/app/shared/models/Geoencoding';
-import { GoogleSheetPin } from 'src/app/shared/models/GoogleSheetPin';
-import { GoogleSheetPinMappingLonLat } from 'src/app/shared/models/GoogleSheetPinMappingLonLat';
-import { GoogleSheetPinMappingGeoencodingRaw as GoogleSheetPinMappingGeoencodingRaw } from 'src/app/shared/models/GoogleSheetPinMappingGeoencodingRaw';
 import { PinsTableService } from './point-services/pins-table.service';
-import { CategoryService } from './point-services/category.service';
-import { CategorySettings } from 'src/app/shared/models/CategorySettings';
+import { CategoryService } from './category.service';
+import { CategorySetting, CategorySettings } from 'src/app/shared/models/CategorySettings';
 import { CategoryTableRow } from 'src/app/shared/models/CategoryTableRow';
+import { ActivatedRoute } from '@angular/router';
+import { PinModelService } from './pin-model.service';
 
 
 
@@ -46,6 +41,8 @@ export class MapComponent implements OnInit, AfterViewInit {
     private tileLonLatCalculation: TileLonglatCalculationService,
     private pinsTableService: PinsTableService,
     private categoryService: CategoryService,
+    private activatedRoute: ActivatedRoute,
+    private pinModelService: PinModelService,
   ) {
     this.initQueueToUpdateResolution()
   }
@@ -68,6 +65,7 @@ export class MapComponent implements OnInit, AfterViewInit {
   pins: Pin[] = []
   isPaused: boolean = false
   columnHeightScale = 0.1
+  categoryId = '-N-SyzGWgpgWs2szH-aH'
 
   // view
   wireframeOpacity = 0.1
@@ -86,7 +84,7 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   changeColumnHeight = (event: Event) => {
-    this.updatePins(this.pins)
+    this.updatePins(this.pins, this.scene)
   }
 
   sliderChange = (event: Event, option:string) => {
@@ -141,59 +139,37 @@ export class MapComponent implements OnInit, AfterViewInit {
   async ngOnInit(): Promise<void> {
     this.timeoutToPause()
     this.initOnUserUpdateResolution()
+    this.pins = await this.pinModelService.initPinsModel()
+    await this.initCategory()
+    
     // this.pointDimensionService.writeUserData()
   }
 
-  initOnUserUpdateResolution = () => {
-    this.onUserUpdateCamera.pipe(
-      switchMap(value => of(value).pipe(delay(1000))) // abandon too-frequent emission
-    ).pipe(
-      concatMap(() => this.queueToUpdateResolution.pipe(take(1))) // add emission to queue
-    ).subscribe()
+  initCategory = async () => {
+    const categoryId = await this.getCategoryIdFromRoute()
+    this.getCategorySettingAndApply(categoryId, this.pins)
   }
 
-  async ngAfterViewInit() {
-    this.initThree()
-    await this.initTile()
-    const googleSheetPinsMappingLonLat = await lastValueFrom(this.pinsTableService.getPinLonLat())
-    const pins = this.formatPins(googleSheetPinsMappingLonLat)
-    this.pins.push(...pins)
-    
+  getCategorySettingAndApply = (id: string, pins: Pin[]) => {
     this.categoryService.getCategorySettings().subscribe( async (categorySettings: CategorySettings) => {
-      for( const id in categorySettings){
-        const setting = categorySettings[id];
-        const categoryTable = setting.tableSource
-        const tableRows:CategoryTableRow[] = await lastValueFrom(this.categoryService.getCategoryTable(categoryTable))
-        const mappingResult = this.mappingWithPins(tableRows, this.pins)
-        this.updatePinHeight(mappingResult.mappedPins, tableRows)
-        
-      }
-      this.updatePins(this.pins)
-    })
-    this.updatePins(this.pins)
-  }
-
-  updatePinHeight = (pins: Pin[], rows: CategoryTableRow[]) => {
-    pins.forEach( pin => {
-      const mappedRow = rows.find( row => row.title === pin.title)
-      if(!mappedRow) throw new Error(`row is not found in pin ${pin.title}`);
-      const value = Number(mappedRow.value)
-      if(!value) throw new Error(`value in row ${mappedRow.title} in not a number`);
-      pin.height = value
+      const setting = categorySettings[id]  
+      const categoryTable = await this.getCategoryTableFromSetting(setting)
+      const { mappedPins, mappedRows } = this.mappingPinAndTable(categoryTable, pins)
+      this.pins = this.pinModelService.updatePinHeightInModel(mappedPins, mappedRows)
+      this.updatePins(this.pins, this.scene)
     })
   }
 
-  mappingWithPins = (rows: CategoryTableRow[], pins: Pin[]) => {
+  mappingPinAndTable = (rows: CategoryTableRow[], pins: Pin[]) => {
     const unmappedPins = this.filterMappedPins(rows, pins, true)
     const unmappedRows = this.filterMappedRows(rows, pins, true)
     const mappedPins = this.filterMappedPins(rows, pins, false)
     const mappedRows = this.filterMappedRows(rows, pins, false)
-    console.log(unmappedPins, unmappedRows, mappedPins, mappedRows);
-    return {unmappedPins, unmappedRows, mappedPins, mappedRows}
+    return {mappedPins, mappedRows}
   }
 
   filterMappedRows = (rows: CategoryTableRow[], pins: Pin[], filterUnmapped: boolean) => {
-    const unmappedRow = rows.filter( row => {
+    const unmappedRow = rows.filter( row => {      
       const rowExistsInPin = pins.some( pin => pin.title === row.title)
       return filterUnmapped ? !rowExistsInPin : rowExistsInPin
     })
@@ -208,30 +184,35 @@ export class MapComponent implements OnInit, AfterViewInit {
     return unmappedPin
   }
 
-  formatPins = (fromSheet: GoogleSheetPinMappingLonLat[]):Pin[] => {
-    const formatPosition3d = (lonLat: Vector2) => {
-      return new Vector3(lonLat.x, 0 , lonLat.y)
-    }
-    const formatTilePosition = (lonLat: Vector2) => {
-      const lon = lonLat.x
-      const lat = lonLat.y
-      const tileX = this.tileLonLatCalculation.lat2tile(lat, 8)
-      const tileY = this.tileLonLatCalculation.lon2tile(lon, 8)
-      return new Vector2(tileX, tileY)
-    }
+  getCategoryTableFromSetting = async (setting: CategorySetting) => {
+    if (!setting) throw new Error("No firebase category found by the route of this page");
+    const tableId = setting.tableSource
+    const tableObservable = this.categoryService.getCategoryTable(tableId)
+    const categoryTable = await lastValueFrom(tableObservable)
+    return categoryTable
+  }
 
-    return fromSheet.map( (googleSheetPin: GoogleSheetPinMappingLonLat) => {
-      return {
-        id: googleSheetPin.pinData.id,
-        height: 0.3,
-        color: 0xff195d,
-        title: googleSheetPin.pinData.title,
-        address: googleSheetPin.pinData.address,
-        position3d: formatPosition3d(googleSheetPin.lonLat),
-        positionTile: formatTilePosition(googleSheetPin.lonLat),
-        positionLongLat: googleSheetPin.lonLat,
-        radius: 0.1
-      }
+  initOnUserUpdateResolution = () => {
+    this.onUserUpdateCamera.pipe(
+      switchMap(value => of(value).pipe(delay(1000))) // abandon too-frequent emission
+    ).pipe(
+      concatMap(() => this.queueToUpdateResolution.pipe(take(1))) // add emission to queue
+    ).subscribe()
+  }
+
+  async ngAfterViewInit() {
+    this.initThree()
+    await this.initTile()    
+    this.updatePins(this.pins, this.scene)
+  }
+
+  getCategoryIdFromRoute = async ():Promise<string> => {
+    return new Promise( (resolve, reject) => {
+      this.activatedRoute.paramMap.subscribe( param => {
+        const id = param.get('id')
+        if(!id) throw new Error("No param specified in router");
+        resolve(id)
+      })
     })
   }
 
@@ -260,12 +241,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.plane = this.tileUtilsService.getPlane()
     this.plane.rotateX(-Math.PI * 0.5)
     this.plane.position.setY(-0.1)
-    // this.scene.add(this.box)
-    // this.scene.add(this.plane)
-
     this.animateService.onFrameRender.subscribe(({ renderer, raycaster }) => {
-      // console.log(this.camera.position);
-      // this.camera.position
     })
     this.lightService.makeLight(this.scene)
   }
@@ -291,20 +267,19 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.onUserUpdateCamera.next('')
   }
 
-  updatePins = (pins: Pin[]) => {
+  updatePins = (pins: Pin[], scene:Scene) => {
     this.removePins(pins)
-    this.initPins(pins)
+    this.initPins(pins, scene)
   }
 
-  initPins = (pins: Pin[]) => {
+  initPins = (pins: Pin[], scene: Scene) => {
     pins.forEach( pin => {
       if (!pin.positionLongLat) throw new Error("No Longitude or latitude");
       pin.position3d = this.longLatToPosition3d(pin.positionLongLat)
-      console.log(pin);
       const columnGroup = this.getColumn3dLayers(pin)
       
       pin.mesh = columnGroup      
-      this.scene.add(columnGroup)
+      scene.add(columnGroup)
     })
   }
 
@@ -372,101 +347,6 @@ export class MapComponent implements OnInit, AfterViewInit {
     mesh.geometry.translate(pin.position3d.x,normalizedHeight-0.01,pin.position3d.z)
     mesh.name = name
     return mesh
-  }
-
-  getMockGeoLonLat = (address: string, title: string): Observable<{raw: GeoencodingRaw, title: string}> => {
-    let randomDelay = Math.floor(Math.random()*5000)
-    return of(
-      {"results": [
-        {
-            "address_components": [
-                {
-                    "long_name": "2樓",
-                    "short_name": "2樓",
-                    "types": [
-                        "subpremise"
-                    ]
-                },
-                {
-                    "long_name": "3號",
-                    "short_name": "3號",
-                    "types": [
-                        "street_number"
-                    ]
-                },
-                {
-                    "long_name": "Beiping West Road",
-                    "short_name": "Beiping W Rd",
-                    "types": [
-                        "route"
-                    ]
-                },
-                {
-                    "long_name": "黎明里",
-                    "short_name": "黎明里",
-                    "types": [
-                        "administrative_area_level_4",
-                        "political"
-                    ]
-                },
-                {
-                    "long_name": "Zhongzheng District",
-                    "short_name": "Zhongzheng District",
-                    "types": [
-                        "administrative_area_level_3",
-                        "political"
-                    ]
-                },
-                {
-                    "long_name": "Taipei City",
-                    "short_name": "Taipei City",
-                    "types": [
-                        "administrative_area_level_1",
-                        "political"
-                    ]
-                },
-                {
-                    "long_name": "Taiwan",
-                    "short_name": "TW",
-                    "types": [
-                        "country",
-                        "political"
-                    ]
-                },
-                {
-                    "long_name": "100",
-                    "short_name": "100",
-                    "types": [
-                        "postal_code"
-                    ]
-                }
-            ],
-            "formatted_address": "100, Taiwan, Taipei City, Zhongzheng District, Beiping W Rd, 3號2樓",
-            "geometry": {
-                "location": {
-                    "lat": 25.0477467,
-                    "lng": 121.5169983
-                },
-                "location_type": "ROOFTOP",
-                "viewport": {
-                    "northeast": {
-                        "lat": 25.0490956802915,
-                        "lng": 121.5183472802915
-                    },
-                    "southwest": {
-                        "lat": 25.04639771970849,
-                        "lng": 121.5156493197085
-                    }
-                }
-            },
-            "place_id": "ChIJxeVZh3KpQjQR0ESgIfL9Ug0",
-            "types": [
-                "subpremise"
-            ]
-        }
-      ],
-        "status": "OK"
-      } as GeoencodingRaw).pipe( delay(randomDelay), map( next => {return {raw: next, title: title}}))
   }
 
   pauseAnimation = () => {

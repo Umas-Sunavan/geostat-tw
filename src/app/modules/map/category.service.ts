@@ -8,7 +8,7 @@ import { CategorySettings } from 'src/app/shared/models/CategorySettings';
 import { HttpClient } from '@angular/common/http';
 import { GoogleSheetRawData, GoogleSheetRow } from 'src/app/shared/models/GoogleSheetRawData';
 import { GoogleSheetPin } from 'src/app/shared/models/GoogleSheetPin';
-import { PinsTableService } from './pins-table.service';
+import { PinsTableService } from './point-services/pins-table.service';
 import { CategoryTableRow } from 'src/app/shared/models/CategoryTableRow';
 
 @Injectable({

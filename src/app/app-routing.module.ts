@@ -4,7 +4,7 @@ import { MapComponent } from './modules/map/map.component';
 
 const routes: Routes = [
   {
-    path: 'map',
+    path: 'map/:id',
     component: MapComponent
   }
 ];

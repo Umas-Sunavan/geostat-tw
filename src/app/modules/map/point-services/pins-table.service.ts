@@ -163,9 +163,7 @@ export class PinsTableService {
   }
 
   convertGeoencodingToLonLat = map( (points: GoogleSheetPinMappingGeoencodingRaw[]): GoogleSheetPinMappingLonLat[] => {
-    return points.map( point => {
-      console.log(point);
-      
+    return points.map( point => {      
       const location = point.geoencodingRaw.results[0].geometry.location      
       return {lonLat: new Vector2(location.lng, location.lat), pinData: point.pointData}
     })

@@ -13,18 +13,18 @@ import { Tile } from 'src/app/shared/models/Tile';
 import { TextureService } from './tile-services/texture.service';
 import { BehaviorSubject, concatMap, delay, exhaustMap, filter, forkJoin, from, interval, last, lastValueFrom, map, mapTo, merge, mergeMap, Observable, of, Subject, Subscriber, switchMap, take, tap, timeout, timer } from 'rxjs';
 import { TileUtilsService } from './tile-services/tile-utils.service';
-import { Pin } from 'src/app/shared/models/Point';
+import { Pin } from 'src/app/shared/models/Pin';
 import { TileLonglatCalculationService } from './tile-services/tile-longlat-calculation.service';
 import { GoogleSheetRawData } from 'src/app/shared/models/GoogleSheetRawData';
 import { HttpClient } from '@angular/common/http';
 import { GeoencodingRaw } from 'src/app/shared/models/Geoencoding';
-import { GoogleSheetPin } from 'src/app/shared/models/PointFromSheet';
-import { GoogleSheetPinMappingLonLat } from 'src/app/shared/models/PointDataMappingLonLat';
-import { GoogleSheetPinMappingGeoencodingRaw as GoogleSheetPinMappingGeoencodingRaw } from 'src/app/shared/models/PointFromSheetMappingGeoendodingRaw';
-import { PointLocationsService } from './point-services/point-locations.service';
-import { PointDimensionService } from './point-services/point-dimension.service';
-import { PointDimensionFromSheet } from 'src/app/shared/models/PointDimensionFromSheet';
-import { GoogleSheetPointDimension } from 'src/app/shared/models/GoogleSheetPointDimension';
+import { GoogleSheetPin } from 'src/app/shared/models/GoogleSheetPin';
+import { GoogleSheetPinMappingLonLat } from 'src/app/shared/models/GoogleSheetPinMappingLonLat';
+import { GoogleSheetPinMappingGeoencodingRaw as GoogleSheetPinMappingGeoencodingRaw } from 'src/app/shared/models/GoogleSheetPinMappingGeoencodingRaw';
+import { PinsTableService } from './point-services/pins-table.service';
+import { CategoryService } from './point-services/category.service';
+import { CategorySettings } from 'src/app/shared/models/CategorySettings';
+import { CategoryTableRow } from 'src/app/shared/models/CategoryTableRow';
 
 
 
@@ -44,8 +44,8 @@ export class MapComponent implements OnInit, AfterViewInit {
     private tileService: TileService,
     private tileUtilsService: TileUtilsService,
     private tileLonLatCalculation: TileLonglatCalculationService,
-    private pointDataService: PointLocationsService,
-    private pointDimensionService: PointDimensionService,
+    private pinsTableService: PinsTableService,
+    private categoryService: CategoryService,
   ) {
     this.initQueueToUpdateResolution()
   }
@@ -66,6 +66,8 @@ export class MapComponent implements OnInit, AfterViewInit {
   queueToUpdateResolution!: Observable<string>
   tilesToMerge: Tile[] = []
   pins: Pin[] = []
+  isPaused: boolean = false
+  columnHeightScale = 0.1
 
   // view
   wireframeOpacity = 0.1
@@ -83,12 +85,16 @@ export class MapComponent implements OnInit, AfterViewInit {
     })
   }
 
+  changeColumnHeight = (event: Event) => {
+    this.updatePins(this.pins)
+  }
+
   sliderChange = (event: Event, option:string) => {
     console.log(event, option);
     switch (option) {
       case 'wireframeOpacity':
-        this.pins.forEach( point => {
-          point.mesh?.children.forEach( child => {
+        this.pins.forEach( pin => {
+          pin.mesh?.children.forEach( child => {
             const isWireframe = child.name.match('wireframe')
             if(isWireframe) {
               console.log(child, isWireframe);
@@ -98,8 +104,8 @@ export class MapComponent implements OnInit, AfterViewInit {
         })
         break;
       case 'normalBlending':
-        this.pins.forEach( point => {
-          point.mesh?.children.forEach( child => {
+        this.pins.forEach( pin => {
+          pin.mesh?.children.forEach( child => {
             const iSnormalBlending = child.name.match('normalBlending')
             if(iSnormalBlending) {
               console.log(child, iSnormalBlending);
@@ -109,8 +115,8 @@ export class MapComponent implements OnInit, AfterViewInit {
         })
       break;
       case 'additiveBlending':
-        this.pins.forEach( point => {
-          point.mesh?.children.forEach( child => {
+        this.pins.forEach( pin => {
+          pin.mesh?.children.forEach( child => {
             const isAdditiveBlending = child.name.match('additiveBlending')
             if(isAdditiveBlending) {
               console.log(child, isAdditiveBlending);
@@ -120,8 +126,8 @@ export class MapComponent implements OnInit, AfterViewInit {
         })
         break;
       case 'color':
-        this.pins.forEach( point => {
-          point.mesh?.children.forEach( child => {
+        this.pins.forEach( pin => {
+          pin.mesh?.children.forEach( child => {
               (<Mesh<CylinderGeometry, MeshPhongMaterial>>child).material.color = new Color(this.color)
           })
         })
@@ -133,23 +139,9 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   async ngOnInit(): Promise<void> {
+    this.timeoutToPause()
     this.initOnUserUpdateResolution()
-    this.pointDimensionService.loadDimensions().subscribe( async (pointDimensions: GoogleSheetPointDimension) => {
-      console.log(pointDimensions);
-      for( const pointDimension in pointDimensions){
-        const pointDimensionData = pointDimensions[pointDimension];
-        const dimensionUrl = pointDimensionData.tableSource
-        const dimensionData:PointDimensionFromSheet[] = await lastValueFrom(this.pointDimensionService.getGoogleSheetPointDimension(dimensionUrl))
-        console.log(dimensionData);
-        this.mapDimensionWithPoint()
-      }
-      
-    })
     // this.pointDimensionService.writeUserData()
-  }
-
-  mapDimensionWithPoint = () => {
-
   }
 
   initOnUserUpdateResolution = () => {
@@ -163,16 +155,60 @@ export class MapComponent implements OnInit, AfterViewInit {
   async ngAfterViewInit() {
     this.initThree()
     await this.initTile()
-    const dataFromSheet = await lastValueFrom(this.pointDataService.getGoogleSheetInfo())
-    // this.pointDataService.getGoogleSheetInfo().subscribe( dataFromSheet => {
-    const pointsData = this.formatPointsData(dataFromSheet)
-    this.pins.push(...pointsData)
-    this.updatePoints(this.pins)
-    // })
+    const googleSheetPinsMappingLonLat = await lastValueFrom(this.pinsTableService.getPinLonLat())
+    const pins = this.formatPins(googleSheetPinsMappingLonLat)
+    this.pins.push(...pins)
     
+    this.categoryService.getCategorySettings().subscribe( async (categorySettings: CategorySettings) => {
+      for( const id in categorySettings){
+        const setting = categorySettings[id];
+        const categoryTable = setting.tableSource
+        const tableRows:CategoryTableRow[] = await lastValueFrom(this.categoryService.getCategoryTable(categoryTable))
+        const mappingResult = this.mappingWithPins(tableRows, this.pins)
+        this.updatePinHeight(mappingResult.mappedPins, tableRows)
+        
+      }
+      this.updatePins(this.pins)
+    })
+    this.updatePins(this.pins)
   }
 
-  formatPointsData = (dataFromSheet: GoogleSheetPinMappingLonLat[]):Pin[] => {
+  updatePinHeight = (pins: Pin[], rows: CategoryTableRow[]) => {
+    pins.forEach( pin => {
+      const mappedRow = rows.find( row => row.title === pin.title)
+      if(!mappedRow) throw new Error(`row is not found in pin ${pin.title}`);
+      const value = Number(mappedRow.value)
+      if(!value) throw new Error(`value in row ${mappedRow.title} in not a number`);
+      pin.height = value
+    })
+  }
+
+  mappingWithPins = (rows: CategoryTableRow[], pins: Pin[]) => {
+    const unmappedPins = this.filterMappedPins(rows, pins, true)
+    const unmappedRows = this.filterMappedRows(rows, pins, true)
+    const mappedPins = this.filterMappedPins(rows, pins, false)
+    const mappedRows = this.filterMappedRows(rows, pins, false)
+    console.log(unmappedPins, unmappedRows, mappedPins, mappedRows);
+    return {unmappedPins, unmappedRows, mappedPins, mappedRows}
+  }
+
+  filterMappedRows = (rows: CategoryTableRow[], pins: Pin[], filterUnmapped: boolean) => {
+    const unmappedRow = rows.filter( row => {
+      const rowExistsInPin = pins.some( pin => pin.title === row.title)
+      return filterUnmapped ? !rowExistsInPin : rowExistsInPin
+    })
+    return unmappedRow
+  }
+
+  filterMappedPins = (rows: CategoryTableRow[], pins: Pin[], filterUnmapped: boolean) => {
+    const unmappedPin = pins.filter( pin => {
+      const pinExistsInRow = rows.some( row => pin.title === row.title)
+      return filterUnmapped ? !pinExistsInRow : pinExistsInRow
+    })
+    return unmappedPin
+  }
+
+  formatPins = (fromSheet: GoogleSheetPinMappingLonLat[]):Pin[] => {
     const formatPosition3d = (lonLat: Vector2) => {
       return new Vector3(lonLat.x, 0 , lonLat.y)
     }
@@ -184,16 +220,16 @@ export class MapComponent implements OnInit, AfterViewInit {
       return new Vector2(tileX, tileY)
     }
 
-    return dataFromSheet.map( point => {
+    return fromSheet.map( (googleSheetPin: GoogleSheetPinMappingLonLat) => {
       return {
-        id: point.pointData.id,
+        id: googleSheetPin.pinData.id,
         height: 0.3,
         color: 0xff195d,
-        title: point.pointData.title,
-        address: point.pointData.address,
-        position3d: formatPosition3d(point.lonLat),
-        positionTile: formatTilePosition(point.lonLat),
-        positionLongLat: point.lonLat,
+        title: googleSheetPin.pinData.title,
+        address: googleSheetPin.pinData.address,
+        position3d: formatPosition3d(googleSheetPin.lonLat),
+        positionTile: formatTilePosition(googleSheetPin.lonLat),
+        positionLongLat: googleSheetPin.lonLat,
         radius: 0.1
       }
     })
@@ -255,25 +291,27 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.onUserUpdateCamera.next('')
   }
 
-  updatePoints = (points: Pin[]) => {
-    this.removePoints(points)
-    this.initPoints(points)
+  updatePins = (pins: Pin[]) => {
+    this.removePins(pins)
+    this.initPins(pins)
   }
 
-  initPoints = (points: Pin[]) => {
-    points.forEach( point => {
-      if (!point.positionLongLat) throw new Error("No Longitude or latitude");
-      point.position3d = this.longLatToPosition3d(point.positionLongLat)
-      const columnGroup = this.getColumn3dLayers(point)
-      point.mesh = columnGroup      
+  initPins = (pins: Pin[]) => {
+    pins.forEach( pin => {
+      if (!pin.positionLongLat) throw new Error("No Longitude or latitude");
+      pin.position3d = this.longLatToPosition3d(pin.positionLongLat)
+      console.log(pin);
+      const columnGroup = this.getColumn3dLayers(pin)
+      
+      pin.mesh = columnGroup      
       this.scene.add(columnGroup)
     })
   }
 
-  removePoints = (points: Pin[]) => {
-    points.forEach( point => {
-      if (!point.mesh) return
-      point.mesh.removeFromParent()
+  removePins = (pins: Pin[]) => {
+    pins.forEach( pin => {
+      if (!pin.mesh) return
+      pin.mesh.removeFromParent()
     })
   }
 
@@ -288,10 +326,10 @@ export class MapComponent implements OnInit, AfterViewInit {
     return position
   }
 
-  getColumn3dLayers = (point: Pin) => {
+  getColumn3dLayers = (pin: Pin) => {
     const group = new THREE.Group();
-    const origionalMesh = this.getColumn3d(point, THREE.NormalBlending, false, `column_${point.id}_normalBlending`, 0.2, this.color)
-    const lightingMesh = this.getColumn3d(point, THREE.AdditiveBlending, false, `column_${point.id}_additiveBlending`, 0.2, this.color)
+    const origionalMesh = this.getColumn3d(pin, THREE.NormalBlending, false, `column_${pin.id}_normalBlending`, 0.2, this.color)
+    const lightingMesh = this.getColumn3d(pin, THREE.AdditiveBlending, false, `column_${pin.id}_additiveBlending`, 0.2, this.color)
     const edges = new THREE.EdgesGeometry( origionalMesh.geometry );
     const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 0.4, transparent: true } ) );
     group.add( line );
@@ -300,8 +338,8 @@ export class MapComponent implements OnInit, AfterViewInit {
     return group
   }
 
-  getColumn3d = (point: Pin, blending: any, wireframe: boolean, name:string, opacity: number, color: string):Mesh<CylinderGeometry, MeshPhongMaterial> => {
-    if (!point.position3d) throw new Error("No Longitude or latitude when initing mesh");
+  getColumn3d = (pin: Pin, blending: any, wireframe: boolean, name:string, opacity: number, color: string):Mesh<CylinderGeometry, MeshPhongMaterial> => {
+    if (!pin.position3d) throw new Error("No Longitude or latitude when initing mesh");
     let material
     const colorR = color.slice(1,3)
     const colorG = color.slice(3,5)
@@ -323,15 +361,15 @@ export class MapComponent implements OnInit, AfterViewInit {
         side: DoubleSide
       })
     }
-    const bottomRadius = point.radius
-    const topRadius = point.radius
-    const height = point.height
+    const bottomRadius = pin.radius
+    const topRadius = pin.radius
+    const height = pin.height * Math.pow(this.columnHeightScale, 2)
     const radialSegments = 18
     const heightSegments = 5
     const geometry = new CylinderGeometry( bottomRadius, topRadius, height, radialSegments, heightSegments, false, )
     const mesh = new Mesh(geometry, material)
-    const normalizedHeight = point.position3d.y + height / 2
-    mesh.geometry.translate(point.position3d.x,normalizedHeight-0.01,point.position3d.z)
+    const normalizedHeight = pin.position3d.y + height / 2
+    mesh.geometry.translate(pin.position3d.x,normalizedHeight-0.01,pin.position3d.z)
     mesh.name = name
     return mesh
   }
@@ -432,12 +470,21 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   pauseAnimation = () => {
+    this.isPaused = true
     this.animateService.pauseAnimation()
   }
 
   resumeAnimation = () => {
+    this.isPaused = false
     this.animateService.resumeAnimation()
+    this.timeoutToPause()
+  }
 
+  timeoutToPause = () => {
+    setTimeout(() => {
+      this.pauseAnimation()
+      console.log('animation paused');
+    }, 10 * 1000);
   }
 
 

@@ -1,4 +1,4 @@
-export interface GoogleSheetPointDimension {
+export interface CategorySettings {
   [key: string]: {
     deleted: Boolean,
     options: {

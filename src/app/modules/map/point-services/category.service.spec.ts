@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { PointDimensionService } from './point-dimension.service';
+import { CategoryService } from './category.service';
 
 describe('PointDimensionService', () => {
-  let service: PointDimensionService;
+  let service: CategoryService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(PointDimensionService);
+    service = TestBed.inject(CategoryService);
   });
 
   it('should be created', () => {

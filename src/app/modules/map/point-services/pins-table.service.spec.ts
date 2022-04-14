@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { PointLocationsService } from './point-locations.service';
+import { PinsTableService } from './pins-table.service';
 
 describe('PointDataService', () => {
-  let service: PointLocationsService;
+  let service: PinsTableService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(PointLocationsService);
+    service = TestBed.inject(PinsTableService);
   });
 
   it('should be created', () => {

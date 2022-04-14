@@ -4,21 +4,20 @@ import { getFirestore, doc, getDoc } from 'firebase/firestore/lite';
 import { getDatabase, ref, onValue, Database, push } from "firebase/database";
 import { environment } from 'src/environments/environment';
 import { map, Observable } from 'rxjs';
-import { GoogleSheetPointDimension as pointDimensionMeta } from 'src/app/shared/models/GoogleSheetPointDimension';
+import { CategorySettings } from 'src/app/shared/models/CategorySettings';
 import { HttpClient } from '@angular/common/http';
 import { GoogleSheetRawData, GoogleSheetRow } from 'src/app/shared/models/GoogleSheetRawData';
-import { GoogleSheetPin } from 'src/app/shared/models/PointFromSheet';
-import { PointLocationsService } from './point-locations.service';
-import { PointDimensionFromSheet } from 'src/app/shared/models/PointDimensionFromSheet';
+import { GoogleSheetPin } from 'src/app/shared/models/GoogleSheetPin';
+import { PinsTableService } from './pins-table.service';
+import { CategoryTableRow } from 'src/app/shared/models/CategoryTableRow';
 
 @Injectable({
   providedIn: 'root'
 })
-export class PointDimensionService {
-
+export class CategoryService {
   constructor(
     private httpClient: HttpClient,
-    private pointLocationsService: PointLocationsService,
+    private pointLocationsService: PinsTableService,
   ) {
     this.firebaseConfig = environment.firebaseConfig
     this.dataBase = this.initFirebase()
@@ -33,37 +32,33 @@ export class PointDimensionService {
     return database
   }
 
-  loadDimensions = ():Observable<pointDimensionMeta> => {
+  getCategorySettings = ():Observable<CategorySettings> => {
     const starCountRef = ref(this.dataBase, '/pointTables');
     return new Observable(subscribe => {
       onValue(starCountRef, (snapshot) => {
-        const data:pointDimensionMeta = snapshot.val();
+        const data:CategorySettings = snapshot.val();
         subscribe.next(data)
       });
     })
   }
 
-  getGoogleSheetPointDimension = (googleSheetId: string): Observable<PointDimensionFromSheet[]> => {
+  getCategoryTable = (googleSheetId: string): Observable<CategoryTableRow[]> => {
     const options = {responseType: 'text' as 'json',};
     return this.httpClient.get<GoogleSheetRawData>(`https://docs.google.com/spreadsheets/d/${googleSheetId}/gviz/tq?`, options).pipe(
       this.convertGoogleSheetToAddress,
     )
   }
-
-  convertAddressToMockGeoencoding = () => {
-
-  }
   
-  convertGoogleSheetToAddress = map((rawdata): PointDimensionFromSheet[] => {
+  convertGoogleSheetToAddress = map((rawdata): CategoryTableRow[] => {
     rawdata = this.pointLocationsService.removeExtraText(rawdata as string)    
     const raw = <GoogleSheetRawData>JSON.parse(rawdata as string)    
     const sheetData: GoogleSheetRow[] = raw.table.rows
     const sheetBody: GoogleSheetRow[] = sheetData.filter((row, index) => row.c[0]?.v !== '落點名稱')
-    const mapping: PointDimensionFromSheet[] = this.formatingPointDimensionData(sheetBody)
+    const mapping: CategoryTableRow[] = this.formatingPointDimensionData(sheetBody)
     return mapping
   })
 
-  formatingPointDimensionData = (sheetBody: GoogleSheetRow[]):PointDimensionFromSheet[] => {
+  formatingPointDimensionData = (sheetBody: GoogleSheetRow[]):CategoryTableRow[] => {
       return sheetBody.map((row, index) => {
         let title = ""
         let dimensionData = ""
@@ -74,7 +69,7 @@ export class PointDimensionService {
         return {
           id: index,
           title: title,
-          dimensionData: dimensionData,
+          value: dimensionData,
         }
       })
     }

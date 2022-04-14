@@ -1,7 +1,7 @@
 import { Vector2 } from "three";
-import { GoogleSheetPin } from "./PointFromSheet";
+import { GoogleSheetPin } from "./GoogleSheetPin";
 
 export interface GoogleSheetPinMappingLonLat {
   lonLat: Vector2,
-  pointData: GoogleSheetPin
+  pinData: GoogleSheetPin
 }

@@ -1,33 +1,33 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { concatMap, forkJoin, from, map, mergeMap, Observable, tap } from 'rxjs';
-import { GoogleSheetPinMappingLonLat } from 'src/app/shared/models/PointDataMappingLonLat';
+import { GoogleSheetPinMappingLonLat } from 'src/app/shared/models/GoogleSheetPinMappingLonLat';
 import { GeoencodingRaw } from 'src/app/shared/models/Geoencoding';
 import { GoogleSheetRawData, GoogleSheetRow } from 'src/app/shared/models/GoogleSheetRawData';
-import { GoogleSheetPin } from 'src/app/shared/models/PointFromSheet';
-import { GoogleSheetPinMappingGeoencodingRaw } from 'src/app/shared/models/PointFromSheetMappingGeoendodingRaw';
+import { GoogleSheetPin } from 'src/app/shared/models/GoogleSheetPin';
+import { GoogleSheetPinMappingGeoencodingRaw } from 'src/app/shared/models/GoogleSheetPinMappingGeoencodingRaw';
 import { Vector2 } from 'three';
 
 @Injectable({
   providedIn: 'root'
 })
-export class PointLocationsService {
+export class PinsTableService {
 
   constructor(
     private httpClient: HttpClient,
   ) { }
 
-  getGoogleSheetInfo = (googleSheetId: string = '1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM'): Observable<GoogleSheetPinMappingLonLat[]> => {
+  getPinLonLat = (googleSheetId: string = '1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM'): Observable<GoogleSheetPinMappingLonLat[]> => {
     const options = {responseType: 'text' as 'json',};
     return this.httpClient.get<GoogleSheetRawData>(`https://docs.google.com/spreadsheets/d/${googleSheetId}/gviz/tq?`, options).pipe(
-      this.convertGoogleSheetToAddress,
+      this.convertTalbeToGoogleSheetPins,
       // this.convertAddressToRawGeoencoding,
       this.convertAddressToMockGeoencoding,
-      this.convertGoogleGeoencodingToLonLat
+      this.convertGeoencodingToLonLat
     )
   }
   
-  convertGoogleSheetToAddress = map((rawdata): GoogleSheetPin[] => {
+  convertTalbeToGoogleSheetPins = map((rawdata): GoogleSheetPin[] => {
     rawdata = this.removeExtraText(rawdata as string)    
     const raw = <GoogleSheetRawData>JSON.parse(rawdata as string)    
     const sheetData: GoogleSheetRow[] = raw.table.rows
@@ -125,6 +125,7 @@ export class PointLocationsService {
         {"results":[{"address_components":[{"long_name":"12樓","short_name":"12樓","types":["subpremise"]},{"long_name":"213號","short_name":"213號","types":["street_number"]},{"long_name":"三多三路","short_name":"三多三路","types":["route"]},{"long_name":"盛興里","short_name":"盛興里","types":["administrative_area_level_4","political"]},{"long_name":"前鎮區","short_name":"前鎮區","types":["administrative_area_level_3","political"]},{"long_name":"高雄市","short_name":"高雄市","types":["administrative_area_level_1","political"]},{"long_name":"台灣","short_name":"TW","types":["country","political"]},{"long_name":"806","short_name":"806","types":["postal_code"]}],"formatted_address":"806台灣高雄市前鎮區三多三路213號12樓","geometry":{"location":{"lat":22.6144461,"lng":120.3067782},"location_type":"ROOFTOP","viewport":{"northeast":{"lat":22.6159041302915,"lng":120.3080845302915},"southwest":{"lat":22.6132061697085,"lng":120.3053865697085}}},"place_id":"ChIJKZtNe30DbjQRds0VhXXSZSk","types":["subpremise"]}],"status":"OK"}, 
         {"results":[{"address_components":[{"long_name":"2F","short_name":"2F","types":["subpremise"]},{"long_name":"80號","short_name":"80號","types":["street_number"]},{"long_name":"中華路","short_name":"中華路","types":["route"]},{"long_name":"興樂里","short_name":"興樂里","types":["administrative_area_level_4","political"]},{"long_name":"屏東市","short_name":"屏東市","types":["administrative_area_level_3","political"]},{"long_name":"屏東縣","short_name":"屏東縣","types":["administrative_area_level_2","political"]},{"long_name":"台灣","short_name":"TW","types":["country","political"]},{"long_name":"900","short_name":"900","types":["postal_code"]}],"formatted_address":"900台灣屏東縣屏東市中華路80號2F","geometry":{"location":{"lat":22.6740893,"lng":120.4906227},"location_type":"ROOFTOP","viewport":{"northeast":{"lat":22.67544438029151,"lng":120.4919506302915},"southwest":{"lat":22.6727464197085,"lng":120.4892526697085}}},"place_id":"ChIJWzwl35oXbjQRP1wrGZlUPtI","types":["subpremise"]}],"status":"OK"}, 
         {"results":[{"address_components":[{"long_name":"4樓","short_name":"4樓","types":["subpremise"]},{"long_name":"38巷6號","short_name":"38巷6號","types":["street_number"]},{"long_name":"民權路二段","short_name":"民權路二段","types":["route"]},{"long_name":"南門里","short_name":"南門里","types":["administrative_area_level_4","political"]},{"long_name":"宜蘭市","short_name":"宜蘭市","types":["administrative_area_level_3","political"]},{"long_name":"宜蘭縣","short_name":"宜蘭縣","types":["administrative_area_level_2","political"]},{"long_name":"台灣","short_name":"TW","types":["country","political"]},{"long_name":"260","short_name":"260","types":["postal_code"]}],"formatted_address":"260台灣宜蘭縣宜蘭市民權路二段38巷6號4樓","geometry":{"location":{"lat":24.7540596,"lng":121.7505349},"location_type":"ROOFTOP","viewport":{"northeast":{"lat":24.75510498029151,"lng":121.7517642802915},"southwest":{"lat":24.7524070197085,"lng":121.7490663197085}}},"place_id":"ChIJZdiBhMPkZzQRVCbFfxAV9sE","types":["subpremise"]}],"status":"OK"}, 
+        {"results":[{"address_components":[{"long_name":"4樓","short_name":"4樓","types":["subpremise"]},{"long_name":"38巷6號","short_name":"38巷6號","types":["street_number"]},{"long_name":"民權路二段","short_name":"民權路二段","types":["route"]},{"long_name":"南門里","short_name":"南門里","types":["administrative_area_level_4","political"]},{"long_name":"宜蘭市","short_name":"宜蘭市","types":["administrative_area_level_3","political"]},{"long_name":"宜蘭縣","short_name":"宜蘭縣","types":["administrative_area_level_2","political"]},{"long_name":"台灣","short_name":"TW","types":["country","political"]},{"long_name":"260","short_name":"260","types":["postal_code"]}],"formatted_address":"260台灣宜蘭縣宜蘭市民權路二段38巷6號4樓","geometry":{"location":{"lat":23.7540596,"lng":121.7505349},"location_type":"ROOFTOP","viewport":{"northeast":{"lat":24.75510498029151,"lng":121.7517642802915},"southwest":{"lat":24.7524070197085,"lng":121.7490663197085}}},"place_id":"ChIJZdiBhMPkZzQRVCbFfxAV9sE","types":["subpremise"]}],"status":"OK"}, 
       ];
       return { geoencodingRaw: mockRaws[i], pointData: mapData}
     })
@@ -161,12 +162,12 @@ export class PointLocationsService {
       }}))
   }
 
-  convertGoogleGeoencodingToLonLat = map( (points: GoogleSheetPinMappingGeoencodingRaw[]): GoogleSheetPinMappingLonLat[] => {
+  convertGeoencodingToLonLat = map( (points: GoogleSheetPinMappingGeoencodingRaw[]): GoogleSheetPinMappingLonLat[] => {
     return points.map( point => {
       console.log(point);
       
       const location = point.geoencodingRaw.results[0].geometry.location      
-      return {lonLat: new Vector2(location.lng, location.lat), pointData: point.pointData}
+      return {lonLat: new Vector2(location.lng, location.lat), pinData: point.pointData}
     })
 })
 

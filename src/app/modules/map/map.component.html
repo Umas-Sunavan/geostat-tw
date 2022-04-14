@@ -1,7 +1,9 @@
 <p>map works!</p>
 <div #canvasContainer class="canvas-container"></div>
-<button (click)="pauseAnimation()">Pause Animation</button>
-<button (click)="resumeAnimation()">Resume Animation</button>
+<div [ngSwitch]="isPaused">
+    <button *ngSwitchCase="true" (click)="resumeAnimation()" >Resume Animation</button>
+    <button *ngSwitchCase="false" (click)="pauseAnimation()" >Pause Animation</button>
+</div>
 <div class="slidecontainer">
     <label for="wireframeOpacity">wireframeOpacity: {{wireframeOpacity}}</label>
     <input type="range" min="0" max="1" value="0.1" step="0.01" id="wireframeOpacity" 
@@ -18,4 +20,8 @@
     <label for="additiveBlending">additiveBlending: {{additiveBlendingOpacity}}</label>
     <input type="range" min="0" max="1" value="0.1" step="0.01" id="additiveBlending" 
     (change)="sliderChange($event, 'additiveBlending')" [(ngModel)]="additiveBlendingOpacity">
+    
+    <input type="range" min="0" max="1" value="0.1" step="0.01" id="columnHeightScale" 
+    (change)="changeColumnHeight($event)" [(ngModel)]="columnHeightScale">
+    <label for="columnHeightScale">columnHeightScale: {{columnHeightScale}}</label>
 </div>

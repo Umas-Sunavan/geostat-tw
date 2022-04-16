@@ -1,0 +1,33 @@
+<p>gui-settings works!</p>mapCanvas.guiColumnSettings
+<app-map-canvas #mapCanvas></app-map-canvas>
+<div class="slidecontainer">
+    <br>
+    <input type="color" id="columnColor" (change)="mapCanvas.uiUpdatePin($event)"
+        [(ngModel)]="mapCanvas.guiColumnSettings.column.color">
+    <label for="columnColor">column color: {{mapCanvas.guiColumnSettings.column.color}}</label>
+    <br>
+    <input type="range" min="0" max="1" step="0.01" id="columnHeight" (change)="mapCanvas.uiUpdatePin($event)"
+        [(ngModel)]="mapCanvas.guiColumnSettings.column.height">
+    <label for="columnHeight">columnHeight: {{mapCanvas.guiColumnSettings.column.height}}</label>
+    <br>
+    <input type="range" min="0" max="3" step="0.01" id="columnScale" (change)="mapCanvas.uiUpdatePin($event)"
+        [(ngModel)]="mapCanvas.guiColumnSettings.column.scale">
+    <label for="columnScale">columnScale: {{mapCanvas.guiColumnSettings.column.scale}}</label>
+    <br>
+    <input type="color" id="groundColor" (change)="mapCanvas.uiUpdatePin($event)"
+        [(ngModel)]="mapCanvas.guiColumnSettings.ground.color">
+    <label for="groundColor">ground Color: {{mapCanvas.guiColumnSettings.ground.color}}</label>
+    <br>
+    <input type="range" min="0" max="1" step="0.01" id="groundOpacity" (change)="mapCanvas.uiUpdatePin($event)"
+        [(ngModel)]="mapCanvas.guiColumnSettings.ground.opacity">
+    <label for="groundOpacity">groundOpacity: {{mapCanvas.guiColumnSettings.ground.opacity}}</label>
+    <br>
+    <input type="color" id="outlineColor" (change)="mapCanvas.uiUpdatePin($event)"
+        [(ngModel)]="mapCanvas.guiColumnSettings.outline.color">
+    <label for="outlineColor">outlineColor: {{mapCanvas.guiColumnSettings.outline.color}}</label>
+    <br>
+    <input type="range" min="0" max="1" step="0.01" id="outlineOpacity"
+        (change)="mapCanvas.uiUpdatePin($event)" [(ngModel)]="mapCanvas.guiColumnSettings.outline.opacity">
+    <label for="outlineOpacity">outlineOpacity: {{mapCanvas.guiColumnSettings.outline.opacity}}</label>
+    <br>
+</div>

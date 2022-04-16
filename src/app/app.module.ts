@@ -6,19 +6,21 @@ import { AppComponent } from './app.component';
 import { AuthComponent } from './modules/auth/auth/auth.component';
 import { HeaderComponent } from './core/layouts/header/header/header.component';
 import { FooterComponent } from './core/layouts/footer/footer/footer.component';
-import { MapComponent } from './modules/map/map.component';
-import { DashboardComponent } from './modules/dashboard/dashboard.component';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { MapCanvasComponent } from './modules/map/map-viewer/map-canvas/map-canvas.component';
+import { DashboardComponent } from './modules/dashboard/dashboard.component';
+import { MapViewerComponent } from './modules/map/map-viewer/map-viewer.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    MapComponent,
+    MapCanvasComponent,
     DashboardComponent,
     AuthComponent,
     HeaderComponent,
     FooterComponent,
+    MapViewerComponent,
     
   ],
   imports: [

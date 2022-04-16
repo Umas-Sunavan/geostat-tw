@@ -3,13 +3,12 @@ import { FirebaseApp, initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc } from 'firebase/firestore/lite';
 import { getDatabase, ref, onValue, Database, push } from "firebase/database";
 import { environment } from 'src/environments/environment';
-import { map, Observable } from 'rxjs';
-import { CategorySettings } from 'src/app/shared/models/CategorySettings';
+import { lastValueFrom, map, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { GoogleSheetRawData, GoogleSheetRow } from 'src/app/shared/models/GoogleSheetRawData';
-import { GoogleSheetPin } from 'src/app/shared/models/GoogleSheetPin';
-import { PinsTableService } from './point-services/pins-table.service';
+import { CategorySetting, CategorySettings } from 'src/app/shared/models/CategorySettings';
 import { CategoryTableRow } from 'src/app/shared/models/CategoryTableRow';
+import { GoogleSheetRawData, GoogleSheetRow } from 'src/app/shared/models/GoogleSheetRawData';
+import { PinsTableService } from '../pin-services/pins-table.service';
 
 @Injectable({
   providedIn: 'root'
@@ -93,6 +92,14 @@ export class CategoryService {
         connectedPoints: [1,2,4]
       }
     })
+  }
+
+  getTableFromSettings = async (setting: CategorySetting) => {
+    if (!setting) throw new Error("No firebase category found by the route of this page");
+    const tableId = setting.tableSource
+    const tableObservable = this.getCategoryTable(tableId)
+    const categoryTable = await lastValueFrom(tableObservable)
+    return categoryTable
   }
 
 }

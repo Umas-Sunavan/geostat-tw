@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { delay, firstValueFrom, lastValueFrom, of, take } from 'rxjs';
+import { Color, Texture, TextureLoader } from 'three';
 import { Tile } from 'src/app/shared/models/Tile';
 import { TileId } from 'src/app/shared/models/TileId';
-import { Color, Texture, TextureLoader } from 'three';
 import { TileUtilsService } from './tile-utils.service';
 import { TileService } from './tile.service';
 

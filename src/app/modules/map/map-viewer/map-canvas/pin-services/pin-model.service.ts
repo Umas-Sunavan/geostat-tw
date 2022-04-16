@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { CategoryTableRow } from 'src/app/shared/models/CategoryTableRow';
+import { Vector2, Vector3 } from 'three';
 import { GoogleSheetPinMappingLonLat } from 'src/app/shared/models/GoogleSheetPinMappingLonLat';
 import { Pin } from 'src/app/shared/models/Pin';
-import { Vector2, Vector3 } from 'three';
-import { PinsTableService } from './point-services/pins-table.service';
-import { TileLonglatCalculationService } from './tile-services/tile-longlat-calculation.service';
+import { TileLonglatCalculationService } from '../tile-services/tile-longlat-calculation.service';
+import { PinsTableService } from './pins-table.service';
 
 @Injectable({
   providedIn: 'root'

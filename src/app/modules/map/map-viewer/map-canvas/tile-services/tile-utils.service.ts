@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
+import { Camera, DoubleSide, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Scene, Vector3 } from 'three';
 import { Tile } from 'src/app/shared/models/Tile';
 import { TileId } from 'src/app/shared/models/TileId';
-import { Camera, DoubleSide, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Scene, Vector3 } from 'three';
 import { AnimateService } from '../three-services/animate.service';
 import { TextureService } from './texture.service';
 import { TileService } from './tile.service';

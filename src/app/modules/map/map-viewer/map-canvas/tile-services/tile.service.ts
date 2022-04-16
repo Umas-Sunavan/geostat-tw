@@ -1,12 +1,12 @@
 import { HttpClient, HttpParams, HttpParamsOptions } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { finalize, map, firstValueFrom, BehaviorSubject, switchMap, of, delay, concatMap, take, Observable, lastValueFrom } from 'rxjs';
-import { TileId } from 'src/app/shared/models/TileId';
-import { Tile } from 'src/app/shared/models/Tile';
 import { Camera, DoubleSide, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Scene, Texture, TextureLoader, Vector3 } from 'three';
 import { TextureService } from './texture.service';
 import { AnimateService } from '../three-services/animate.service';
 import { TileUtilsService } from './tile-utils.service';
+import { TileId } from 'src/app/shared/models/TileId';
+import { Tile } from 'src/app/shared/models/Tile';
 
 @Injectable({
   providedIn: 'root'

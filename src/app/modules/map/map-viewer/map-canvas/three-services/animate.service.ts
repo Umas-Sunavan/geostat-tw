@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Observable, of } from 'rxjs';
-import { BoxGeometry, Camera, Color, DirectionalLight, Intersection, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, Raycaster, Renderer, RepeatWrapping, Scene, ShaderMaterial, Texture, Vector2, Vector3, WebGLRenderer, WebGLRenderTarget } from 'three';
+import { BoxGeometry, Camera, Color, DirectionalLight, Group, Intersection, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, Raycaster, Renderer, RepeatWrapping, Scene, ShaderMaterial, Texture, Vector2, Vector3, WebGLRenderer, WebGLRenderTarget } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 @Injectable({
@@ -14,7 +14,7 @@ export class AnimateService {
   onCanvasIntersect: BehaviorSubject<Intersection<Object3D<Event>>[]> = new BehaviorSubject([] as Intersection<Object3D<Event>>[])
   mouseRaycaster = new Raycaster();
   cavasCenterRaycaster = new Raycaster()
-  intersectedObjs: Object3D[] = []
+  intersectedObjs: (Object3D | Group)[] = []
   isPaused: boolean = false
   renderer?: WebGLRenderer
   scene?: Scene
@@ -74,8 +74,12 @@ export class AnimateService {
     this.mouse = mouse
   }
 
-  passIntersetObject = (objects: Object3D[]) => {
-    this.intersectedObjs = objects
+  passIntersetObject = (objects: (Object3D| Group)[]) => {
+    this.intersectedObjs.push(...objects)
+  }
+
+  removeIntersetObject = (selector: string) => {
+    this.intersectedObjs = this.intersectedObjs.filter( obj => !obj.name.includes(selector))
   }
 
   getCanvasCenter = (): Vector3 | undefined => this.onCanvasIntersect.value[0]?.point

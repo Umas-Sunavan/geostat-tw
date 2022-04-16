@@ -3,7 +3,7 @@ import { FirebaseApp, initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc } from 'firebase/firestore/lite';
 import { getDatabase, ref, onValue, Database, push } from "firebase/database";
 import { environment } from 'src/environments/environment';
-import { lastValueFrom, map, Observable } from 'rxjs';
+import { lastValueFrom, map, Observable, of, timeout } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { CategorySetting, CategorySettings } from 'src/app/shared/models/CategorySettings';
 import { CategoryTableRow } from 'src/app/shared/models/CategoryTableRow';
@@ -41,6 +41,61 @@ export class CategoryService {
     })
   }
 
+  getCategorySetting = async (id: string, onFinished: (setting: CategorySetting) => Promise<void>) => {
+    // this.categoryService.subscribe( async (categorySettings: CategorySettings) => {   
+      const categorySettings: CategorySettings = {
+        "-N-SyzGWgpgWs2szH-aH": {
+            "deleted": true,
+            "options": {
+                "cameraPosition": {
+                    "x": 10,
+                    "y": 20,
+                    "z": 0
+                },
+                "colors": {
+                    "mainColor": "#ff00ff"
+                },
+                "meshSettings": {
+                  "column": {
+                    "opacity": 0.1,
+                    "color": "#528bff",
+                    "heightScale": 0.1,
+                    "scale": 0.5
+                  },
+                  "ground": {
+                    "color": "#528bff",
+                    "opacity": 0.5,
+                  },
+                  "outline": {
+                    "color": "#ffffff",
+                    "opacity": 0.02,
+                  }
+                },
+                "connectMode": "triangle",
+                "connectedPoints": [
+                    1,
+                    2,
+                    4
+                ],
+                "focusOnPoint": {
+                    "x": -10,
+                    "y": 0,
+                    "z": 0
+                },
+                "radius": 2
+            },
+            "tableCreateDate": "2022/04/12",
+            "tableCreator": "Umas",
+            "tableName": "店營業額",
+            "tableSource": "1ER4MhRBniLOaNZ8_vkgv92Egp410nf-z-CkN9KO1LGg"
+        }
+      }
+      const setting = categorySettings[id]  
+      await lastValueFrom(of(true).pipe(timeout(1000)))
+      await onFinished(setting)   
+      
+    // })
+  }
   getCategoryTable = (googleSheetId: string): Observable<CategoryTableRow[]> => {
     const options = {responseType: 'text' as 'json',};
     return this.httpClient.get<GoogleSheetRawData>(`https://docs.google.com/spreadsheets/d/${googleSheetId}/gviz/tq?`, options).pipe(

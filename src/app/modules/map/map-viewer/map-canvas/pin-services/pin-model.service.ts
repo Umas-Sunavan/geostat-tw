@@ -6,6 +6,9 @@ import { GoogleSheetPinMappingLonLat } from 'src/app/shared/models/GoogleSheetPi
 import { Pin } from 'src/app/shared/models/Pin';
 import { TileLonglatCalculationService } from '../tile-services/tile-longlat-calculation.service';
 import { PinsTableService } from './pins-table.service';
+import { CategorySetting } from 'src/app/shared/models/CategorySettings';
+import { CategoryService } from '../category/category.service';
+import { PinCategoryMappingService } from '../../../pin-category-mapping.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +18,8 @@ export class PinModelService {
   constructor(
     private tileLonLatCalculation: TileLonglatCalculationService,
     private pinsTableService: PinsTableService,
+    private categoryService: CategoryService,
+    private pinCategoryMapping: PinCategoryMappingService,
   ) { }
 
   initPinsModel = async () => {
@@ -50,7 +55,14 @@ export class PinModelService {
     })
   }
 
-  updatePinHeightInModel = (pins: Pin[], rows: CategoryTableRow[]) => {
+  applyPinHeightFromSetting = async (setting: CategorySetting, pins: Pin[]) => {
+    const categoryTable = await this.categoryService.getTableFromSettings(setting)
+    const { mappedPins, mappedRows } = this.pinCategoryMapping.mappingPinAndTable(categoryTable, pins)
+    pins = this.updatePinHeightFromRows(mappedPins, mappedRows)
+    return pins
+  }
+
+  updatePinHeightFromRows = (pins: Pin[], rows: CategoryTableRow[]) => {
     pins.forEach( pin => {
       const mappedRow = rows.find( row => row.title === pin.title)
       if(!mappedRow) throw new Error(`row is not found in pin ${pin.title}`);

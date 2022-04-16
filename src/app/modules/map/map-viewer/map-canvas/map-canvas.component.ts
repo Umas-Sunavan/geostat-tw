@@ -1,5 +1,8 @@
 import { AfterContentInit, AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
-import { BoxGeometry, BufferGeometry, Camera, Color, CurvePath, ExtrudeBufferGeometry, ExtrudeGeometry, Line, LineBasicMaterial, LineCurve, Material, Mesh, MeshBasicMaterial, MeshNormalMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PointLight, Raycaster, Renderer, Scene, Shape, ShapeBufferGeometry, ShapeGeometry, Vector, Vector2, Vector3, Vector3Tuple, WebGLRenderer, DoubleSide, Texture, Plane, WebGLRenderTarget, TextureLoader, Intersection, CylinderGeometry, MeshMatcapMaterial, CircleGeometry } from 'three';
+import { BoxGeometry, BufferGeometry, Camera, Color, CurvePath, ExtrudeBufferGeometry, ExtrudeGeometry, Line, LineBasicMaterial, LineCurve, Material, Mesh, MeshBasicMaterial, MeshNormalMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PointLight, Raycaster, Renderer, Scene, Shape, ShapeBufferGeometry, ShapeGeometry, Vector, Vector2, Vector3, Vector3Tuple, WebGLRenderer, DoubleSide, Texture, Plane, WebGLRenderTarget, TextureLoader, Intersection, CylinderGeometry, MeshMatcapMaterial, CircleGeometry, Group } from 'three';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';			
+import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { BehaviorSubject, concatMap, delay, exhaustMap, filter, forkJoin, from, interval, last, lastValueFrom, map, mapTo, merge, mergeMap, Observable, of, Subject, Subscriber, switchMap, take, tap, timeout, timer } from 'rxjs';
 import { CategorySetting, CategorySettings } from 'src/app/shared/models/CategorySettings';
@@ -39,14 +42,13 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     private tileService: TileService,
     private tileUtilsService: TileUtilsService,
     private tileLonLatCalculation: TileLonglatCalculationService,
-    private pinsTableService: PinsTableService,
     private categoryService: CategoryService,
     private activatedRoute: ActivatedRoute,
     private pinModelService: PinModelService,
-    private pinCategoryMapping: PinCategoryMappingService,
     private column3dService: Column3dService,
     ) {
     this.initQueueToUpdateResolution()
+    
   }
 
   @ViewChild('canvasContainer') canvasContainer!: ElementRef<HTMLCanvasElement>;
@@ -67,13 +69,16 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   pins: Pin[] = []
   isPaused: boolean = false
   categoryId = '-N-SyzGWgpgWs2szH-aH'
+  hoveredPins?: Pin[]
+  hoverPinChangeSuject: BehaviorSubject<[]> = new BehaviorSubject([])
+  font?: Font
 
   // view
   guiColumnSettings:Gui3dSettings = {
     column: {
       opacity: 0.1,
       color: '#528bff',
-      heightScale: 0.1,
+      heightScale: 1,
       scale: 0.5,
     }, 
     ground: {
@@ -111,94 +116,148 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     return meshes
   }
 
-  applyMaterialAttribute = (mesh: Mesh) => {
-    
+  findPinModelById = (pins: Pin[], ids: string[]) =>  {
+    return ids.map( id => {
+      const found  =pins.find( pin => pin.id+'' === id)
+      if (!found) throw new Error("the raycasted group object is not found in this.pins");
+      return found
+    })
   }
 
-  
+  getPinIdFromIntersections = (intersections: Intersection[]) => {
+    const pinMeshGroups = this.getIntersectedPin(intersections)
+    const intersectPinIds:string[] = []
+    pinMeshGroups.forEach( pin => {
+      const intersectMesh = pin.children.find( mesh => mesh.parent?.name.includes('group')) as Group
+      const id = intersectMesh.parent?.name.match(/(?=.+_?)\d+/);
+      if (id && id[0]) {
+        intersectPinIds.push(id[0])
+      }
+    })
+    return intersectPinIds
+  }
 
   async ngOnInit(): Promise<void> {
+    const loader = new FontLoader();        
+    this.font = await loader.loadAsync( '/assets/helvetiker_regular.typeface.json');
     this.timeoutToPause()
     this.initOnUserUpdateResolution()
+    this.animateService.onMouseIntersect.subscribe( intersections => {
+      const ids = this.getPinIdFromIntersections(intersections)
+      const pins = this.findPinModelById(this.pins, ids)
+      this.onPinsHovered(pins)
+    })
     this.pins = await this.pinModelService.initPinsModel()
     
     // this.pointDimensionService.writeUserData()
   }
 
+  onPinsHovered = (pins:Pin[]) => {
+    const isAnyPinHovered =pins.length > 0
+    if (isAnyPinHovered) {
+      const groups = this.getPin3ds(this.scene) as Group[]
+      groups.forEach( group => {
+        const oldPinColumn = this.getMeshGroupItem(group, 'column')
+        const oldPinGround = this.getMeshGroupItem(group, 'ground')
+        // oldPinColumn.material.opacity = this.guiColumnSettings.column.opacity
+        // oldPinColumn.material.color = new Color(this.column3dService.parseStringColorToInt(this.guiColumnSettings.column.color))
+        oldPinColumn.material.depthWrite  = true
+        oldPinGround.material.depthWrite  = true
+      })
+    } else {
+      const groups = this.getPin3ds(this.scene) as Group[]
+      groups.forEach( group => {
+        const oldPinColumn = this.getMeshGroupItem(group, 'column')
+        const oldPinGround = this.getMeshGroupItem(group, 'ground')
+        // oldPinColumn.material.opacity = this.guiColumnSettings.column.opacity
+        // oldPinColumn.material.color = new Color(this.column3dService.parseStringColorToInt(this.guiColumnSettings.column.color))
+        oldPinColumn.material.depthWrite  = false
+        oldPinGround.material.depthWrite  = false
+      })
+    }
+    console.log(pins?.map( pin => pin.id));
+    pins = pins.slice(0,1)
+    // const leftPins = this.hoveredPins?.filter( hoveredPin => !pins.find( pin => pin.id === hoveredPin.id)) || []
+    this.hoveredPins?.forEach( pin => {
+      const oldPinMeshGroup = this.getPin3dById(this.scene, pin.id+'')
+      const oldPinColumn = this.getMeshGroupItem(oldPinMeshGroup, 'column')
+      const oldPinGround = this.getMeshGroupItem(oldPinMeshGroup, 'ground')
+      oldPinColumn.material.opacity = this.guiColumnSettings.column.opacity
+      oldPinColumn.material.color = new Color(this.column3dService.parseStringColorToInt(this.guiColumnSettings.column.color))
+      oldPinColumn.material.depthWrite  = false
+      console.log(pin.id);
+      // oldPinColumn.material.needsUpdate = true
+    })
+    this.hoveredPins = pins
+    this.hoveredPins.forEach( pin => {
+      const pinMeshGroup = this.getPin3dById(this.scene, pin.id+'')
+      const pinColumn = this.getMeshGroupItem(pinMeshGroup, 'column')
+      const pinGround = this.getMeshGroupItem(pinMeshGroup, 'ground')
+      pinColumn.material.depthWrite  = true
+      pinColumn.material.opacity = 0.6
+      pinColumn.material.color = new Color(0xffff00)
+      if (!this.font)return
+
+      const material  = new MeshPhongMaterial( { color: 0xffffff } ) 
+      const text  =new TextGeometry( 'text', {
+        font: this.font,
+        size: 8,
+        height: 5,
+        curveSegments: 12,
+      }  );
+      const textMesh1 = new Mesh( text, material );
+      this.scene.add(textMesh1)
+    })
+  }
+
+  getMeshGroupItem = (group: Group, selector: string) => group.children.find( child => child.name.includes(selector)) as Mesh<CylinderGeometry, MeshPhongMaterial>
+
+  getPinModelById = (PinsModel:Pin[], id: string) => {
+    const found = PinsModel.find( pin => pin.id+'' === id)
+    if(!found) throw new Error("pin is not found by the provided id");
+    return found
+  }
+
+  getPin3dById = (scene:Scene, id: string) => {
+    const found = scene.children.find( child => {
+      const token = new RegExp(`pin_group_${id}`)        
+      return token.test(child.name)
+    }) as Group
+    if(!found) throw new Error("pin is not found by the provided id");
+    return found
+  }
+
+  getPin3ds = (scene:Scene) => {
+    return scene.children.filter( child => {
+      const token = new RegExp(`pin_group_`)        
+      return token.test(child.name)
+    }) as Group[]
+  }
+
+  getIntersectedPin = (intersections: Intersection[]) => {
+    const objs = intersections.map( intersection => intersection.object)
+    const intersectPin = objs.map( obj => obj.parent).filter( parent => parent?.name.includes('group'))
+    const uniquePins: Group[] = []
+    intersectPin.forEach(pin => {
+      if(!pin) return
+      const isDuplicate = uniquePins.some( uniquePin => uniquePin.name === pin?.name)
+      if (!isDuplicate) uniquePins.push(pin as Group)
+    });
+    return uniquePins
+  } 
+
   initCategory = async () => {
     const categoryId = await this.getCategoryIdFromRoute()
     const onGotCategorySettings = async (setting: CategorySetting) => {
-      await this.applyCategoryValueToPinHeight(setting)
-      await this.appluCategorySettingToGuisettingModel(setting)
+      this.pins = await this.pinModelService.applyPinHeightFromSetting(setting, this.pins)
+      await this.applySettings(setting)
     }
-    await this.getCategorySettingAndApply(categoryId, onGotCategorySettings)
+    await this.categoryService.getCategorySetting(categoryId, onGotCategorySettings)
   }
 
-  applyCategoryValueToPinHeight = async (setting: CategorySetting) => {
-    const categoryTable = await this.categoryService.getTableFromSettings(setting)
-    const { mappedPins, mappedRows } = this.pinCategoryMapping.mappingPinAndTable(categoryTable, this.pins)
-    this.pins = this.pinModelService.updatePinHeightInModel(mappedPins, mappedRows)
-  }
+  applySettings = async (setting: CategorySetting) => this.guiColumnSettings = setting.options.meshSettings
 
-  appluCategorySettingToGuisettingModel = async (setting: CategorySetting) => {
-    this.guiColumnSettings = setting.options.meshSettings
-  }
 
-  getCategorySettingAndApply = async (id: string, onFinished: (setting: CategorySetting) => Promise<void>) => {
-    // this.categoryService.getCategorySettings().subscribe( async (categorySettings: CategorySettings) => {   
-      const categorySettings: CategorySettings = {
-        "-N-SyzGWgpgWs2szH-aH": {
-            "deleted": true,
-            "options": {
-                "cameraPosition": {
-                    "x": 10,
-                    "y": 20,
-                    "z": 0
-                },
-                "colors": {
-                    "mainColor": "#ff00ff"
-                },
-                "meshSettings": {
-                  "column": {
-                    "color": "#ff00ff",
-                    "opacity": 0.1,
-                    "heightScale": 0.5,
-                    "scale": 1
-                  },
-                  "ground": {
-                    "color": "#ffffff",
-                    "opacity": 0.9,
-                  },
-                  "outline": {
-                    "color": "#ff0000",
-                    "opacity": 0.9,
-                  }
-                },
-                "connectMode": "triangle",
-                "connectedPoints": [
-                    1,
-                    2,
-                    4
-                ],
-                "focusOnPoint": {
-                    "x": -10,
-                    "y": 0,
-                    "z": 0
-                },
-                "radius": 2
-            },
-            "tableCreateDate": "2022/04/12",
-            "tableCreator": "Umas",
-            "tableName": "店營業額",
-            "tableSource": "1ER4MhRBniLOaNZ8_vkgv92Egp410nf-z-CkN9KO1LGg"
-        }
-      }
-      const setting = categorySettings[id]  
-      await lastValueFrom(of(true).pipe(timeout(1000)))
-      await onFinished(setting)   
-      
-    // })
-  }
   
   initOnUserUpdateResolution = () => {
     this.onUserUpdateCamera.pipe(
@@ -242,8 +301,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.camera = this.cameraService.makeCamera(canvasDimention)
     this.scene.add(this.camera)
     this.orbitControl = new OrbitControls(this.camera, this.renderer.domElement);
-    console.log(this.renderer, this.scene, this.camera, this.orbitControl, this.mousePosition);
-    
     this.animateService.initAnimate(this.renderer, this.scene, this.camera, this.orbitControl, this.mousePosition)
     this.animateService.animate()
     this.box = this.getBox()
@@ -287,6 +344,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
       if (!pin.positionLongLat) throw new Error("No Longitude or latitude");
       pin.position3d = this.longLatToPosition3d(pin.positionLongLat)
       const columnGroup = this.column3dService.createColumn3dLayers(pin, settings)
+      this.animateService.passIntersetObject([columnGroup])
       
       pin.mesh = columnGroup      
       scene.add(columnGroup)
@@ -297,6 +355,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     pins.forEach( pin => {
       if (!pin.mesh) return
       pin.mesh.removeFromParent()
+      this.animateService.removeIntersetObject(`pin`)
     })
   }
 

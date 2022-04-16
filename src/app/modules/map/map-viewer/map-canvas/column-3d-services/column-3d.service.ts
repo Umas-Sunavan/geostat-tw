@@ -13,14 +13,15 @@ export class Column3dService {
 
   createColumn3dLayers = (pin: Pin, settings: Gui3dSettings) => {
     const group = new Group();
-    const origionalMesh = this.getColumn3d(pin, NormalBlending, `column_${pin.id}_normalBlending`, settings.column)
+    const origionalMesh = this.getColumn3d(pin, NormalBlending, `pin_column_${pin.id}_normalBlending`, settings.column)
     // const lightingMesh = this.getColumn3d(pin, AdditiveBlending, `column_${pin.id}_additiveBlending`, 0.04, columnColor, heightScale)
-    const ground = this.getGround3d(pin, NormalBlending, `ground_${pin.id}`, settings.ground, settings.column.scale)
+    const ground = this.getGround3d(pin, NormalBlending, `pin_ground_${pin.id}`, settings.ground, settings.column.scale)
     // const outline = this.getOutline3d(pin, NormalBlending, `outline_${pin.id}`, 0.02, columnColor, origionalMesh)
     group.add(ground)
     // group.add( outline );
     group.add(origionalMesh)
     // group.add(lightingMesh)
+    group.name = `pin_group_` + pin.id
     return group
   }
 

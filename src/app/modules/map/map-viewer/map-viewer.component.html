@@ -14,6 +14,10 @@
         [(ngModel)]="mapCanvas.guiColumnSettings.column.scale">
     <label for="columnScale">columnScale: {{mapCanvas.guiColumnSettings.column.scale}}</label>
     <br>
+    <input type="range" min="0" max="1" step="0.01" id="columnOpacity" (change)="mapCanvas.uiUpdatePin($event)"
+        [(ngModel)]="mapCanvas.guiColumnSettings.column.opacity">
+    <label for="columnOpacity">columnOpacity: {{mapCanvas.guiColumnSettings.column.opacity}}</label>
+    <br>
     <input type="color" id="groundColor" (change)="mapCanvas.uiUpdatePin($event)"
         [(ngModel)]="mapCanvas.guiColumnSettings.ground.color">
     <label for="groundColor">ground Color: {{mapCanvas.guiColumnSettings.ground.color}}</label>

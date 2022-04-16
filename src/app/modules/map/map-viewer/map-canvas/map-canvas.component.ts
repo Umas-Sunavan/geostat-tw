@@ -20,7 +20,6 @@ import { Tile } from 'src/app/shared/models/Tile';
 import { Pin } from 'src/app/shared/models/Pin';
 import { CategoryService } from './category/category.service';
 import { Gui3dSettings } from 'src/app/shared/models/GuiColumnSettings';
-import { GuiColumnSettingsType } from 'src/app/shared/enums/ColumnSettings';
 
 
 
@@ -72,9 +71,9 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   // view
   guiColumnSettings:Gui3dSettings = {
     column: {
-      opactiy: 0.1,
+      opacity: 0.1,
       color: '#528bff',
-      height: 0.1,
+      heightScale: 0.1,
       scale: 0.5,
     }, 
     ground: {
@@ -98,7 +97,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   uiUpdatePin = (event: Event) => {
-    this.updatePins(this.pins, this.scene)
+    this.updatePin3ds(this.pins, this.scene)
   }
 
   get3dMeshes = (pins: Pin[], meshName: string) => {
@@ -122,24 +121,83 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.timeoutToPause()
     this.initOnUserUpdateResolution()
     this.pins = await this.pinModelService.initPinsModel()
-    await this.initCategory()
     
     // this.pointDimensionService.writeUserData()
   }
 
   initCategory = async () => {
     const categoryId = await this.getCategoryIdFromRoute()
-    this.getCategorySettingAndApply(categoryId, this.pins)
+    const onGotCategorySettings = async (setting: CategorySetting) => {
+      await this.applyCategoryValueToPinHeight(setting)
+      await this.appluCategorySettingToGuisettingModel(setting)
+    }
+    await this.getCategorySettingAndApply(categoryId, onGotCategorySettings)
   }
 
-  getCategorySettingAndApply = (id: string, pins: Pin[]) => {
-    this.categoryService.getCategorySettings().subscribe( async (categorySettings: CategorySettings) => {
+  applyCategoryValueToPinHeight = async (setting: CategorySetting) => {
+    const categoryTable = await this.categoryService.getTableFromSettings(setting)
+    const { mappedPins, mappedRows } = this.pinCategoryMapping.mappingPinAndTable(categoryTable, this.pins)
+    this.pins = this.pinModelService.updatePinHeightInModel(mappedPins, mappedRows)
+  }
+
+  appluCategorySettingToGuisettingModel = async (setting: CategorySetting) => {
+    this.guiColumnSettings = setting.options.meshSettings
+  }
+
+  getCategorySettingAndApply = async (id: string, onFinished: (setting: CategorySetting) => Promise<void>) => {
+    // this.categoryService.getCategorySettings().subscribe( async (categorySettings: CategorySettings) => {   
+      const categorySettings: CategorySettings = {
+        "-N-SyzGWgpgWs2szH-aH": {
+            "deleted": true,
+            "options": {
+                "cameraPosition": {
+                    "x": 10,
+                    "y": 20,
+                    "z": 0
+                },
+                "colors": {
+                    "mainColor": "#ff00ff"
+                },
+                "meshSettings": {
+                  "column": {
+                    "color": "#ff00ff",
+                    "opacity": 0.1,
+                    "heightScale": 0.5,
+                    "scale": 1
+                  },
+                  "ground": {
+                    "color": "#ffffff",
+                    "opacity": 0.9,
+                  },
+                  "outline": {
+                    "color": "#ff0000",
+                    "opacity": 0.9,
+                  }
+                },
+                "connectMode": "triangle",
+                "connectedPoints": [
+                    1,
+                    2,
+                    4
+                ],
+                "focusOnPoint": {
+                    "x": -10,
+                    "y": 0,
+                    "z": 0
+                },
+                "radius": 2
+            },
+            "tableCreateDate": "2022/04/12",
+            "tableCreator": "Umas",
+            "tableName": "店營業額",
+            "tableSource": "1ER4MhRBniLOaNZ8_vkgv92Egp410nf-z-CkN9KO1LGg"
+        }
+      }
       const setting = categorySettings[id]  
-      const categoryTable = await this.categoryService.getTableFromSettings(setting)
-      const { mappedPins, mappedRows } = this.pinCategoryMapping.mappingPinAndTable(categoryTable, pins)
-      this.pins = this.pinModelService.updatePinHeightInModel(mappedPins, mappedRows)
-      this.updatePins(this.pins, this.scene)
-    })
+      await lastValueFrom(of(true).pipe(timeout(1000)))
+      await onFinished(setting)   
+      
+    // })
   }
   
   initOnUserUpdateResolution = () => {
@@ -152,8 +210,9 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
   async ngAfterViewInit() {
     this.initThree()
-    await this.initTile()    
-    this.updatePins(this.pins, this.scene)
+    await this.initTile()
+    await this.initCategory()
+    this.updatePin3ds(this.pins, this.scene)
   }
 
   getCategoryIdFromRoute = async ():Promise<string> => {
@@ -217,17 +276,17 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.onUserUpdateCamera.next('')
   }
 
-  updatePins = (pins: Pin[], scene:Scene) => {
+  updatePin3ds = (pins: Pin[], scene:Scene) => {
     this.removePins(pins)
-    this.initPins(pins, scene)
+    this.initPins(pins, scene, this.guiColumnSettings)
   }
 
-  initPins = (pins: Pin[], scene: Scene) => {
+  initPins = (pins: Pin[], scene: Scene, settings: Gui3dSettings) => {
     pins.forEach( pin => {
       // const pin = pins[0]
       if (!pin.positionLongLat) throw new Error("No Longitude or latitude");
       pin.position3d = this.longLatToPosition3d(pin.positionLongLat)
-      const columnGroup = this.column3dService.createColumn3dLayers(pin, this.guiColumnSettings)
+      const columnGroup = this.column3dService.createColumn3dLayers(pin, settings)
       
       pin.mesh = columnGroup      
       scene.add(columnGroup)

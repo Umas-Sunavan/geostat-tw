@@ -6,8 +6,8 @@ export interface Gui3dSettings {
 
 export interface GuiColumnSettings {
   color: string,
-  opactiy: number,
-  height: number,
+  opacity: number,
+  heightScale: number,
   scale: number
 }
 export interface GuiGroundSettings {

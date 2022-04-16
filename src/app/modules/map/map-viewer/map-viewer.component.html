@@ -6,9 +6,9 @@
         [(ngModel)]="mapCanvas.guiColumnSettings.column.color">
     <label for="columnColor">column color: {{mapCanvas.guiColumnSettings.column.color}}</label>
     <br>
-    <input type="range" min="0" max="1" step="0.01" id="columnHeight" (change)="mapCanvas.uiUpdatePin($event)"
-        [(ngModel)]="mapCanvas.guiColumnSettings.column.height">
-    <label for="columnHeight">columnHeight: {{mapCanvas.guiColumnSettings.column.height}}</label>
+    <input type="range" min="0" max="1" step="0.01" id="columnHeightScale" (change)="mapCanvas.uiUpdatePin($event)"
+        [(ngModel)]="mapCanvas.guiColumnSettings.column.heightScale">
+    <label for="columnHeightScale">columnHeightScale: {{mapCanvas.guiColumnSettings.column.heightScale}}</label>
     <br>
     <input type="range" min="0" max="3" step="0.01" id="columnScale" (change)="mapCanvas.uiUpdatePin($event)"
         [(ngModel)]="mapCanvas.guiColumnSettings.column.scale">

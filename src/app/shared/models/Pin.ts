@@ -4,8 +4,6 @@ import { TileId } from "./TileId";
 export interface Pin {
     id: number;
     height: number;
-    radius: number;
-    color: number;
     title: string;
     address: string;
     position3d?: Vector3;

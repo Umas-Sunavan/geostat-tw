@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { GuiColumnSettingsType } from 'src/app/shared/enums/ColumnSettings';
 import { Gui3dSettings, GuiColumnSettings, GuiGroundSettings } from 'src/app/shared/models/GuiColumnSettings';
 import { Pin } from 'src/app/shared/models/Pin';
 import { AdditiveBlending, CircleGeometry, Color, CylinderGeometry, DoubleSide, EdgesGeometry, Group, LineBasicMaterial, LineSegments, Mesh, MeshPhongMaterial, NormalBlending, SubtractiveBlending } from 'three';
@@ -67,14 +66,14 @@ export class Column3dService {
     let material
     material = new MeshPhongMaterial( {
       transparent: true,
-      opacity: settings.opactiy,
+      opacity: settings.opacity,
       color: this.parseStringColorToInt(settings.color),
       blending: blending,
       depthWrite: false
     })
     const bottomRadius = Math.pow(settings.scale, 2)
     const topRadius = Math.pow(settings.scale, 2)
-    const height = pin.height * Math.pow(settings.height, 2)
+    const height = pin.height * Math.pow(settings.heightScale, 2)
     const radialSegments = 18
     const heightSegments = 5
     const geometry = new CylinderGeometry( bottomRadius, topRadius, height, radialSegments, heightSegments, false, )

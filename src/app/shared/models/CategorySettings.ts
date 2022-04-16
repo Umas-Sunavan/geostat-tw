@@ -1,3 +1,5 @@
+import { Gui3dSettings } from "./GuiColumnSettings"
+
 export interface CategorySettings {
   [key: string]: CategorySetting
 }
@@ -13,7 +15,7 @@ export interface CategorySetting {
       colors: {
         mainColor: string
       },
-      columnHeight: number,
+      meshSettings: Gui3dSettings,
       connectMode: string,
       connectedPoints: number[],
       focusOnPoint: {

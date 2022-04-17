@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Pin } from 'src/app/shared/models/Pin';
-import { CylinderGeometry, Group, Mesh, MeshPhongMaterial, Object3D } from 'three';
+import { CylinderGeometry, Group, Intersection, Mesh, MeshPhongMaterial, Object3D } from 'three';
 
 @Injectable({
   providedIn: 'root'
@@ -50,18 +50,46 @@ export class PinUtilsService {
 
   // tranform
 
-  mappingToMeshes = (pins:Pin[]) => {
+  mappingToGroups = (pins:Pin[]) => {
     return pins.filter( pin => pin.mesh).map( pin => pin.mesh!)
   }
 
-  filterGroup = (objects: Object3D[]) => {
+  filterGroupFromObjs = (objects: Object3D[]) => {
     return objects.filter( obj => this.isObjectAGroup(obj)) as Group[]
+  }
+
+  filterDuplicateGroup = (groups: Group[]) => {
+    const unique: Group[] = []
+    groups.forEach(group => {
+      if(!group) return
+      const isDuplicate = unique.some( uniquePin => uniquePin.name === group?.name)
+      if (!isDuplicate) unique.push(group as Group)
+    });
+    return unique
+  }
+
+  getPinIdsFromIntersections = (intersections: Intersection[]) => {
+    const objs = intersections.map( intersection => intersection.object)
+    const parents = objs.map( obj => obj.parent!).filter( parent => Boolean(parent))
+    const groups = this.filterGroupFromObjs(parents)
+    const unique = this.filterDuplicateGroup(groups)
+    const ids = unique.map( group => this.getPinIdFromGroup(group))
+    return ids
+  }
+
+  getPinIdFromGroup = (group:Group) => {
+    const id = group.name.match(/(?=.+_?)\d+/);
+    const isValidId = id && id[0]
+    if(isValidId) {
+      return id[0]
+    } else {
+      throw new Error("hovered pin has no valid id");
+    }
   }
 
   // mesh
 
   getPinMeshInGroup = (group: Group, selector: string) => group.children.find( child => child.name.includes(selector)) as Mesh<CylinderGeometry, MeshPhongMaterial>
-
 
 
 

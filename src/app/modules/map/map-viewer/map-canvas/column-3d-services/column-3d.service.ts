@@ -99,4 +99,28 @@ export class Column3dService {
       })
     })
   }
+
+  updateHoverPins = (pins:Pin[], resetSettings: Gui3dSettings, lastHoveredPins: Pin[] = []) => {
+    const resetLastPins = (pins: Pin[]) => {
+      pins.forEach( pin => {
+        const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
+        column.material.opacity = resetSettings.column.opacity
+        column.material.color = new Color(this.parseStringColorToInt(resetSettings.column.color))
+        column.material.depthWrite  = false
+      })
+    }
+    const changeNextPins = (pins: Pin[]) => {
+      pins.forEach( pin => {
+        const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
+        column.material.depthWrite  = true
+        column.material.opacity = 0.6
+        column.material.color = new Color(0xffff00)
+      })
+    }
+    
+    resetLastPins(lastHoveredPins)
+    lastHoveredPins = pins
+    changeNextPins(lastHoveredPins)
+    return lastHoveredPins
+  }
 }

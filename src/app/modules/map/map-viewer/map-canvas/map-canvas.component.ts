@@ -106,26 +106,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     })
   }
 
-  uiUpdatePin = (event: Event) => this.updatePin3ds(this.pins, this.scene)
+  uiUpdatePin = (event: Event) => this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
 
-
-  resetHoveredMeshes = (pins: Pin[]) => {
-    pins.forEach( pin => {
-      const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
-      column.material.opacity = this.guiColumnSettings.column.opacity
-      column.material.color = new Color(this.column3dService.parseStringColorToInt(this.guiColumnSettings.column.color))
-      column.material.depthWrite  = false
-    })
-  }
-
-  changeHoveringMeshes = (pins: Pin[]) => {
-    pins.forEach( pin => {
-      const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
-      column.material.depthWrite  = true
-      column.material.opacity = 0.6
-      column.material.color = new Color(0xffff00)
-    })
-  }
 
   getPositionOnHtml = (mousePosition: Vector2, canvasDomention: Vector2) => { 
     // if the canvas is 600 wide and 450 tall
@@ -147,36 +129,19 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     // this.pointDimensionService.writeUserData()
   }
 
-  getPinIdFromGroup = (group:Group) => {
-    const id = group.name.match(/(?=.+_?)\d+/);
-    const isValidId = id && id[0]
-    if(isValidId) {
-      return id[0]
-    } else {
-      throw new Error("hovered pin has no valid id");
-    }
-  }
-
   onMouseIntersect = (intersections: Intersection[]) => {
-    const getIds = (intersections: Intersection[]) => {
-        const group = this.getPinGroup(intersections) // called "group" for a pin is formed with a group of meshes
-        return group.map( group => this.getPinIdFromGroup(group))
-    }
-    const ids = getIds(intersections)
-    const pins = this.pinUtilsService.findPinById(this.pins, ids)
+    const pinIds = this.pinUtilsService.getPinIdsFromIntersections(intersections)
+    const pins = this.pinUtilsService.findPinById(this.pins, pinIds)
     this.changeLegendText(pins[0])
     this.onPinsHovered(pins)
   }
 
   onPinsHovered = (pins:Pin[]) => {
     pins = pins.slice(0,1)
-    const groups = this.pinUtilsService.mappingToMeshes(pins) as Group[]
+    const groups = this.pinUtilsService.mappingToGroups(pins) as Group[]
     const isAnyPinHovered =pins.length > 0
     this.column3dService.setDepthWrite(groups, isAnyPinHovered, ['column', 'ground'])
-    const hoveredMesh = this.hoveringPins || []
-    this.resetHoveredMeshes(hoveredMesh)
-    this.hoveringPins = pins
-    this.changeHoveringMeshes(this.hoveringPins)
+    this.hoveringPins = this.column3dService.updateHoverPins(pins, this.guiColumnSettings, this.hoveringPins)
   }
 
   changeLegendText = (pin?: Pin) => {
@@ -189,25 +154,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
       this.hoverOnPin.emit()
     }
   }
-
-  filterDuplicateGroup = (groups: Group[]) => {
-    const unique: Group[] = []
-    groups.forEach(group => {
-      if(!group) return
-      const isDuplicate = unique.some( uniquePin => uniquePin.name === group?.name)
-      if (!isDuplicate) unique.push(group as Group)
-    });
-    return unique
-  }
-
-  getPinGroup = (intersections: Intersection[]) => {
-    const getParents = (_objs: Object3D[]) => objs.map( obj => obj.parent).filter( obj => Boolean(obj)) as Object3D[]
-    const objs = intersections.map( intersection => intersection.object)
-    const parents = getParents(objs)
-    const groups = this.pinUtilsService.filterGroup(parents)
-    const unique = this.filterDuplicateGroup(groups)
-    return unique
-  } 
 
   initCategory = async () => {
     const categoryId = await this.getCategoryIdFromRoute()
@@ -232,7 +178,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.initThree()
     await this.initTile()
     await this.initCategory()
-    this.updatePin3ds(this.pins, this.scene)
+    this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
   }
 
   getCategoryIdFromRoute = async ():Promise<string> => {
@@ -291,43 +237,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
   onMouseUp = async () => {
     this.onUserUpdateCamera.next('')
-  }
-
-  updatePin3ds = (pins: Pin[], scene:Scene) => {
-    this.removePins(pins)
-    this.initPins(pins, scene, this.guiColumnSettings)
-  }
-
-  initPins = (pins: Pin[], scene: Scene, settings: Gui3dSettings) => {
-    pins.forEach( pin => {
-      // const pin = pins[0]
-      if (!pin.positionLongLat) throw new Error("No Longitude or latitude");
-      pin.position3d = this.longLatToPosition3d(pin.positionLongLat)
-      const columnGroup = this.column3dService.createColumn3dLayers(pin, settings)
-      this.animateService.passIntersetObject([columnGroup])
-      
-      pin.mesh = columnGroup      
-      scene.add(columnGroup)
-    })
-  }
-
-  removePins = (pins: Pin[]) => {
-    pins.forEach( pin => {
-      if (!pin.mesh) return
-      pin.mesh.removeFromParent()
-      this.animateService.removeIntersetObject(`pin`)
-    })
-  }
-
-  longLatToPosition3d = (lonLat: Vector2) => {
-    const long = lonLat.x
-    const lat = lonLat.y
-    const tileX = this.tileLonLatCalculation.lon2tile(long,8)
-    const tileY = this.tileLonLatCalculation.lat2tile(lat,8)
-    const scenePositionX = (tileX - this.tileUtilsService.initTileId.x) * 12
-    const scenePositionY = (tileY - this.tileUtilsService.initTileId.y) * 12
-    const position = new Vector3(scenePositionX, 0, scenePositionY)
-    return position
   }
 
   pauseAnimation = () => {

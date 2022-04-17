@@ -9,6 +9,10 @@ import { PinsTableService } from './pins-table.service';
 import { CategorySetting } from 'src/app/shared/models/CategorySettings';
 import { CategoryService } from '../category/category.service';
 import { PinCategoryMappingService } from '../../../pin-category-mapping.service';
+import { Gui3dSettings } from 'src/app/shared/models/GuiColumnSettings';
+import { TileUtilsService } from '../tile-services/tile-utils.service';
+import { Column3dService } from '../column-3d-services/column-3d.service';
+import { AnimateService } from '../three-services/animate.service';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +24,9 @@ export class PinModelService {
     private pinsTableService: PinsTableService,
     private categoryService: CategoryService,
     private pinCategoryMapping: PinCategoryMappingService,
+    private tileUtilsService: TileUtilsService,
+    private column3dService: Column3dService,
+    private animateService: AnimateService
   ) { }
 
   initPinsModel = async () => {
@@ -73,6 +80,43 @@ export class PinModelService {
       pin.height = value
     })
     return pins
+  }
+
+  updatePin3ds = (pins: Pin[], scene:Scene, settings: Gui3dSettings) => {
+    this.removePins(pins)
+    this.initPins(pins, scene, settings)
+  }
+
+  initPins = (pins: Pin[], scene: Scene, settings: Gui3dSettings) => {
+    pins.forEach( pin => {
+      // const pin = pins[0]
+      if (!pin.positionLongLat) throw new Error("No Longitude or latitude");
+      pin.position3d = this.longLatToPosition3d(pin.positionLongLat)
+      const columnGroup = this.column3dService.createColumn3dLayers(pin, settings)
+      this.animateService.passIntersetObject([columnGroup])
+      
+      pin.mesh = columnGroup      
+      scene.add(columnGroup)
+    })
+  }
+  
+    removePins = (pins: Pin[]) => {
+      pins.forEach( pin => {
+        if (!pin.mesh) return
+        pin.mesh.removeFromParent()
+        this.animateService.removeIntersetObject(`pin`)
+      })
+    }
+
+  longLatToPosition3d = (lonLat: Vector2) => {
+    const long = lonLat.x
+    const lat = lonLat.y
+    const tileX = this.tileLonLatCalculation.lon2tile(long,8)
+    const tileY = this.tileLonLatCalculation.lat2tile(lat,8)
+    const scenePositionX = (tileX - this.tileUtilsService.initTileId.x) * 12
+    const scenePositionY = (tileY - this.tileUtilsService.initTileId.y) * 12
+    const position = new Vector3(scenePositionX, 0, scenePositionY)
+    return position
   }
 
 }

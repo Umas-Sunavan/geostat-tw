@@ -1,14 +1,18 @@
 import { Injectable } from '@angular/core';
 import { Gui3dSettings, GuiColumnSettings, GuiGroundSettings } from 'src/app/shared/models/GuiColumnSettings';
 import { Pin } from 'src/app/shared/models/Pin';
-import { AdditiveBlending, CircleGeometry, Color, CylinderGeometry, DoubleSide, EdgesGeometry, Group, LineBasicMaterial, LineSegments, Mesh, MeshPhongMaterial, NormalBlending, SubtractiveBlending } from 'three';
+import { AdditiveBlending, CircleGeometry, Color, CylinderGeometry, DoubleSide, EdgesGeometry, Group, LineBasicMaterial, LineSegments, Mesh, MeshPhongMaterial, NormalBlending, Scene, SubtractiveBlending } from 'three';
+import { PinModelService } from '../pin-services/pin-model.service';
+import { PinUtilsService } from '../pin-services/pin-utils.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class Column3dService {
 
-  constructor() { }
+  constructor(
+    private pinUtilsService: PinUtilsService,
+  ) { }
   
 
   createColumn3dLayers = (pin: Pin, settings: Gui3dSettings) => {
@@ -83,5 +87,16 @@ export class Column3dService {
     mesh.geometry.translate(pin.position3d.x,normalizedHeight-0.01,pin.position3d.z)
     mesh.name = name
     return mesh
+  }
+
+  // Utils
+
+  setDepthWrite = (groups: Group[], boolean: boolean, meshSelectors: string[]) => {
+    groups.forEach( group => {
+      meshSelectors.forEach( selector => {
+        const mesh = this.pinUtilsService.getPinMeshInGroup(group, selector)
+        mesh.material.depthWrite = boolean
+      })
+    })
   }
 }

@@ -23,6 +23,7 @@ import { Tile } from 'src/app/shared/models/Tile';
 import { Pin } from 'src/app/shared/models/Pin';
 import { CategoryService } from './category/category.service';
 import { Gui3dSettings } from 'src/app/shared/models/GuiColumnSettings';
+import { PinUtilsService } from './pin-services/pin-utils.service';
 
 
 
@@ -45,6 +46,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     private categoryService: CategoryService,
     private activatedRoute: ActivatedRoute,
     private pinModelService: PinModelService,
+    private pinUtilsService: PinUtilsService,
     private column3dService: Column3dService,
     ) {
     this.initQueueToUpdateResolution()
@@ -72,7 +74,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   hoveringPins?: Pin[]
   hoverPinChangeSuject: BehaviorSubject<Pin[]> = new BehaviorSubject(([] as Pin[]))
   font!: Font
-  texts: Mesh<TextGeometry, Material>[]  = [];
+  legends3d: Mesh<TextGeometry, Material>[]  = [];
   @Output() hoverOnPin: EventEmitter<{pin: Pin, legendPosition: Vector2}| undefined> = new EventEmitter()
   canvasDimention = new Vector2(600, 450)
   screenRatio = 2
@@ -105,48 +107,18 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     })
   }
 
-  uiUpdatePin = (event: Event) => {
-    this.updatePin3ds(this.pins, this.scene)
-  }
+  uiUpdatePin = (event: Event) => this.updatePin3ds(this.pins, this.scene)
 
-  get3dMeshes = (pins: Pin[], meshName: string) => {
-    const obj3ds:(Object3D | undefined)[] =  pins.map( pin => {
-      return pin.mesh?.children.find( child => {
-        return child.name.match(meshName)
-      }) as Mesh
-    });
-    const solidObj3ds: Object3D[] = <Object3D[]>obj3ds.filter( pin => pin !== undefined)
-    const meshes = solidObj3ds as Mesh<CircleGeometry, MeshPhongMaterial>[];
-    return meshes
-  }
 
-  findPinModelById = (pins: Pin[], ids: string[]) =>  {
-    return ids.map( id => {
-      const found  =pins.find( pin => pin.id+'' === id)
-      if (!found) throw new Error("the raycasted group object is not found in this.pins");
-      return found
-    })
-  }
-
-  setDepthWrite = (groups: Group[], boolean: boolean, meshSelectors: string[]) => {
-    groups.forEach( group => {
-      meshSelectors.forEach( selector => {
-        const mesh = this.getPinMeshInGroup(group, selector)
-        mesh.material.depthWrite = boolean
-      })
-    })
-  }
-
-  changeHoveredMesh = (pins: Pin[]) => {
+  resetHoveredMeshes = (pins: Pin[]) => {
     pins.forEach( pin => {
-      const oldPinMeshGroup = this.findPin3dByIdInScene(this.scene, pin.id+'')
-      const oldPinColumn = this.getPinMeshInGroup(oldPinMeshGroup, 'column')
-      const oldPinGround = this.getPinMeshInGroup(oldPinMeshGroup, 'ground')
-      oldPinColumn.material.opacity = this.guiColumnSettings.column.opacity
-      oldPinColumn.material.color = new Color(this.column3dService.parseStringColorToInt(this.guiColumnSettings.column.color))
-      oldPinColumn.material.depthWrite  = false
+      const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
+      column.material.opacity = this.guiColumnSettings.column.opacity
+      column.material.color = new Color(this.column3dService.parseStringColorToInt(this.guiColumnSettings.column.color))
+      column.material.depthWrite  = false
     })
   }
+
 
   initText = async () => {
     const loader = new FontLoader();        
@@ -161,32 +133,25 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     }  );
     const textMesh1 = new Mesh( text, material );
     this.scene.add(textMesh1)
-    this.texts.push(textMesh1)
+    this.legends3d.push(textMesh1)
   }
 
-  changeHoveringMesh = (pins: Pin[]) => {
-    pins.forEach( pin => {
-      const pinMeshGroup = this.findPin3dByIdInScene(this.scene, pin.id+'')
-      const pinColumn = this.getPinMeshInGroup(pinMeshGroup, 'column')
-      const pinGround = this.getPinMeshInGroup(pinMeshGroup, 'ground')
-      pinColumn.material.depthWrite  = true
-      pinColumn.material.opacity = 0.6
-      pinColumn.material.color = new Color(0xffff00)
-      const idText = new TextGeometry(pin.id+'', {
-        font: this.font,
-        size: 8,
-        height: 5,
-        curveSegments: 12,
-      }) 
-      this.texts[0].geometry = idText
-      // this.mousePosition.x: -1~1
-      // this.mousePosition.y: 1~-1
-      const htmlAbsolutePosition = this.getPositionOnHtml(this.mousePosition, this.canvasDimention)
-      this.hoverOnPin.emit({pin: pin, legendPosition: htmlAbsolutePosition})
-    })
-    if (pins.length === 0 ) {
+  createTextGeometry = (text : string)=> {
+    return new TextGeometry(text, {
+      font: this.font,
+      size: 8,
+      height: 5,
+      curveSegments: 12,
+    }) 
+  }
 
-    }
+  changeHoveringMeshes = (pins: Pin[]) => {
+    pins.forEach( pin => {
+      const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
+      column.material.depthWrite  = true
+      column.material.opacity = 0.6
+      column.material.color = new Color(0xffff00)
+    })
   }
 
   getPositionOnHtml = (mousePosition: Vector2, canvasDomention: Vector2) => { 
@@ -210,15 +175,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     // this.pointDimensionService.writeUserData()
   }
 
-  isObjectAGroup = ( object: Object3D) => {
-    const isGroup = object.children.find( mesh => mesh.parent?.name.includes('group')) as Group
-    return isGroup
-  }
-
-  filterGroup = (objects: Object3D[]) => {
-    return objects.filter( obj => this.isObjectAGroup(obj)) as Group[]
-  }
-
   getPinIdFromGroup = (group:Group) => {
     const id = group.name.match(/(?=.+_?)\d+/);
     const isValidId = id && id[0]
@@ -231,59 +187,36 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
   onMouseIntersect = (intersections: Intersection[]) => {
     const getIds = (intersections: Intersection[]) => {
-        // called "group" for a pin is formed with a group of meshes
-        const group = this.getPinGroup(intersections)
+        const group = this.getPinGroup(intersections) // called "group" for a pin is formed with a group of meshes
         return group.map( group => this.getPinIdFromGroup(group))
     }
     const ids = getIds(intersections)
-    const pins = this.findPinModelById(this.pins, ids)
-    if (pins.length <= 0) {
-      this.hoverOnPin.emit()
-    }
+    const pins = this.pinUtilsService.findPinById(this.pins, ids)
+    this.changeLegendText(pins[0])
     this.onPinsHovered(pins)
-  }
-
-  isSamePins = (pinsA: Pin[], pinsB: Pin[]) => {
-    const aIds = pinsA.map( pin => +pin.id).sort((a,b) => a-b);
-    const bIds = pinsB.map( pin => +pin.id).sort((a,b) => a-b);
-    const isEqual = JSON.stringify(aIds) === JSON.stringify(bIds)
-    return isEqual
   }
 
   onPinsHovered = (pins:Pin[]) => {
     pins = pins.slice(0,1)
+    const groups = this.pinUtilsService.mappingToMeshes(pins) as Group[]
     const isAnyPinHovered =pins.length > 0
-    const groups = this.getPin3dsInScene(this.scene) as Group[]
-    this.setDepthWrite(groups, isAnyPinHovered, ['column', 'ground'])
+    this.column3dService.setDepthWrite(groups, isAnyPinHovered, ['column', 'ground'])
     const hoveredMesh = this.hoveringPins || []
-    this.changeHoveredMesh(hoveredMesh)
+    this.resetHoveredMeshes(hoveredMesh)
     this.hoveringPins = pins
-    this.changeHoveringMesh(this.hoveringPins)
-    this.hoveringPins = pins
+    this.changeHoveringMeshes(this.hoveringPins)
   }
 
-  getPinMeshInGroup = (group: Group, selector: string) => group.children.find( child => child.name.includes(selector)) as Mesh<CylinderGeometry, MeshPhongMaterial>
-
-  getPinModelById = (PinsModel:Pin[], id: string) => {
-    const found = PinsModel.find( pin => pin.id+'' === id)
-    if(!found) throw new Error("pin is not found by the provided id");
-    return found
-  }
-
-  findPin3dByIdInScene = (scene:Scene, id: string) => {
-    const found = scene.children.find( child => {
-      const token = new RegExp(`pin_group_${id}`)        
-      return token.test(child.name)
-    }) as Group
-    if(!found) throw new Error("pin is not found by the provided id");
-    return found
-  }
-
-  getPin3dsInScene = (scene:Scene) => {
-    return scene.children.filter( child => {
-      const token = new RegExp(`pin_group_`)        
-      return token.test(child.name)
-    }) as Group[]
+  changeLegendText = (pin?: Pin) => {
+    if (pin) {
+      this.legends3d[0].geometry = this.createTextGeometry(pin.id+'')
+      // this.mousePosition.x: -1~1
+      // this.mousePosition.y: 1~-1
+      const htmlAbsolutePosition = this.getPositionOnHtml(this.mousePosition, this.canvasDimention)
+      this.hoverOnPin.emit({pin: pin, legendPosition: htmlAbsolutePosition})
+    } else {
+      this.hoverOnPin.emit()
+    }
   }
 
   filterDuplicateGroup = (groups: Group[]) => {
@@ -300,7 +233,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     const getParents = (_objs: Object3D[]) => objs.map( obj => obj.parent).filter( obj => Boolean(obj)) as Object3D[]
     const objs = intersections.map( intersection => intersection.object)
     const parents = getParents(objs)
-    const groups = this.filterGroup(parents)
+    const groups = this.pinUtilsService.filterGroup(parents)
     const unique = this.filterDuplicateGroup(groups)
     return unique
   } 
@@ -315,8 +248,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   applySettings = async (setting: CategorySetting) => this.guiColumnSettings = setting.options.meshSettings
-
-
   
   initOnUserUpdateResolution = () => {
     this.onUserUpdateCamera.pipe(

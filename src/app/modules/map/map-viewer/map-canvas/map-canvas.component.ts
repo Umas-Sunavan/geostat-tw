@@ -120,6 +120,9 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
   async ngOnInit(): Promise<void> {
     this.hoverPinChangeSuject.subscribe( pins => {
+
+      console.log(pins);
+      this.hoveringPins = this.column3dService.updateHoverPins(pins, this.guiColumnSettings, this.hoveringPins)
     })
     this.timeoutToPause()
     this.initOnUserUpdateResolution()
@@ -141,7 +144,10 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     const groups = this.pinUtilsService.mappingToGroups(pins) as Group[]
     const isAnyPinHovered =pins.length > 0
     this.column3dService.setDepthWrite(groups, isAnyPinHovered, ['column', 'ground'])
-    this.hoveringPins = this.column3dService.updateHoverPins(pins, this.guiColumnSettings, this.hoveringPins)
+    const isChanged = !this.pinUtilsService.isSamePins(this.hoveringPins || [], pins)
+    if(isChanged) {
+      this.hoverPinChangeSuject.next(pins)
+    }
   }
 
   changeLegendText = (pin?: Pin) => {
@@ -236,6 +242,14 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   onMouseUp = async () => {
+    const isHoveringPins = this.hoveringPins && this.hoveringPins[0]
+    if (isHoveringPins) {
+      const clickedPin = this.hoveringPins![0]
+      const clickedGroup = clickedPin.mesh
+      if (!clickedGroup) return
+      const column = this.pinUtilsService.getPinMeshInGroup(clickedGroup, 'column')
+      column.material.color = new Color(0x000000)
+    }
     this.onUserUpdateCamera.next('')
   }
 

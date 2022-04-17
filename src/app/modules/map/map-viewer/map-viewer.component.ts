@@ -18,7 +18,6 @@ export class MapViewerComponent implements OnInit {
   changeLegend = (options?: { pin: Pin, legendPosition: Vector2}) => {
     if (options) {
       this.meshTitle = options.pin.title
-      console.log(options.legendPosition.x, options.legendPosition.y);
       this.meshTitleX = options.legendPosition.x
       this.meshTitleY = options.legendPosition.y
     } else {

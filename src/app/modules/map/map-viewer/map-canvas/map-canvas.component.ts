@@ -74,7 +74,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   hoveringPins?: Pin[]
   hoverPinChangeSuject: BehaviorSubject<Pin[]> = new BehaviorSubject(([] as Pin[]))
   font!: Font
-  legends3d: Mesh<TextGeometry, Material>[]  = [];
   @Output() hoverOnPin: EventEmitter<{pin: Pin, legendPosition: Vector2}| undefined> = new EventEmitter()
   canvasDimention = new Vector2(600, 450)
   screenRatio = 2
@@ -119,32 +118,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     })
   }
 
-
-  initText = async () => {
-    const loader = new FontLoader();        
-    this.font = await loader.loadAsync( '/assets/helvetiker_regular.typeface.json');
-    if (!this.font)return
-    const material  = new MeshPhongMaterial( { color: 0xffffff } ) 
-    const text = new TextGeometry( '.', {
-      font: this.font,
-      size: 8,
-      height: 5,
-      curveSegments: 12,
-    }  );
-    const textMesh1 = new Mesh( text, material );
-    this.scene.add(textMesh1)
-    this.legends3d.push(textMesh1)
-  }
-
-  createTextGeometry = (text : string)=> {
-    return new TextGeometry(text, {
-      font: this.font,
-      size: 8,
-      height: 5,
-      curveSegments: 12,
-    }) 
-  }
-
   changeHoveringMeshes = (pins: Pin[]) => {
     pins.forEach( pin => {
       const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
@@ -166,7 +139,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   async ngOnInit(): Promise<void> {
     this.hoverPinChangeSuject.subscribe( pins => {
     })
-    await this.initText()
     this.timeoutToPause()
     this.initOnUserUpdateResolution()
     this.animateService.onMouseIntersect.subscribe( intersections => this.onMouseIntersect(intersections))
@@ -209,7 +181,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
   changeLegendText = (pin?: Pin) => {
     if (pin) {
-      this.legends3d[0].geometry = this.createTextGeometry(pin.id+'')
       // this.mousePosition.x: -1~1
       // this.mousePosition.y: 1~-1
       const htmlAbsolutePosition = this.getPositionOnHtml(this.mousePosition, this.canvasDimention)

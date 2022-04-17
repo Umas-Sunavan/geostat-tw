@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { Color } from 'three';
+import { Pin } from 'src/app/shared/models/Pin';
+import { Color, Vector2 } from 'three';
 
 @Component({
   selector: 'app-map-viewer',
@@ -9,6 +10,21 @@ import { Color } from 'three';
 export class MapViewerComponent implements OnInit {
 
   constructor() { }
+
+  meshTitle: string = ''
+  meshTitleX: number = 0
+  meshTitleY: number = 0
+
+  changeLegend = (options?: { pin: Pin, legendPosition: Vector2}) => {
+    if (options) {
+      this.meshTitle = options.pin.title
+      console.log(options.legendPosition.x, options.legendPosition.y);
+      this.meshTitleX = options.legendPosition.x
+      this.meshTitleY = options.legendPosition.y
+    } else {
+      this.meshTitle = ''
+    }
+  }
 
   ngOnInit(): void {
   }

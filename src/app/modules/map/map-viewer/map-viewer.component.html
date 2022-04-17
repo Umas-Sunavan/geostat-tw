@@ -1,5 +1,7 @@
+<p id="legend" [ngStyle]="{'left': meshTitleX + 'px', 'top': -meshTitleY + 'px'}">{{meshTitle}}</p>
+<app-map-canvas id="canvas" #mapCanvas (hoverOnPin)="changeLegend($event)"></app-map-canvas>
+
 <p>gui-settings works!</p>mapCanvas.guiColumnSettings
-<app-map-canvas #mapCanvas></app-map-canvas>
 <div class="slidecontainer">
     <br>
     <input type="color" id="columnColor" (change)="mapCanvas.uiUpdatePin($event)"
@@ -35,3 +37,4 @@
     <label for="outlineOpacity">outlineOpacity: {{mapCanvas.guiColumnSettings.outline.opacity}}</label>
     <br>
 </div>
+<div style="position: absolute;z-index: 3;">{{meshTitleY}}</div>

@@ -24,6 +24,8 @@ export class PinModelService {
 
   initPinsModel = async () => {
     const googleSheetPinsMappingLonLat = await lastValueFrom(this.pinsTableService.getPinLonLat())
+    console.log(googleSheetPinsMappingLonLat);
+    
     const pins = this.createPinsModel(googleSheetPinsMappingLonLat)
     return pins
   }

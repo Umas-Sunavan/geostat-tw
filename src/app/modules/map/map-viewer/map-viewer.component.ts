@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Pin } from 'src/app/shared/models/Pin';
+import { Pin, PinOnDeviceCoordinate } from 'src/app/shared/models/Pin';
 import { Color, Vector2 } from 'three';
 
 @Component({
@@ -15,7 +15,7 @@ export class MapViewerComponent implements OnInit {
   meshTitleX: number = 0
   meshTitleY: number = 0
 
-  changeLegend = (options?: { pin: Pin, legendPosition: Vector2}) => {
+  changeHoverLegend = (options?: { pin: Pin, legendPosition: Vector2}) => {
     if (options) {
       this.meshTitle = options.pin.title
       this.meshTitleX = options.legendPosition.x
@@ -23,6 +23,12 @@ export class MapViewerComponent implements OnInit {
     } else {
       this.meshTitle = ''
     }
+  }
+
+  updateClickedLegend = (pinOnHold: PinOnDeviceCoordinate[]) => {
+    console.log(pinOnHold.map( pin => pin.deviceCoordinate?.toArray().join()));
+
+    
   }
 
   ngOnInit(): void {

@@ -11,3 +11,7 @@ export interface Pin {
     positionLongLat?: Vector2;
     mesh?: Group
 }
+
+export interface PinOnDeviceCoordinate extends Pin{
+    deviceCoordinate?: Vector3
+}

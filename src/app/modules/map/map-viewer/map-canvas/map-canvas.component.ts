@@ -1,5 +1,5 @@
 import { AfterContentInit, AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { BoxGeometry, BufferGeometry, Camera, Color, CurvePath, ExtrudeBufferGeometry, ExtrudeGeometry, Line, LineBasicMaterial, LineCurve, Material, Mesh, MeshBasicMaterial, MeshNormalMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PointLight, Raycaster, Renderer, Scene, Shape, ShapeBufferGeometry, ShapeGeometry, Vector, Vector2, Vector3, Vector3Tuple, WebGLRenderer, DoubleSide, Texture, Plane, WebGLRenderTarget, TextureLoader, Intersection, CylinderGeometry, MeshMatcapMaterial, CircleGeometry, Group } from 'three';
+import { BoxGeometry, BufferGeometry, Camera, Color, CurvePath, ExtrudeBufferGeometry, ExtrudeGeometry, Line, LineBasicMaterial, LineCurve, Material, Mesh, MeshBasicMaterial, MeshNormalMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PointLight, Raycaster, Renderer, Scene, Shape, ShapeBufferGeometry, ShapeGeometry, Vector, Vector2, Vector3, Vector3Tuple, WebGLRenderer, DoubleSide, Texture, Plane, WebGLRenderTarget, TextureLoader, Intersection, CylinderGeometry, MeshMatcapMaterial, CircleGeometry, Group, TOUCH, MOUSE } from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';			
 import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 
@@ -20,7 +20,7 @@ import { PinsTableService } from './pin-services/pins-table.service';
 import { PinModelService } from './pin-services/pin-model.service';
 import { Column3dService } from './column-3d-services/column-3d.service';
 import { Tile } from 'src/app/shared/models/Tile';
-import { Pin } from 'src/app/shared/models/Pin';
+import { Pin, PinOnDeviceCoordinate } from 'src/app/shared/models/Pin';
 import { CategoryService } from './category/category.service';
 import { Gui3dSettings } from 'src/app/shared/models/GuiColumnSettings';
 import { PinUtilsService } from './pin-services/pin-utils.service';
@@ -75,8 +75,10 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   hoverPinChangeSuject: BehaviorSubject<Pin[]> = new BehaviorSubject(([] as Pin[]))
   font!: Font
   @Output() hoverOnPin: EventEmitter<{pin: Pin, legendPosition: Vector2}| undefined> = new EventEmitter()
+  @Output() selectedPinsOnGui: EventEmitter<Pin[]> = new EventEmitter()
   canvasDimention = new Vector2(600, 450)
   screenRatio = 2
+  selectedPins: Pin[] = []
 
   // view
   guiColumnSettings:Gui3dSettings = {
@@ -108,21 +110,11 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
   uiUpdatePin = (event: Event) => this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
 
-
-  getPositionOnHtml = (mousePosition: Vector2, canvasDomention: Vector2) => { 
-    // if the canvas is 600 wide and 450 tall
-    // this.mousePosition.x: -1~1, which should map to canvas left(0) to right(600)
-    // this.mousePosition.y: 1~-1, which should map to canvas top(0) to bottom(-450)
-    const x = (this.mousePosition.x + 1) / 2 * this.canvasDimention.x
-    const y = (this.mousePosition.y - 1) / 2 * this.canvasDimention.y
-    return new Vector2(x,y)
-  }
-
   async ngOnInit(): Promise<void> {
-    this.hoverPinChangeSuject.subscribe( pins => {
+    this.hoverPinChangeSuject.subscribe( nextHoverPins => {
 
-      console.log(pins);
-      this.hoveringPins = this.column3dService.updateHoverPins(pins, this.guiColumnSettings, this.hoveringPins)
+      console.log(nextHoverPins);
+      this.hoveringPins = this.column3dService.updateHoverPins(nextHoverPins, this.guiColumnSettings, this.hoveringPins, this.selectedPins)
     })
     this.timeoutToPause()
     this.initOnUserUpdateResolution()
@@ -161,6 +153,12 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     }
   }
 
+  getPositionOnHtml = (mousePosition: Vector2, canvasDomention: Vector2) => { 
+    const x = (mousePosition.x + 1) / 2 * canvasDomention.x // mousePosition.x: -1~1, which should map to canvas left(0) to right(600)
+    const y = (mousePosition.y - 1) / 2 * canvasDomention.y // mousePosition.y: 1~-1, which should map to canvas top(0) to bottom(-450)
+    return new Vector2(x,y)
+  }
+
   initCategory = async () => {
     const categoryId = await this.getCategoryIdFromRoute()
     const onGotCategorySettings = async (setting: CategorySetting) => {
@@ -182,6 +180,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
   async ngAfterViewInit() {
     this.initThree()
+    this.canvasContainer.nativeElement.addEventListener('mousewheel', this.onMouseScroll)
+    this.canvasContainer.nativeElement.addEventListener('click', this.onMouseClick)
     await this.initTile()
     await this.initCategory()
     this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
@@ -197,8 +197,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     })
   }
 
-  getBox = () => {
-    const boxGeo = new BoxGeometry(5, 5, 5)
+  getBox = (size: number = 5) => {
+    const boxGeo = new BoxGeometry(size, size, size)
     const boxMaterial = new MeshBasicMaterial({ color: 0xff0000 })
     const box = new Mesh(boxGeo, boxMaterial)
     return box
@@ -208,11 +208,31 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.scene = this.sceneService.makeScene()
     this.renderer = this.rendererService.makeRenderer(this.canvasContainer, this.canvasDimention)
     this.renderer.domElement.addEventListener('mousemove', this.onMouseMove)
-    this.canvasContainer.nativeElement.addEventListener('mousewheel', this.onMouseScroll)
-    this.canvasContainer.nativeElement.addEventListener('mouseup', this.onMouseUp)
     this.camera = this.cameraService.makeCamera(this.canvasDimention)
     this.scene.add(this.camera)
     this.orbitControl = new OrbitControls(this.camera, this.renderer.domElement);
+    this.orbitControl.target.set(0,5,50)
+    this.orbitControl.update()
+    this.orbitControl.listenToKeyEvents(window as any)
+    // this.orbitControl.getDistance()
+    this.orbitControl.keys = {
+      LEFT: 'ArrowLeft', //left arrow
+      UP: 'ArrowUp', // up arrow
+      RIGHT: 'ArrowRight', // right arrow
+      BOTTOM: 'ArrowDown' // down arrow
+    }
+    this.orbitControl.touches = {
+      ONE: TOUCH.DOLLY_PAN,
+      TWO: TOUCH.ROTATE,
+    }
+    // this.orbitControl.mouseButtons = {
+      // LEFT: MOUSE.PAN,
+      // MIDDLE: MOUSE.DOLLY,
+      // RIGHT: MOUSE.ROTATE
+    // }
+    // this.orbitControl.maxDistance = 100
+    // this.orbitControl.enableDamping = true
+    this.orbitControl.addEventListener('change', this.onCameraChange)
     this.animateService.initAnimate(this.renderer, this.scene, this.camera, this.orbitControl, this.mousePosition)
     this.animateService.animate()
     this.box = this.getBox()
@@ -241,16 +261,47 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.onUserUpdateCamera.next('')
   }
 
-  onMouseUp = async () => {
+  onMouseClick = async () => {
     const isHoveringPins = this.hoveringPins && this.hoveringPins[0]
     if (isHoveringPins) {
       const clickedPin = this.hoveringPins![0]
       const clickedGroup = clickedPin.mesh
+      this.selectedPins = this.updateSelectedPins(clickedPin, this.selectedPins)
       if (!clickedGroup) return
       const column = this.pinUtilsService.getPinMeshInGroup(clickedGroup, 'column')
       column.material.color = new Color(0x000000)
     }
     this.onUserUpdateCamera.next('')
+  }
+
+  onCameraChange = () => {
+    const pinWithDeviceCroodinate: PinOnDeviceCoordinate[] = this.selectedPins.map( pin => {
+      if(!pin.position3d) throw new Error("no position in selected pin");
+      const newPin: PinOnDeviceCoordinate = pin
+      const deviceCoordinate = new Vector3(0,0,0).unproject(this.camera)
+      // console.log(deviceCoordinate);
+      // deviceCoordinate.set( deviceCoordinate.x * this.canvasDimention.x,  deviceCoordinate.y * this.canvasDimention.y,  deviceCoordinate.z )
+      if (deviceCoordinate) {
+        newPin.deviceCoordinate = deviceCoordinate
+        return newPin
+      } else {
+        throw new Error("no device coordinate in selected pin");
+      }
+    })
+    this.selectedPinsOnGui.emit(pinWithDeviceCroodinate)
+  }
+
+  updateSelectedPins = (pinClicked: Pin, pinsOnHold: Pin[]) => {
+    const hadSelected =  pinsOnHold.some( pinOnHold => pinOnHold.id === pinClicked.id)
+    let newPinsOnHold: Pin[] = []
+    if (hadSelected) {
+      // Deselect
+      newPinsOnHold =  pinsOnHold.filter( pinOnHold => pinOnHold.id !== pinClicked.id)
+    } else {
+      // Select
+      newPinsOnHold = [...pinsOnHold, pinClicked]
+    }
+    return newPinsOnHold
   }
 
   pauseAnimation = () => {

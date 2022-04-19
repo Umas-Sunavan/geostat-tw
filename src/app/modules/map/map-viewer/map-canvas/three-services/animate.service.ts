@@ -60,11 +60,6 @@ export class AnimateService {
     this.onCanvasIntersect.next(canvasCenterIntersects)    
   }
 
-  onIntersection = (intersect: Intersection, obj: Object3D) => {
-    console.log(intersect.point.toArray());
-    
-  }
-
   initAnimate = (renderer: WebGLRenderer, scene: Scene, camera: Camera, orbitControl: OrbitControls, mouse: Vector2) => {
     this.onFrameRender = new BehaviorSubject({ renderer: renderer, raycaster: this.mouseRaycaster })
     this.renderer = renderer

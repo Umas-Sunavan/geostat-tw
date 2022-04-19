@@ -100,8 +100,8 @@ export class Column3dService {
     })
   }
 
-  updateHoverPins = (pins:Pin[], resetSettings: Gui3dSettings, lastHoveredPins: Pin[] = []) => {
-    const resetLastPins = (pins: Pin[]) => {
+  updateHoverPins = (nextHoverPins:Pin[], resetSettings: Gui3dSettings, lastHoveredPins: Pin[] = [], onHoldPins: Pin[]) => {
+    const setDefaultPinStyle = (pins: Pin[]) => {
       pins.forEach( pin => {
         const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
         column.material.opacity = resetSettings.column.opacity
@@ -109,7 +109,7 @@ export class Column3dService {
         column.material.depthWrite  = false
       })
     }
-    const changeNextPins = (pins: Pin[]) => {
+    const setHoverPinStyle = (pins: Pin[]) => {
       pins.forEach( pin => {
         const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
         column.material.depthWrite  = true
@@ -117,10 +117,20 @@ export class Column3dService {
         column.material.color = new Color(0xffff00)
       })
     }
+
+    const setSelectPinStyle = (pins: Pin[]) => {
+      pins.forEach( pin => {
+        const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
+        column.material.depthWrite  = true
+        column.material.opacity = 1
+        // column.material.color = new Color(0xffff00)
+      })
+    }
     
-    resetLastPins(lastHoveredPins)
-    lastHoveredPins = pins
-    changeNextPins(lastHoveredPins)
-    return lastHoveredPins
+    setDefaultPinStyle(lastHoveredPins)
+    setHoverPinStyle(nextHoverPins)
+    setSelectPinStyle(onHoldPins)
+    lastHoveredPins = nextHoverPins
+    return nextHoverPins
   }
 }

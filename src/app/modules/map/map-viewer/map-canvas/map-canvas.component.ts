@@ -185,6 +185,35 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     await this.initTile()
     await this.initCategory()
     this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
+
+    const box = this.getBox(5)
+    const camera = this.camera
+    const vector = this.testUnproject(camera)
+    box.position.add(vector)
+    this.scene.add(box)
+    const projected = this.testProject(camera, box.position)
+    console.log(projected.x, projected.y);
+    
+  }
+
+  testProject = (camera: Camera, positionToPrject: Vector3) => {
+    const canvasW = 600, canvasH = 450
+    const canvasWHalf = canvasW / 2, canvasHHalf = canvasH / 2;
+    const shaderCoordinate = positionToPrject.clone().project(camera); // returns a shader-like coordinate position
+    const x = ( shaderCoordinate.x * canvasWHalf ) + canvasWHalf;
+    const y = - ( shaderCoordinate.y * canvasHHalf ) + canvasHHalf;
+    const dncCoordinate = new Vector2(x,y)
+    return dncCoordinate
+  }
+
+  testUnproject = (camera: Camera) => {
+    const shaderPosition = new Vector3(1, 1, 0)
+    shaderPosition.unproject(this.camera); // -1~1 => -screen width/2~screen width/2
+    const normalUnprojection = new Vector3().subVectors(shaderPosition, camera.position).normalize(); // normalize to (0~1,0~1,0~1) position and move the the world center
+    const distance = ( 0 - camera.position.z ) / normalUnprojection.z;
+    normalUnprojection.multiplyScalar(distance) // move the box position towards the direction at which camera.position looks
+    const pos = new Vector3().copy(camera.position).add(normalUnprojection); // currently the position is moved from the world center. the actuall position should be moved from the camera
+    return pos
   }
 
   getCategoryIdFromRoute = async ():Promise<string> => {

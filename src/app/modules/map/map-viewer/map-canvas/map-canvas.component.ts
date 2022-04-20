@@ -302,20 +302,26 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   onCameraChange = () => {
-    const pinWithDeviceCroodinate: PinOnDeviceCoordinate[] = this.selectedPins.map( pin => {
+
+    const sahderCoordXToDncX = (shaderCoordX: number, canvasW: number) => (shaderCoordX + 1) / 2 * canvasW 
+    const sahderCoordXToDncY = (shaderCoordY: number, canvasH: number) => (-shaderCoordY + 1) / 2 * canvasH
+    const pinOnDnc: PinOnDnc[] = this.selectedPins.map( pin => {
       if(!pin.position3d) throw new Error("no position in selected pin");
-      const newPin: PinOnDeviceCoordinate = pin
-      const deviceCoordinate = new Vector3(0,0,0).unproject(this.camera)
-      // console.log(deviceCoordinate);
-      // deviceCoordinate.set( deviceCoordinate.x * this.canvasDimention.x,  deviceCoordinate.y * this.canvasDimention.y,  deviceCoordinate.z )
-      if (deviceCoordinate) {
-        newPin.deviceCoordinate = deviceCoordinate
-        return newPin
-      } else {
-        throw new Error("no device coordinate in selected pin");
-      }
-    })
-    this.selectedPinsOnGui.emit(pinWithDeviceCroodinate)
+      const shaderCoordinate = pin.position3d.clone().project(this.camera)
+      const dncX = sahderCoordXToDncX(shaderCoordinate.x, this.canvasDimention.x)
+      const dncY = sahderCoordXToDncY(shaderCoordinate.y, this.canvasDimention.y)
+      this.showUnprojectPosition(shaderCoordinate)
+      const pinWithDnc:PinOnDnc = { ... pin, deviceCoordinate: new Vector2(dncX, dncY) }
+      return pinWithDnc
+    })    
+    this.selectedPinsOnGui.emit(pinOnDnc)
+  }
+
+  showUnprojectPosition = (shaderCoordinate: Vector3) => {
+    const reversed = this.testUnproject(this.camera, new Vector3(shaderCoordinate.x, shaderCoordinate.y, shaderCoordinate.z))
+    const box = this.getBox(3)
+    box.position.set(reversed.x, reversed.y, reversed.z)
+    this.scene.add(box)
   }
 
   updateSelectedPins = (pinClicked: Pin, pinsOnHold: Pin[]) => {

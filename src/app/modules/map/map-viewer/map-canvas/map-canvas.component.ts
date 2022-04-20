@@ -20,7 +20,7 @@ import { PinsTableService } from './pin-services/pins-table.service';
 import { PinModelService } from './pin-services/pin-model.service';
 import { Column3dService } from './column-3d-services/column-3d.service';
 import { Tile } from 'src/app/shared/models/Tile';
-import { Pin, PinOnDeviceCoordinate } from 'src/app/shared/models/Pin';
+import { Pin, PinOnDnc } from 'src/app/shared/models/Pin';
 import { CategoryService } from './category/category.service';
 import { Gui3dSettings } from 'src/app/shared/models/GuiColumnSettings';
 import { PinUtilsService } from './pin-services/pin-utils.service';
@@ -75,7 +75,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   hoverPinChangeSuject: BehaviorSubject<Pin[]> = new BehaviorSubject(([] as Pin[]))
   font!: Font
   @Output() hoverOnPin: EventEmitter<{pin: Pin, legendPosition: Vector2}| undefined> = new EventEmitter()
-  @Output() selectedPinsOnGui: EventEmitter<Pin[]> = new EventEmitter()
+  @Output() selectedPinsOnGui: EventEmitter<PinOnDnc[]> = new EventEmitter()
   canvasDimention = new Vector2(600, 450)
   screenRatio = 2
   selectedPins: Pin[] = []
@@ -188,8 +188,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
     const box = this.getBox(5)
     const camera = this.camera
-    const vector = this.testUnproject(camera)
-    box.position.add(vector)
     this.scene.add(box)
     const projected = this.testProject(camera, box.position)
     console.log(projected.x, projected.y);
@@ -206,8 +204,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     return dncCoordinate
   }
 
-  testUnproject = (camera: Camera) => {
-    const shaderPosition = new Vector3(1, 1, 0)
+  testUnproject = (camera: Camera, dnc: Vector3) => {
+    const shaderPosition = dnc
     shaderPosition.unproject(this.camera); // -1~1 => -screen width/2~screen width/2
     const normalUnprojection = new Vector3().subVectors(shaderPosition, camera.position).normalize(); // normalize to (0~1,0~1,0~1) position and move the the world center
     const distance = ( 0 - camera.position.z ) / normalUnprojection.z;

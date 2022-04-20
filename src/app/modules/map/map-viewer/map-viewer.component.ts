@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { Pin, PinOnDeviceCoordinate } from 'src/app/shared/models/Pin';
-import { Color, Vector2 } from 'three';
+import { Pin, PinOnDnc } from 'src/app/shared/models/Pin';
+import { Color, Vector2, Vector3 } from 'three';
 
 @Component({
   selector: 'app-map-viewer',

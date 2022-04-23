@@ -1,7 +1,7 @@
 <p *ngIf="hoverPin" id="legend" [ngStyle]="{'left': hoverPin.legendPosition.x + 'px', 'top': -hoverPin.legendPosition.y + 'px'}">{{hoverPin.pin.title}}</p>
-<p *ngFor="let pin of pinsOnSelect" id="legend" [ngStyle]="{'left': pin.deviceCoordinate.x + 'px', 'top': pin.deviceCoordinate.y + 'px'}">{{pin.title}}</p>
+<p *ngFor="let pin of pinsOnSelect; let in = index" id="legend" [ngStyle]="{'left': pin.deviceCoordinate.x + 'px', 'top': pin.deviceCoordinate.y + 'px'}">{{pin.title}}</p>
 <app-map-canvas id="canvas" #mapCanvas (hoverOnPin)="changeHoverLegend($event)" (selectedPinsOnGui)="updateSelectLegend($event)"></app-map-canvas>
-
+<p *ngFor="let pin of pinsOnSelect; let in = index" >{{pin.title}}</p>
 <p>gui-settings works!</p>mapCanvas.guiColumnSettings
 <div class="slidecontainer">
     <br>

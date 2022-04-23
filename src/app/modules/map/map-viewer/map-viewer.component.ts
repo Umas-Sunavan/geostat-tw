@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Pin, PinOnDnc } from 'src/app/shared/models/Pin';
+import { Pin, PinWithDnc } from 'src/app/shared/models/Pin';
 import { Color, Vector2, Vector3 } from 'three';
 
 @Component({
@@ -13,30 +13,22 @@ export class MapViewerComponent implements OnInit {
 
   hoverPin?: { pin: Pin, legendPosition: Vector2}
   selectedPin: { pin: Pin, legendPosition: Vector2}[] = []
-  pinsOnSelect: PinOnDnc[] = []
+  pinsOnSelect: PinWithDnc[] = []
   averageMoving: Vector2[] = []
 
   changeHoverLegend = (options?: { pin: Pin, legendPosition: Vector2}) => {
     this.hoverPin = options
   }
 
-  updateSelectLegend = (pinOnSelect: PinOnDnc[]) => {
+  updateSelectLegend = (pinOnSelect: PinWithDnc[]) => {
     this.pinsOnSelect.forEach( (pin,i) => {
-      // const delta = pin.deviceCoordinate.clone().sub(pinOnSelect[i].deviceCoordinate)
-      // const x = Math.floor(delta.x)
-      // const y = Math.floor(delta.y)
-      // console.log(`x: ${x}, y: ${y}`);
-      // if (this.averageMoving.length >= this.pinsOnSelect.length * 6) {
-        // this.averageMoving.shift()
-      // }
-      // this.averageMoving.push(delta)
-      // const smoothX = this.averageMoving.map( vec2 => vec2.x).reduce( (p,c) => p+c ) / (this.averageMoving.length)
-      // const smoothY = this.averageMoving.map( vec2 => vec2.y).reduce( (p,c) => p+c ) / (this.averageMoving.length)
-      // console.log(smoothX, smoothY);
-      const nextPosition = pinOnSelect[i].deviceCoordinate.clone()
-      const thisPosition = pin.deviceCoordinate
-      const lerp = nextPosition.sub(thisPosition).multiplyScalar(0.1)
-      pinOnSelect[i].deviceCoordinate = pin.deviceCoordinate.clone().add(lerp)
+      const isExist = Boolean(pinOnSelect[i])
+      if (isExist) {
+        const nextPosition = pinOnSelect[i].deviceCoordinate.clone()
+        const thisPosition = pin.deviceCoordinate
+        const lerp = nextPosition.sub(thisPosition).multiplyScalar(0.2)
+        pinOnSelect[i].deviceCoordinate = pin.deviceCoordinate.clone().add(lerp)
+      }
     })
     this.pinsOnSelect = pinOnSelect
     console.log();

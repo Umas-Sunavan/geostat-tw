@@ -20,7 +20,7 @@ import { PinsTableService } from './pin-services/pins-table.service';
 import { PinModelService } from './pin-services/pin-model.service';
 import { Column3dService } from './column-3d-services/column-3d.service';
 import { Tile } from 'src/app/shared/models/Tile';
-import { Pin, PinOnDnc } from 'src/app/shared/models/Pin';
+import { Pin, PinWithDnc } from 'src/app/shared/models/Pin';
 import { CategoryService } from './category/category.service';
 import { Gui3dSettings } from 'src/app/shared/models/GuiColumnSettings';
 import { PinUtilsService } from './pin-services/pin-utils.service';
@@ -75,7 +75,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   hoverPinChangeSuject: BehaviorSubject<Pin[]> = new BehaviorSubject(([] as Pin[]))
   font!: Font
   @Output() hoverOnPin: EventEmitter<{pin: Pin, legendPosition: Vector2}| undefined> = new EventEmitter()
-  @Output() selectedPinsOnGui: EventEmitter<PinOnDnc[]> = new EventEmitter()
+  @Output() selectedPinsOnGui: EventEmitter<PinWithDnc[]> = new EventEmitter()
   canvasDimention = new Vector2(600, 450)
   screenRatio = 2
   selectedPins: Pin[] = []
@@ -292,29 +292,38 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     const isHoveringPins = this.hoveringPins && this.hoveringPins[0]
     if (isHoveringPins) {
       const clickedPin = this.hoveringPins![0]
-      const clickedGroup = clickedPin.mesh
       this.selectedPins = this.updateSelectedPins(clickedPin, this.selectedPins)
-      if (!clickedGroup) return
-      const column = this.pinUtilsService.getPinMeshInGroup(clickedGroup, 'column')
-      column.material.color = new Color(0x000000)
+      this.changePinStyleOnClick(clickedPin)
+      this.onCameraChange()
     }
     this.onUserUpdateCamera.next('')
   }
 
-  onCameraChange = () => {
+  changePinStyleOnClick = (pin: Pin) => {
+    const clickedGroup = pin.mesh
+    if (!clickedGroup) return
+    const column = this.pinUtilsService.getPinMeshInGroup(clickedGroup, 'column')
+    column.material.color = new Color(0x000000)
+  }
 
+  onCameraChange = () => {
+    const pinsWithDnc = this.getPinsDnc(this.selectedPins)
+    this.selectedPinsOnGui.emit(pinsWithDnc)
+  }
+
+  getPinsDnc = (pins: Pin[]) => {
     const sahderCoordXToDncX = (shaderCoordX: number, canvasW: number) => (shaderCoordX + 1) / 2 * canvasW 
     const sahderCoordXToDncY = (shaderCoordY: number, canvasH: number) => (-shaderCoordY + 1) / 2 * canvasH
-    const pinOnDnc: PinOnDnc[] = this.selectedPins.map( pin => {
+    const pinsWithDnc: PinWithDnc[] = pins.map( pin => {
       if(!pin.position3d) throw new Error("no position in selected pin");
       const shaderCoordinate = pin.position3d.clone().project(this.camera)
+      // TERMINOLOGY: DNC is the pixel coordinate on the canvas DOM
       const dncX = sahderCoordXToDncX(shaderCoordinate.x, this.canvasDimention.x)
       const dncY = sahderCoordXToDncY(shaderCoordinate.y, this.canvasDimention.y)
-      this.showUnprojectPosition(shaderCoordinate)
-      const pinWithDnc:PinOnDnc = { ... pin, deviceCoordinate: new Vector2(dncX, dncY) }
+      const pinWithDnc:PinWithDnc = { ... pin, deviceCoordinate: new Vector2(dncX, dncY) }
       return pinWithDnc
-    })    
-    this.selectedPinsOnGui.emit(pinOnDnc)
+    })
+    return pinsWithDnc
   }
 
   showUnprojectPosition = (shaderCoordinate: Vector3) => {
@@ -324,17 +333,17 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.scene.add(box)
   }
 
-  updateSelectedPins = (pinClicked: Pin, pinsOnHold: Pin[]) => {
-    const hadSelected =  pinsOnHold.some( pinOnHold => pinOnHold.id === pinClicked.id)
-    let newPinsOnHold: Pin[] = []
-    if (hadSelected) {
+  updateSelectedPins = (pinClicked: Pin, alreadySelectedPins: Pin[]) => {
+    const isClickedPinSelected =  alreadySelectedPins.some( pinOnHold => pinOnHold.id === pinClicked.id)
+    let updatedPins: Pin[] = []
+    if (isClickedPinSelected) {
       // Deselect
-      newPinsOnHold =  pinsOnHold.filter( pinOnHold => pinOnHold.id !== pinClicked.id)
+      updatedPins =  alreadySelectedPins.filter( pin => pin.id !== pinClicked.id)
     } else {
       // Select
-      newPinsOnHold = [...pinsOnHold, pinClicked]
+      updatedPins = [...alreadySelectedPins, pinClicked]
     }
-    return newPinsOnHold
+    return updatedPins
   }
 
   pauseAnimation = () => {

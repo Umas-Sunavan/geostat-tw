@@ -12,6 +12,6 @@ export interface Pin {
     mesh?: Group
 }
 
-export interface PinOnDnc extends Pin{
+export interface PinWithDnc extends Pin{
     deviceCoordinate: Vector2
 }

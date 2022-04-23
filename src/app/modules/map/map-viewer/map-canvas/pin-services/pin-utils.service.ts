@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Pin } from 'src/app/shared/models/Pin';
-import { CylinderGeometry, Group, Intersection, Mesh, MeshPhongMaterial, Object3D } from 'three';
+import { Pin, PinWithDnc } from 'src/app/shared/models/Pin';
+import { Camera, CylinderGeometry, Group, Intersection, Mesh, MeshPhongMaterial, Object3D, Vector2, Vector3 } from 'three';
 
 @Injectable({
   providedIn: 'root'
@@ -91,6 +91,42 @@ export class PinUtilsService {
 
   getPinMeshInGroup = (group: Group, selector: string) => group.children.find( child => child.name.includes(selector)) as Mesh<CylinderGeometry, MeshPhongMaterial>
 
+  // projection
+
+  getPinsDnc = (pins: Pin[], canvasDimension: Vector2, camera: Camera) => {
+    const sahderCoordXToDncX = (shaderCoordX: number, canvasW: number) => (shaderCoordX + 1) / 2 * canvasW 
+    const sahderCoordXToDncY = (shaderCoordY: number, canvasH: number) => (-shaderCoordY + 1) / 2 * canvasH
+    const pinsWithDnc: PinWithDnc[] = pins.map( pin => {
+      if(!pin.position3d) throw new Error("no position in selected pin");
+      const shaderCoordinate = pin.position3d.clone().project(camera)
+      // TERMINOLOGY: DNC is the pixel coordinate on the canvas DOM
+      const dncX = sahderCoordXToDncX(shaderCoordinate.x, canvasDimension.x)
+      const dncY = sahderCoordXToDncY(shaderCoordinate.y, canvasDimension.y)
+      const pinWithDnc:PinWithDnc = { ... pin, deviceCoordinate: new Vector2(dncX, dncY) }
+      return pinWithDnc
+    })
+    return pinsWithDnc
+  }
+
+  testProject = (camera: Camera, positionToPrject: Vector3) => {
+    const canvasW = 600, canvasH = 450
+    const canvasWHalf = canvasW / 2, canvasHHalf = canvasH / 2;
+    const shaderCoordinate = positionToPrject.clone().project(camera); // returns a shader-like coordinate position
+    const x = ( shaderCoordinate.x * canvasWHalf ) + canvasWHalf;
+    const y = - ( shaderCoordinate.y * canvasHHalf ) + canvasHHalf;
+    const dncCoordinate = new Vector2(x,y)
+    return dncCoordinate
+  }
+
+  testUnproject = (camera: Camera, dnc: Vector3) => {
+    const shaderPosition = dnc
+    shaderPosition.unproject(camera); // -1~1 => -screen width/2~screen width/2
+    const normalUnprojection = new Vector3().subVectors(shaderPosition, camera.position).normalize(); // normalize to (0~1,0~1,0~1) position and move the the world center
+    const distance = ( 0 - camera.position.z ) / normalUnprojection.z;
+    normalUnprojection.multiplyScalar(distance) // move the box position towards the direction at which camera.position looks
+    const pos = new Vector3().copy(camera.position).add(normalUnprojection); // currently the position is moved from the world center. the actuall position should be moved from the camera
+    return pos
+  }
 
 
 }

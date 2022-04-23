@@ -100,13 +100,13 @@ export class PinModelService {
     })
   }
   
-    removePins = (pins: Pin[]) => {
-      pins.forEach( pin => {
-        if (!pin.mesh) return
-        pin.mesh.removeFromParent()
-        this.animateService.removeIntersetObject(`pin`)
-      })
-    }
+  removePins = (pins: Pin[]) => {
+    pins.forEach( pin => {
+      if (!pin.mesh) return
+      pin.mesh.removeFromParent()
+      this.animateService.removeIntersetObject(`pin`)
+    })
+  }
 
   longLatToPosition3d = (lonLat: Vector2) => {
     const long = lonLat.x
@@ -117,6 +117,21 @@ export class PinModelService {
     const scenePositionY = (tileY - this.tileUtilsService.initTileId.y) * 12
     const position = new Vector3(scenePositionX, 0, scenePositionY)
     return position
+  }
+
+  // pin selection
+
+  updateSelectedPins = (pinClicked: Pin, alreadySelectedPins: Pin[]) => {
+    const deselect =  alreadySelectedPins.some( pinOnHold => pinOnHold.id === pinClicked.id)
+    let updatedPins: Pin[] = []
+    if (deselect) {
+      // Deselect
+      updatedPins =  alreadySelectedPins.filter( pin => pin.id !== pinClicked.id)
+    } else {
+      // Select
+      updatedPins = [...alreadySelectedPins, pinClicked]
+    }
+    return updatedPins
   }
 
 }

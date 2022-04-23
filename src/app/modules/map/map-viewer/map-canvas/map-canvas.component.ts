@@ -189,29 +189,9 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     const box = this.getBox(5)
     const camera = this.camera
     this.scene.add(box)
-    const projected = this.testProject(camera, box.position)
+    const projected = this.pinUtilsService.testProject(camera, box.position)
     console.log(projected.x, projected.y);
     
-  }
-
-  testProject = (camera: Camera, positionToPrject: Vector3) => {
-    const canvasW = 600, canvasH = 450
-    const canvasWHalf = canvasW / 2, canvasHHalf = canvasH / 2;
-    const shaderCoordinate = positionToPrject.clone().project(camera); // returns a shader-like coordinate position
-    const x = ( shaderCoordinate.x * canvasWHalf ) + canvasWHalf;
-    const y = - ( shaderCoordinate.y * canvasHHalf ) + canvasHHalf;
-    const dncCoordinate = new Vector2(x,y)
-    return dncCoordinate
-  }
-
-  testUnproject = (camera: Camera, dnc: Vector3) => {
-    const shaderPosition = dnc
-    shaderPosition.unproject(this.camera); // -1~1 => -screen width/2~screen width/2
-    const normalUnprojection = new Vector3().subVectors(shaderPosition, camera.position).normalize(); // normalize to (0~1,0~1,0~1) position and move the the world center
-    const distance = ( 0 - camera.position.z ) / normalUnprojection.z;
-    normalUnprojection.multiplyScalar(distance) // move the box position towards the direction at which camera.position looks
-    const pos = new Vector3().copy(camera.position).add(normalUnprojection); // currently the position is moved from the world center. the actuall position should be moved from the camera
-    return pos
   }
 
   getCategoryIdFromRoute = async ():Promise<string> => {
@@ -292,11 +272,19 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     const isHoveringPins = this.hoveringPins && this.hoveringPins[0]
     if (isHoveringPins) {
       const clickedPin = this.hoveringPins![0]
-      this.selectedPins = this.updateSelectedPins(clickedPin, this.selectedPins)
+      this.selectedPins = this.pinModelService.updateSelectedPins(clickedPin, this.selectedPins)
+      // this.updatePolygon(this.selectedPins)
       this.changePinStyleOnClick(clickedPin)
       this.onCameraChange()
     }
     this.onUserUpdateCamera.next('')
+  }
+  
+  showUnprojectPosition = (camera: Camera, shaderCoordinate: Vector3) => {
+    const reversed = this.pinUtilsService.testUnproject(camera, new Vector3(shaderCoordinate.x, shaderCoordinate.y, shaderCoordinate.z))
+    const box = this.getBox(3)
+    box.position.set(reversed.x, reversed.y, reversed.z)
+    this.scene.add(box)
   }
 
   changePinStyleOnClick = (pin: Pin) => {
@@ -307,43 +295,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   onCameraChange = () => {
-    const pinsWithDnc = this.getPinsDnc(this.selectedPins)
+    const pinsWithDnc = this.pinUtilsService.getPinsDnc(this.selectedPins, this.canvasDimention, this.camera)
     this.selectedPinsOnGui.emit(pinsWithDnc)
-  }
-
-  getPinsDnc = (pins: Pin[]) => {
-    const sahderCoordXToDncX = (shaderCoordX: number, canvasW: number) => (shaderCoordX + 1) / 2 * canvasW 
-    const sahderCoordXToDncY = (shaderCoordY: number, canvasH: number) => (-shaderCoordY + 1) / 2 * canvasH
-    const pinsWithDnc: PinWithDnc[] = pins.map( pin => {
-      if(!pin.position3d) throw new Error("no position in selected pin");
-      const shaderCoordinate = pin.position3d.clone().project(this.camera)
-      // TERMINOLOGY: DNC is the pixel coordinate on the canvas DOM
-      const dncX = sahderCoordXToDncX(shaderCoordinate.x, this.canvasDimention.x)
-      const dncY = sahderCoordXToDncY(shaderCoordinate.y, this.canvasDimention.y)
-      const pinWithDnc:PinWithDnc = { ... pin, deviceCoordinate: new Vector2(dncX, dncY) }
-      return pinWithDnc
-    })
-    return pinsWithDnc
-  }
-
-  showUnprojectPosition = (shaderCoordinate: Vector3) => {
-    const reversed = this.testUnproject(this.camera, new Vector3(shaderCoordinate.x, shaderCoordinate.y, shaderCoordinate.z))
-    const box = this.getBox(3)
-    box.position.set(reversed.x, reversed.y, reversed.z)
-    this.scene.add(box)
-  }
-
-  updateSelectedPins = (pinClicked: Pin, alreadySelectedPins: Pin[]) => {
-    const isClickedPinSelected =  alreadySelectedPins.some( pinOnHold => pinOnHold.id === pinClicked.id)
-    let updatedPins: Pin[] = []
-    if (isClickedPinSelected) {
-      // Deselect
-      updatedPins =  alreadySelectedPins.filter( pin => pin.id !== pinClicked.id)
-    } else {
-      // Select
-      updatedPins = [...alreadySelectedPins, pinClicked]
-    }
-    return updatedPins
   }
 
   pauseAnimation = () => {

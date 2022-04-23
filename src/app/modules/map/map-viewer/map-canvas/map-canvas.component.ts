@@ -1,5 +1,5 @@
 import { AfterContentInit, AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { BoxGeometry, BufferGeometry, Camera, Color, CurvePath, ExtrudeBufferGeometry, ExtrudeGeometry, Line, LineBasicMaterial, LineCurve, Material, Mesh, MeshBasicMaterial, MeshNormalMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PointLight, Raycaster, Renderer, Scene, Shape, ShapeBufferGeometry, ShapeGeometry, Vector, Vector2, Vector3, Vector3Tuple, WebGLRenderer, DoubleSide, Texture, Plane, WebGLRenderTarget, TextureLoader, Intersection, CylinderGeometry, MeshMatcapMaterial, CircleGeometry, Group, TOUCH, MOUSE } from 'three';
+import { BoxGeometry, BufferGeometry, Camera, Color, CurvePath, ExtrudeBufferGeometry, ExtrudeGeometry, Line, LineBasicMaterial, LineCurve, Material, Mesh, MeshBasicMaterial, MeshNormalMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PointLight, Raycaster, Renderer, Scene, Shape, ShapeBufferGeometry, ShapeGeometry, Vector, Vector2, Vector3, Vector3Tuple, WebGLRenderer, DoubleSide, Texture, Plane, WebGLRenderTarget, TextureLoader, Intersection, CylinderGeometry, MeshMatcapMaterial, CircleGeometry, Group, TOUCH, MOUSE, BufferAttribute } from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';			
 import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 
@@ -24,6 +24,8 @@ import { Pin, PinWithDnc } from 'src/app/shared/models/Pin';
 import { CategoryService } from './category/category.service';
 import { Gui3dSettings } from 'src/app/shared/models/GuiColumnSettings';
 import { PinUtilsService } from './pin-services/pin-utils.service';
+import { Polygon } from 'src/app/shared/models/Polygon';
+import { GuiPolygonSettings } from 'src/app/shared/models/GuiPolygonSettings';
 
 
 
@@ -79,6 +81,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   canvasDimention = new Vector2(600, 450)
   screenRatio = 2
   selectedPins: Pin[] = []
+  polygons: Polygon[] = []
 
   // view
   guiColumnSettings:Gui3dSettings = {
@@ -97,6 +100,10 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
       opacity: 0.02,
     }
   }
+  guiPolygonSettings:GuiPolygonSettings = {
+      color: '#528bff',
+      opacity: 0.6
+  }
   
 
   initQueueToUpdateResolution = () => {
@@ -112,14 +119,12 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
   async ngOnInit(): Promise<void> {
     this.hoverPinChangeSuject.subscribe( nextHoverPins => {
-
-      console.log(nextHoverPins);
       this.hoveringPins = this.column3dService.updateHoverPins(nextHoverPins, this.guiColumnSettings, this.hoveringPins, this.selectedPins)
     })
     this.timeoutToPause()
     this.initOnUserUpdateResolution()
     this.animateService.onMouseIntersect.subscribe( intersections => this.onMouseIntersect(intersections))
-    this.pins = await this.pinModelService.initPinsModel()
+    // this.pins = await this.pinModelService.initPinsModel()
     
     // this.pointDimensionService.writeUserData()
   }
@@ -162,7 +167,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   initCategory = async () => {
     const categoryId = await this.getCategoryIdFromRoute()
     const onGotCategorySettings = async (setting: CategorySetting) => {
-      this.pins = await this.pinModelService.applyPinHeightFromSetting(setting, this.pins)
+      this.pins = await this.pinModelService.applyPinHeightFromSetting(setting, this.pins)      
       await this.applySettings(setting)
     }
     await this.categoryService.getCategorySetting(categoryId, onGotCategorySettings)
@@ -182,6 +187,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.initThree()
     this.canvasContainer.nativeElement.addEventListener('mousewheel', this.onMouseScroll)
     this.canvasContainer.nativeElement.addEventListener('click', this.onMouseClick)
+    this.pins = await this.pinModelService.initPinsModel()
     await this.initTile()
     await this.initCategory()
     this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
@@ -273,7 +279,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     if (isHoveringPins) {
       const clickedPin = this.hoveringPins![0]
       this.selectedPins = this.pinModelService.updateSelectedPins(clickedPin, this.selectedPins)
-      // this.updatePolygon(this.selectedPins)
+      this.updatePolygon(this.selectedPins)
       this.changePinStyleOnClick(clickedPin)
       this.onCameraChange()
     }
@@ -297,6 +303,68 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   onCameraChange = () => {
     const pinsWithDnc = this.pinUtilsService.getPinsDnc(this.selectedPins, this.canvasDimention, this.camera)
     this.selectedPinsOnGui.emit(pinsWithDnc)
+  }
+
+  uiUpdatePolygon = (event: Event) => this.updatePolygon(this.selectedPins)
+
+  updatePolygon = (selectedPins: Pin[]) => {
+    console.log('called');
+    this.scene.children.filter( mesh => mesh.name.includes('polygon'))
+    const points: number = selectedPins.length
+    const triangleMode = points%3 === 0
+    const rectangleMode = points === 4
+    if (triangleMode) {
+      this.removePolygons()
+      this.createPolygons(selectedPins)
+    }
+  }
+
+  removePolygons = () => {
+    this.polygons.forEach( polygon => {
+      if (!polygon.mesh) throw new Error("no mesh to remove");
+      polygon.mesh.removeFromParent()
+    })
+    this.polygons = []
+  }
+
+  createPolygons = (points: Pin[]) => {
+    for (let i = 0; i < points.length; i+=3) {
+      const polygonPoints = points.slice(i,i+3)
+      const model = this.createPolygonModel(polygonPoints)
+      console.log(model);
+      
+      const mesh = this.createPolygonMesh(model)
+      model.mesh = mesh
+      
+      this.scene.add(model.mesh)
+      this.polygons.push(model)
+    }
+  }
+
+  createPolygonModel = (pointPins:Pin[]):Polygon => {
+    const polygonId = pointPins.map(pin => pin.id).join('_')
+    return {
+      id: `polygon_${polygonId}`,
+      points: pointPins,
+      color: this.column3dService.parseStringColorToInt(this.guiPolygonSettings.color),
+      opacity: this.guiPolygonSettings.opacity
+    }
+  }
+
+  createPolygonMesh = (model: Polygon) => {
+    const pointPositions = model.points.map( pin => {
+      if (!pin.position3d) throw new Error("a pin has no position when creating triangle polygon");
+      return pin.position3d
+    })
+    const bufferArray = pointPositions.map( point => point.toArray()).flat()
+    const vertices = new Float32Array( bufferArray );
+    const geometry = new BufferGeometry();
+    geometry.setAttribute( 'position', new BufferAttribute( vertices, 3 ) );
+    const material = new MeshPhongMaterial( { color: model.color, opacity: model.opacity, transparent: true } );
+    const mesh = new Mesh( geometry, material );
+
+    mesh.position.setY(0.005)
+    return mesh
   }
 
   pauseAnimation = () => {

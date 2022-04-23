@@ -110,7 +110,7 @@ export class TileUtilsService {
   }
 
   // add tile
-
+  // THIS CODE COST TOO MUCH ENERGY
   addTilesById = async (tileIds: TileId[], tiles: Tile[], scene: Scene) => {
     // including adding to the scene and model(binding data)
     const newTiles = await this.getTileMeshById(tileIds)
@@ -300,6 +300,7 @@ export class TileUtilsService {
 
   updateTileToRaycaster = (tiles: Tile[]) => {
     const objToDetectIntersect = tiles.map(tile => tile.mesh as Object3D)
+    this.animateService.removeIntersetObject('plane')
     this.animateService.passIntersetObject(objToDetectIntersect)
   }
 

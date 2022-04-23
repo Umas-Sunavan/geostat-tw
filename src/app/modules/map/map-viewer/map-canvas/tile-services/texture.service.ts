@@ -69,7 +69,7 @@ export class TextureService {
       tile.mesh.material.color = color
       tile.mesh.material.needsUpdate = true;
     }
-    return lastValueFrom(of('').pipe(delay(1000) ))
+    return lastValueFrom(of('').pipe(delay(100) ))
   }
 
   arrayBufferToBase64 = (buffer: ArrayBuffer) => {

@@ -196,7 +196,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     const camera = this.camera
     this.scene.add(box)
     const projected = this.pinUtilsService.testProject(camera, box.position)
-    console.log(projected.x, projected.y);
     
   }
 
@@ -308,7 +307,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   uiUpdatePolygon = (event: Event) => this.updatePolygon(this.selectedPins)
 
   updatePolygon = (selectedPins: Pin[]) => {
-    console.log('called');
     this.scene.children.filter( mesh => mesh.name.includes('polygon'))
     const points: number = selectedPins.length
     const triangleMode = points%3 === 0
@@ -328,14 +326,11 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   createPolygons = (points: Pin[]) => {
+    
     for (let i = 0; i < points.length; i+=3) {
       const polygonPoints = points.slice(i,i+3)
       const model = this.createPolygonModel(polygonPoints)
-      console.log(model);
-      
-      const mesh = this.createPolygonMesh(model)
-      model.mesh = mesh
-      
+      model.mesh = this.createPolygonMesh(model)
       this.scene.add(model.mesh)
       this.polygons.push(model)
     }
@@ -360,10 +355,10 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     const vertices = new Float32Array( bufferArray );
     const geometry = new BufferGeometry();
     geometry.setAttribute( 'position', new BufferAttribute( vertices, 3 ) );
-    const material = new MeshPhongMaterial( { color: model.color, opacity: model.opacity, transparent: true } );
+    const material = new MeshPhongMaterial( { color: model.color, opacity: model.opacity, transparent: true , side: DoubleSide} );
     const mesh = new Mesh( geometry, material );
-
-    mesh.position.setY(0.005)
+    mesh.name = model.id
+    mesh.position.setY(0.005+Math.random()*0.001)
     return mesh
   }
 
@@ -381,7 +376,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   timeoutToPause = () => {
     setTimeout(() => {
       this.pauseAnimation()
-      console.log('animation paused');
     }, 20 * 1000);
   }
 

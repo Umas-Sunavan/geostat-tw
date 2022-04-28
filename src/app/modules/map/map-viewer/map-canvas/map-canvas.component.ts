@@ -80,7 +80,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   font!: Font
   @Output() hoverOnPin: EventEmitter<{pin: Pin, legendPosition: Vector2}| undefined> = new EventEmitter()
   @Output() selectedPinsOnGui: EventEmitter<PinWithDnc[]> = new EventEmitter()
-  canvasDimention = new Vector2(600, 450)
+  canvasDimention = new Vector2(window.innerWidth, window.innerHeight)
   screenRatio = 2
   selectedPins: Pin[] = []
   polygons: Polygon[] = []

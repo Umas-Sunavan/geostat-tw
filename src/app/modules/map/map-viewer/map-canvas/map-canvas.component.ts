@@ -26,6 +26,7 @@ import { Gui3dSettings } from 'src/app/shared/models/GuiColumnSettings';
 import { PinUtilsService } from './pin-services/pin-utils.service';
 import { Polygon } from 'src/app/shared/models/Polygon';
 import { GuiPolygonSettings } from 'src/app/shared/models/GuiPolygonSettings';
+import { Polygon3dService } from './polygon-service/polygon-3d.service';
 
 
 
@@ -50,6 +51,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     private pinModelService: PinModelService,
     private pinUtilsService: PinUtilsService,
     private column3dService: Column3dService,
+    private polygon3dService: Polygon3dService,
     ) {
     this.initQueueToUpdateResolution()
     
@@ -278,11 +280,18 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     if (isHoveringPins) {
       const clickedPin = this.hoveringPins![0]
       this.selectedPins = this.pinModelService.updateSelectedPins(clickedPin, this.selectedPins)
-      this.updatePolygon(this.selectedPins)
+      this.updatePolygons()
       this.changePinStyleOnClick(clickedPin)
       this.onCameraChange()
     }
     this.onUserUpdateCamera.next('')
+  }
+
+  updatePolygons = () => {
+    this.polygons = this.polygon3dService.removePolygons(this.polygons)
+    const { models, meshes } = this.polygon3dService.createPolygons(this.selectedPins, this.guiPolygonSettings)
+    this.polygons.push(...models)
+    meshes.forEach( mesh => this.scene.add(mesh))
   }
   
   showUnprojectPosition = (camera: Camera, shaderCoordinate: Vector3) => {
@@ -304,110 +313,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.selectedPinsOnGui.emit(pinsWithDnc)
   }
 
-  uiUpdatePolygon = (event: Event) => this.updatePolygon(this.selectedPins)
-
-  updatePolygon = (selectedPins: Pin[]) => {
-    this.removePolygons()
-    const pinCount: number = selectedPins.length
-    const useRectangleMode = pinCount%3 === 1 && pinCount/3 > 1
-    const everyThreePins = pinCount - pinCount%3
-    const pinsToMakeTriangles = selectedPins.slice(0,everyThreePins)
-    this.createTriangles(pinsToMakeTriangles)
-    if (useRectangleMode) {
-      const lastFourPoints = selectedPins.slice(-4)
-      this.createRectangles(lastFourPoints)
-    }
-  }
-
-  removePolygons = () => {
-    this.polygons.forEach( polygon => {
-      if (!polygon.mesh) throw new Error("no mesh to remove");
-      polygon.mesh.removeFromParent()
-    })
-    this.polygons = []
-  }
-
-  createRectangles = (points: Pin[]) => {
-    console.log(points);
-    
-    const model = this.createPolygonModel(points, 'rectangle')
-    model.mesh = this.createRectangleMesh(model)
-    this.scene.add(model.mesh)
-    this.polygons.push(model)
-  }
-
-  createTriangles = (points: Pin[]) => {
-    for (let i = 0; i < points.length; i+=3) {
-      const polygonPoints = points.slice(i,i+3)
-      const model = this.createPolygonModel(polygonPoints, 'triangle')
-      model.mesh = this.createPolygonMesh(model)
-      this.scene.add(model.mesh)
-      this.polygons.push(model)
-    }
-  }
-
-  createPolygonModel = (pointPins:Pin[], idPrefix: string):Polygon => {
-    const polygonId = pointPins.map(pin => pin.id).join('_')
-    return {
-      id: `polygon_${idPrefix}_${polygonId}`,
-      points: pointPins,
-      color: this.column3dService.parseStringColorToInt(this.guiPolygonSettings.color),
-      opacity: this.guiPolygonSettings.opacity
-    }
-  }
-
-  createRectangleMesh = (model: Polygon) => {    
-    const pointPositions = model.points.map( pin => {
-      if (!pin.position3d) throw new Error("a pin has no position when creating triangle polygon");
-      return pin.position3d
-    })
-    const totallVector = pointPositions.reduce( (prev, curr) => prev.clone().add(curr))
-    const center = totallVector.multiplyScalar(0.25)
-    const positionWithSlope = pointPositions.map( (points,i) => {
-      const pToCenter3d = points.clone().sub(center)
-      const p0ToCenter2d = new Vector2(pToCenter3d.x, pToCenter3d.z)
-      const slope = Math.atan2(p0ToCenter2d.y, p0ToCenter2d.x)
-      return {
-        position3d: points,
-        slope: slope/Math.PI
-      }
-    })
-    const clockwisePoints3D = positionWithSlope.sort( (a,b) => a.slope - b.slope)
-    const clockwisePoints2D = clockwisePoints3D.map( ({position3d, slope}): [number, number] => {
-      return [position3d.x, position3d.z]
-    })
-    console.log(clockwisePoints2D);
-    const shape = new Shape();
-    shape.moveTo(...clockwisePoints2D[0])
-    shape.lineTo(...clockwisePoints2D[1])
-    shape.lineTo(...clockwisePoints2D[2])
-    shape.lineTo(...clockwisePoints2D[3])
-    shape.lineTo(...clockwisePoints2D[0])
-    const geometry = new ShapeGeometry( shape );
-    geometry.rotateX(Math.PI* 0.5)
-    const material = new MeshPhongMaterial( { color: model.color, opacity: model.opacity, transparent: true , side: DoubleSide} );
-    const mesh = new Mesh( geometry, material );
-    mesh.name = model.id
-    mesh.position.setY(0.005+Math.random()*0.01)
-    
-    return mesh
-  }
-
-  createPolygonMesh = (model: Polygon) => {
-    const pointPositions = model.points.map( pin => {
-      if (!pin.position3d) throw new Error("a pin has no position when creating triangle polygon");
-      return pin.position3d
-    })
-    const bufferArray = pointPositions.map( point => point.toArray()).flat()
-    const vertices = new Float32Array( bufferArray );
-    const geometry = new BufferGeometry();
-    geometry.setAttribute( 'position', new BufferAttribute( vertices, 3 ) );
-    const material = new MeshPhongMaterial( { color: model.color, opacity: model.opacity, transparent: true , side: DoubleSide} );
-    const mesh = new Mesh( geometry, material );
-    mesh.name = model.id
-    mesh.position.setY(0.005+Math.random()*0.001)
-    return mesh
-  }
+  uiUpdatePolygon = (event: Event) => this.updatePolygons()
 
   pauseAnimation = () => {
     this.isPaused = true

@@ -1,5 +1,5 @@
 import { AfterContentInit, AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { BoxGeometry, BufferGeometry, Camera, Color, CurvePath, ExtrudeBufferGeometry, ExtrudeGeometry, Line, LineBasicMaterial, LineCurve, Material, Mesh, MeshBasicMaterial, MeshNormalMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PointLight, Raycaster, Renderer, Scene, Shape, ShapeBufferGeometry, ShapeGeometry, Vector, Vector2, Vector3, Vector3Tuple, WebGLRenderer, DoubleSide, Texture, Plane, WebGLRenderTarget, TextureLoader, Intersection, CylinderGeometry, MeshMatcapMaterial, CircleGeometry, Group, TOUCH, MOUSE, BufferAttribute } from 'three';
+import { BoxGeometry, BufferGeometry, Camera, Color, CurvePath, ExtrudeBufferGeometry, ExtrudeGeometry, Line, LineBasicMaterial, LineCurve, Material, Mesh, MeshBasicMaterial, MeshNormalMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PointLight, Raycaster, Renderer, Scene, Shape, ShapeBufferGeometry, ShapeGeometry, Vector, Vector2, Vector3, Vector3Tuple, WebGLRenderer, DoubleSide, Texture, Plane, WebGLRenderTarget, TextureLoader, Intersection, CylinderGeometry, MeshMatcapMaterial, CircleGeometry, Group, TOUCH, MOUSE, BufferAttribute, ShapePath } from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';			
 import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 
@@ -192,10 +192,10 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     await this.initCategory()
     this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
 
-    const box = this.getBox(5)
-    const camera = this.camera
-    this.scene.add(box)
-    const projected = this.pinUtilsService.testProject(camera, box.position)
+    // const box = this.getBox(5)
+    // const camera = this.camera
+    // this.scene.add(box)
+    // const projected = this.pinUtilsService.testProject(camera, box.position)
     
   }
 
@@ -296,7 +296,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     const clickedGroup = pin.mesh
     if (!clickedGroup) return
     const column = this.pinUtilsService.getPinMeshInGroup(clickedGroup, 'column')
-    column.material.color = new Color(0x000000)
+    column.material.color = new Color(0x1a3875)
   }
 
   onCameraChange = () => {
@@ -307,13 +307,15 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   uiUpdatePolygon = (event: Event) => this.updatePolygon(this.selectedPins)
 
   updatePolygon = (selectedPins: Pin[]) => {
-    this.scene.children.filter( mesh => mesh.name.includes('polygon'))
-    const points: number = selectedPins.length
-    const triangleMode = points%3 === 0
-    const rectangleMode = points === 4
-    if (triangleMode) {
-      this.removePolygons()
-      this.createPolygons(selectedPins)
+    this.removePolygons()
+    const pinCount: number = selectedPins.length
+    const useRectangleMode = pinCount%3 === 1 && pinCount/3 > 1
+    const everyThreePins = pinCount - pinCount%3
+    const pinsToMakeTriangles = selectedPins.slice(0,everyThreePins)
+    this.createTriangles(pinsToMakeTriangles)
+    if (useRectangleMode) {
+      const lastFourPoints = selectedPins.slice(-4)
+      this.createRectangles(lastFourPoints)
     }
   }
 
@@ -325,25 +327,70 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.polygons = []
   }
 
-  createPolygons = (points: Pin[]) => {
+  createRectangles = (points: Pin[]) => {
+    console.log(points);
     
+    const model = this.createPolygonModel(points, 'rectangle')
+    model.mesh = this.createRectangleMesh(model)
+    this.scene.add(model.mesh)
+    this.polygons.push(model)
+  }
+
+  createTriangles = (points: Pin[]) => {
     for (let i = 0; i < points.length; i+=3) {
       const polygonPoints = points.slice(i,i+3)
-      const model = this.createPolygonModel(polygonPoints)
+      const model = this.createPolygonModel(polygonPoints, 'triangle')
       model.mesh = this.createPolygonMesh(model)
       this.scene.add(model.mesh)
       this.polygons.push(model)
     }
   }
 
-  createPolygonModel = (pointPins:Pin[]):Polygon => {
+  createPolygonModel = (pointPins:Pin[], idPrefix: string):Polygon => {
     const polygonId = pointPins.map(pin => pin.id).join('_')
     return {
-      id: `polygon_${polygonId}`,
+      id: `polygon_${idPrefix}_${polygonId}`,
       points: pointPins,
       color: this.column3dService.parseStringColorToInt(this.guiPolygonSettings.color),
       opacity: this.guiPolygonSettings.opacity
     }
+  }
+
+  createRectangleMesh = (model: Polygon) => {    
+    const pointPositions = model.points.map( pin => {
+      if (!pin.position3d) throw new Error("a pin has no position when creating triangle polygon");
+      return pin.position3d
+    })
+    const totallVector = pointPositions.reduce( (prev, curr) => prev.clone().add(curr))
+    const center = totallVector.multiplyScalar(0.25)
+    const positionWithSlope = pointPositions.map( (points,i) => {
+      const pToCenter3d = points.clone().sub(center)
+      const p0ToCenter2d = new Vector2(pToCenter3d.x, pToCenter3d.z)
+      const slope = Math.atan2(p0ToCenter2d.y, p0ToCenter2d.x)
+      return {
+        position3d: points,
+        slope: slope/Math.PI
+      }
+    })
+    const clockwisePoints3D = positionWithSlope.sort( (a,b) => a.slope - b.slope)
+    const clockwisePoints2D = clockwisePoints3D.map( ({position3d, slope}): [number, number] => {
+      return [position3d.x, position3d.z]
+    })
+    console.log(clockwisePoints2D);
+    const shape = new Shape();
+    shape.moveTo(...clockwisePoints2D[0])
+    shape.lineTo(...clockwisePoints2D[1])
+    shape.lineTo(...clockwisePoints2D[2])
+    shape.lineTo(...clockwisePoints2D[3])
+    shape.lineTo(...clockwisePoints2D[0])
+    const geometry = new ShapeGeometry( shape );
+    geometry.rotateX(Math.PI* 0.5)
+    const material = new MeshPhongMaterial( { color: model.color, opacity: model.opacity, transparent: true , side: DoubleSide} );
+    const mesh = new Mesh( geometry, material );
+    mesh.name = model.id
+    mesh.position.setY(0.005+Math.random()*0.01)
+    
+    return mesh
   }
 
   createPolygonMesh = (model: Polygon) => {

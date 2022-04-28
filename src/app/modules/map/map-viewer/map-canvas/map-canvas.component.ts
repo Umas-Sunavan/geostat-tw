@@ -86,16 +86,32 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   polygons: Polygon[] = []
 
   // view
+  
+  // this is the default stlye without remote data
   guiColumnSettings:Gui3dSettings = {
-    column: {
-      opacity: 0.1,
-      color: '#528bff',
-      heightScale: 1,
-      scale: 0.5,
+    columns: {
+      defaultColumn: {
+        opacity: 0.1,
+        color: '#528bff',
+        heightScale: 1,
+        scale: 0.5,
+      }, 
+      hoveredColumn: {
+        opacity: 0.1,
+        color: '#528bff',
+      }, 
+      selectedColumn: {
+        opacity: 0.1,
+        color: '#528bff',
+      },
     }, 
     ground: {
       color: '#528bff',
       opacity: 0.5,  
+    }, 
+    polygon: {
+      color: '#528bff',
+      opacity: 0.8,  
     }, 
     outline: {
       color: '#ffffff',
@@ -121,7 +137,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
   async ngOnInit(): Promise<void> {
     this.hoverPinChangeSuject.subscribe( nextHoverPins => {
-      this.hoveringPins = this.column3dService.updateHoverPins(nextHoverPins, this.guiColumnSettings, this.hoveringPins, this.selectedPins)
+      this.hoveringPins = this.column3dService.updatePinsStyle(nextHoverPins, this.guiColumnSettings, this.hoveringPins, this.selectedPins)
+      nextHoverPins = this.hoveringPins
     })
     this.timeoutToPause()
     this.initOnUserUpdateResolution()

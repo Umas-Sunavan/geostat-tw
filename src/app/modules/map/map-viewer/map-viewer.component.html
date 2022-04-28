@@ -1,25 +1,25 @@
-<p *ngIf="hoverPin" id="legend" [ngStyle]="{'left': hoverPin.legendPosition.x + 'px', 'top': -hoverPin.legendPosition.y + 'px'}">{{hoverPin.pin.title}}</p>
-<p *ngFor="let pin of pinsOnSelect; let in = index" id="legend" [ngStyle]="{'left': pin.deviceCoordinate.x + 'px', 'top': pin.deviceCoordinate.y + 'px'}">{{pin.title}}</p>
+<p *ngIf="hoverPin" class="legend" [ngStyle]="{'left': hoverPin.legendPosition.x + 'px', 'top': -hoverPin.legendPosition.y + 'px'}">{{hoverPin.pin.title}}</p>
+<p *ngFor="let pin of pinsOnSelect; let in = index" class="legend" [ngStyle]="{'left': pin.deviceCoordinate.x + 'px', 'top': pin.deviceCoordinate.y + 'px'}">{{pin.title}}</p>
 <app-map-canvas id="canvas" #mapCanvas (hoverOnPin)="changeHoverLegend($event)" (selectedPinsOnGui)="updateSelectLegend($event)"></app-map-canvas>
 
-<p>gui-settings works!</p>mapCanvas.guiColumnSettings
 <div class="slidecontainer">
+    <p>gui-settings works!</p>mapCanvas.guiColumnSettings
     <br>
     <input type="color" id="columnColor" (change)="mapCanvas.uiUpdatePin($event)"
-        [(ngModel)]="mapCanvas.guiColumnSettings.column.color">
-    <label for="columnColor">column color: {{mapCanvas.guiColumnSettings.column.color}}</label>
+        [(ngModel)]="mapCanvas.guiColumnSettings.columns.defaultColumn.color">
+    <label for="columnColor">column color: {{mapCanvas.guiColumnSettings.columns.defaultColumn.color}}</label>
     <br>
     <input type="range" min="0" max="1" step="0.01" id="columnHeightScale" (change)="mapCanvas.uiUpdatePin($event)"
-        [(ngModel)]="mapCanvas.guiColumnSettings.column.heightScale">
-    <label for="columnHeightScale">columnHeightScale: {{mapCanvas.guiColumnSettings.column.heightScale}}</label>
+        [(ngModel)]="mapCanvas.guiColumnSettings.columns.defaultColumn.heightScale">
+    <label for="columnHeightScale">columnHeightScale: {{mapCanvas.guiColumnSettings.columns.defaultColumn.heightScale}}</label>
     <br>
     <input type="range" min="0" max="3" step="0.01" id="columnScale" (change)="mapCanvas.uiUpdatePin($event)"
-        [(ngModel)]="mapCanvas.guiColumnSettings.column.scale">
-    <label for="columnScale">columnScale: {{mapCanvas.guiColumnSettings.column.scale}}</label>
+        [(ngModel)]="mapCanvas.guiColumnSettings.columns.defaultColumn.scale">
+    <label for="columnScale">columnScale: {{mapCanvas.guiColumnSettings.columns.defaultColumn.scale}}</label>
     <br>
     <input type="range" min="0" max="1" step="0.01" id="columnOpacity" (change)="mapCanvas.uiUpdatePin($event)"
-        [(ngModel)]="mapCanvas.guiColumnSettings.column.opacity">
-    <label for="columnOpacity">columnOpacity: {{mapCanvas.guiColumnSettings.column.opacity}}</label>
+        [(ngModel)]="mapCanvas.guiColumnSettings.columns.defaultColumn.opacity">
+    <label for="columnOpacity">columnOpacity: {{mapCanvas.guiColumnSettings.columns.defaultColumn.opacity}}</label>
     <br>
     <input type="color" id="groundColor" (change)="mapCanvas.uiUpdatePin($event)"
         [(ngModel)]="mapCanvas.guiColumnSettings.ground.color">
@@ -45,5 +45,5 @@
         (change)="mapCanvas.uiUpdatePolygon($event)" [(ngModel)]="mapCanvas.guiPolygonSettings.opacity">
     <label for="polygonOpacity">polygonOpacity: {{mapCanvas.guiPolygonSettings.opacity}}</label>
     <br>
+    <p *ngFor="let pin of pinsOnSelect; let in = index" >{{pin.title}}</p>
 </div>
-<p *ngFor="let pin of pinsOnSelect; let in = index" >{{pin.title}}</p>

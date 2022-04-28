@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Gui3dSettings, GuiColumnSettings, GuiGroundSettings } from 'src/app/shared/models/GuiColumnSettings';
+import { Gui3dSettings, GuiDefaultColumnSettings, GuiGroundSettings } from 'src/app/shared/models/GuiColumnSettings';
 import { Pin } from 'src/app/shared/models/Pin';
 import { AdditiveBlending, CircleGeometry, Color, CylinderGeometry, DoubleSide, EdgesGeometry, Group, LineBasicMaterial, LineSegments, Mesh, MeshPhongMaterial, NormalBlending, Scene, SubtractiveBlending } from 'three';
 import { PinModelService } from '../pin-services/pin-model.service';
@@ -17,9 +17,9 @@ export class Column3dService {
 
   createColumn3dLayers = (pin: Pin, settings: Gui3dSettings) => {
     const group = new Group();
-    const origionalMesh = this.getColumn3d(pin, NormalBlending, `pin_column_${pin.id}_normalBlending`, settings.column)
+    const origionalMesh = this.getColumn3d(pin, NormalBlending, `pin_column_${pin.id}_normalBlending`, settings.columns.defaultColumn)
     // const lightingMesh = this.getColumn3d(pin, AdditiveBlending, `column_${pin.id}_additiveBlending`, 0.04, columnColor, heightScale)
-    const ground = this.getGround3d(pin, NormalBlending, `pin_ground_${pin.id}`, settings.ground, settings.column.scale)
+    const ground = this.getGround3d(pin, NormalBlending, `pin_ground_${pin.id}`, settings.ground, settings.columns.defaultColumn.scale)
     // const outline = this.getOutline3d(pin, NormalBlending, `outline_${pin.id}`, 0.02, columnColor, origionalMesh)
     group.add(ground)
     // group.add( outline );
@@ -66,7 +66,7 @@ export class Column3dService {
     return line
   }
 
-  getColumn3d = (pin: Pin, blending: any, name:string, settings: GuiColumnSettings):Mesh<CylinderGeometry, MeshPhongMaterial> => {
+  getColumn3d = (pin: Pin, blending: any, name:string, settings: GuiDefaultColumnSettings):Mesh<CylinderGeometry, MeshPhongMaterial> => {
     if (!pin.position3d) throw new Error("No Longitude or latitude when initing mesh");
     let material
     material = new MeshPhongMaterial( {
@@ -100,12 +100,12 @@ export class Column3dService {
     })
   }
 
-  updateHoverPins = (nextHoverPins:Pin[], resetSettings: Gui3dSettings, lastHoveredPins: Pin[] = [], onHoldPins: Pin[]) => {
+  updatePinsStyle = (nextHoverPins:Pin[], resetSettings: Gui3dSettings, lastHoveredPins: Pin[] = [], onHoldPins: Pin[]) => {
     const setDefaultPinStyle = (pins: Pin[]) => {
       pins.forEach( pin => {
         const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
-        column.material.opacity = resetSettings.column.opacity
-        column.material.color = new Color(this.parseStringColorToInt(resetSettings.column.color))
+        column.material.opacity = resetSettings.columns.defaultColumn.opacity
+        column.material.color = new Color(this.parseStringColorToInt(resetSettings.columns.defaultColumn.color))
         column.material.depthWrite  = false
       })
     }
@@ -113,8 +113,8 @@ export class Column3dService {
       pins.forEach( pin => {
         const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
         column.material.depthWrite  = true
-        column.material.opacity = 0.6
-        column.material.color = new Color(0xffff00)
+        column.material.opacity = resetSettings.columns.hoveredColumn.opacity
+        column.material.color = new Color(this.parseStringColorToInt(resetSettings.columns.hoveredColumn.color))
       })
     }
 
@@ -122,15 +122,14 @@ export class Column3dService {
       pins.forEach( pin => {
         const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
         column.material.depthWrite  = true
-        column.material.opacity = 1
-        // column.material.color = new Color(0xffff00)
+        column.material.opacity = resetSettings.columns.selectedColumn.opacity
+        column.material.color = new Color(this.parseStringColorToInt(resetSettings.columns.selectedColumn.color))
       })
     }
     
     setDefaultPinStyle(lastHoveredPins)
     setHoverPinStyle(nextHoverPins)
     setSelectPinStyle(onHoldPins)
-    lastHoveredPins = nextHoverPins
     return nextHoverPins
   }
 }

@@ -56,11 +56,25 @@ export class CategoryService {
                     "mainColor": "#ff00ff"
                 },
                 "meshSettings": {
-                  "column": {
-                    "opacity": 0.1,
+                  "columns": {
+                    "defaultColumn": {
+                      "opacity": 0.1,
+                      "color": "#528bff",
+                      "heightScale": 0.1,
+                      "scale": 0.5
+                    },
+                    "hoveredColumn": {
+                      "opacity": 1,
+                      "color": "#d2abff",
+                    },
+                    "selectedColumn": {
+                      "opacity": 0.4,
+                      "color": "#528bff",
+                    },
+                  },
+                  "polygon": {
+                    "opacity": 0.6,
                     "color": "#528bff",
-                    "heightScale": 0.1,
-                    "scale": 0.5
                   },
                   "ground": {
                     "color": "#528bff",

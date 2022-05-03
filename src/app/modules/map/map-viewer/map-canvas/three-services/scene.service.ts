@@ -9,7 +9,7 @@ export class SceneService {
 
   makeScene = () => {
     const scene = new Scene()
-    scene.background = new Color(0x999999)
+    scene.background = new Color(0xffeeee)
     return scene
   }
 }

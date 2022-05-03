@@ -8,7 +8,7 @@ import { TileLonglatCalculationService } from '../tile-services/tile-longlat-cal
 import { PinsTableService } from './pins-table.service';
 import { CategorySetting } from 'src/app/shared/models/CategorySettings';
 import { CategoryService } from '../category/category.service';
-import { PinCategoryMappingService } from '../../../pin-category-mapping.service';
+import { PinCategoryMappingService } from '../category/pin-category-mapping.service';
 import { Gui3dSettings } from 'src/app/shared/models/GuiColumnSettings';
 import { TileUtilsService } from '../tile-services/tile-utils.service';
 import { Column3dService } from '../column-3d-services/column-3d.service';

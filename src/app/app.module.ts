@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { MapCanvasComponent } from './modules/map/map-viewer/map-canvas/map-canvas.component';
 import { DashboardComponent } from './modules/dashboard/dashboard.component';
 import { MapViewerComponent } from './modules/map/map-viewer/map-viewer.component';
+import { MapSettingsComponent } from './modules/map/map-viewer/map-settings/map-settings/map-settings.component';
 
 @NgModule({
   declarations: [
@@ -21,6 +22,7 @@ import { MapViewerComponent } from './modules/map/map-viewer/map-viewer.componen
     HeaderComponent,
     FooterComponent,
     MapViewerComponent,
+    MapSettingsComponent,
     
   ],
   imports: [

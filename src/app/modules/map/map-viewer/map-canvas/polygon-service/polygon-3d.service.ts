@@ -100,7 +100,7 @@ export class Polygon3dService {
     const material = new MeshPhongMaterial( { color: model.color, opacity: model.opacity, transparent: true , side: DoubleSide} );
     const mesh = new Mesh( geometry, material );
     mesh.name = model.id
-    mesh.position.setY(0.005+Math.random()*0.01)
+    mesh.position.setY(0.005+Math.random()*0.001)
     
     return mesh
   }
@@ -117,7 +117,7 @@ export class Polygon3dService {
     const material = new MeshPhongMaterial( { color: model.color, opacity: model.opacity, transparent: true , side: DoubleSide} );
     const mesh = new Mesh( geometry, material );
     mesh.name = model.id
-    mesh.position.setY(0.005+Math.random()*0.001)
+    mesh.position.setY(0.005+Math.random()*0.0001)
     return mesh
   }
 }

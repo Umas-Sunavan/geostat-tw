@@ -51,8 +51,9 @@ export class TextureService {
     const options = {
       responseType: 'arraybuffer' as const,
     };
-    // return firstValueFrom(this.httpClient.get(`https://tile.openstreetmap.org/${tileId.z}/${tileId.x}/${tileId.y}.png`, options))
-    return firstValueFrom(this.httpClient.get(`https://api.mapbox.com/styles/v1/mapbox/light-v10/tiles/512/${tileId.z}/${tileId.x}/${tileId.y}?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`, options))
+    return firstValueFrom(this.httpClient.get(`https://tile.openstreetmap.org/${tileId.z}/${tileId.x}/${tileId.y}.png`, options))
+    // return firstValueFrom(this.httpClient.get(`https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/512/${tileId.z}/${tileId.x}/${tileId.y}?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`, options))
+    // return firstValueFrom(this.httpClient.get(`https://api.mapbox.com/styles/v1/mapbox/light-v10/tiles/512/${tileId.z}/${tileId.x}/${tileId.y}?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`, options))
   }
 
   applyMockTexture = async (tiles: Tile[]) => {

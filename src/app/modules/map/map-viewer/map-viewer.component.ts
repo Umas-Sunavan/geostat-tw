@@ -11,10 +11,15 @@ export class MapViewerComponent implements OnInit {
 
   constructor() { }
 
+  canvas?: HTMLCanvasElement
   hoverPin?: { pin: Pin, legendPosition: Vector2}
   selectedPin: { pin: Pin, legendPosition: Vector2}[] = []
   pinsOnSelect: PinWithDnc[] = []
   averageMoving: Vector2[] = []
+
+  storeCanvasDom = (canvas: HTMLCanvasElement) => {
+    this.canvas = canvas
+  }
 
   changeHoverLegend = (options?: { pin: Pin, legendPosition: Vector2}) => {
     this.hoverPin = options

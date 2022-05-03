@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, delay, filter, lastValueFrom, Subject, take } from 'rxjs';
 import { Observable, of } from 'rxjs';
 import { BoxGeometry, Camera, Color, DirectionalLight, Group, Intersection, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, Raycaster, Renderer, RepeatWrapping, Scene, ShaderMaterial, Texture, Vector2, Vector3, WebGLRenderer, WebGLRenderTarget } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -21,9 +21,16 @@ export class AnimateService {
   camera?: Camera
   orbitControl?: OrbitControls
   mouse?: Vector2
+  isNeedImageData: boolean = false
+  imageUrl:BehaviorSubject<string> = new BehaviorSubject('')
 
   constructor(
   ) {
+  }
+
+  getCavasImage = () => {
+    this.isNeedImageData = true
+    return this.imageUrl.pipe(filter( value => Boolean(value)))
   }
 
 
@@ -32,7 +39,6 @@ export class AnimateService {
     if (this.renderer.info.render.frame > frameMax) return
     if (this.isPaused) return 
     this.mouseRaycaster.setFromCamera(this.mouse, this.camera);
-    
     this.cavasCenterRaycaster.setFromCamera(new Vector2(0,0), this.camera);
     requestAnimationFrame(() => {
       this.animate()
@@ -42,6 +48,11 @@ export class AnimateService {
 
     this.renderer.render(this.scene, this.camera);
 
+    if(this.isNeedImageData == true){
+      const imgData = this.renderer.domElement.toDataURL();
+      this.imageUrl.next(imgData)
+      this.isNeedImageData = false;
+    }
     // orbitControl.update()
     this.onIntersections()
   }

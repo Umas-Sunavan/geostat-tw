@@ -7,7 +7,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { BehaviorSubject, concatMap, delay, exhaustMap, filter, forkJoin, from, interval, last, lastValueFrom, map, mapTo, merge, mergeMap, Observable, of, Subject, Subscriber, switchMap, take, tap, timeout, timer } from 'rxjs';
 import { CategorySetting, CategorySettings } from 'src/app/shared/models/CategorySettings';
 import { ActivatedRoute } from '@angular/router';
-import { PinCategoryMappingService } from '../../pin-category-mapping.service';
+import { PinCategoryMappingService } from './category/pin-category-mapping.service';
 import { SceneService } from './three-services/scene.service';
 import { RendererService } from './three-services/renderer.service';
 import { CameraService } from './three-services/camera.service';
@@ -58,6 +58,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   @ViewChild('canvasContainer') canvasContainer!: ElementRef<HTMLCanvasElement>;
+  @Output() canvasEmitter: EventEmitter<HTMLCanvasElement> = new EventEmitter()
   scene: Scene = new Scene()
   renderer: WebGLRenderer = new WebGLRenderer()
   camera: Camera = new PerspectiveCamera()
@@ -208,14 +209,27 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.canvasContainer.nativeElement.addEventListener('click', this.onMouseClick)
     this.pins = await this.pinModelService.initPinsModel()
     await this.initTile()
-    await this.initCategory()
-    this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
+      this.canvasEmitter.emit(this.renderer.domElement)
+      setTimeout(() => {        
+      this.animateService.getCavasImage().pipe(take(1)).subscribe( value => {
+        console.log(value);
+        
+      })
+      }, 2000);
+      setTimeout(() => {        
+      this.animateService.getCavasImage().pipe(take(1)).subscribe( value => {
+        console.log(value);
+        
+      })
+      }, 4000);
+    // await this.initCategory()
+    // this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
 
     // const box = this.getBox(5)
     // const camera = this.camera
     // this.scene.add(box)
     // const projected = this.pinUtilsService.testProject(camera, box.position)
-    
+
   }
 
   getCategoryIdFromRoute = async ():Promise<string> => {

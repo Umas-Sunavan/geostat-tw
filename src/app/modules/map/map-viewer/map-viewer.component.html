@@ -1,8 +1,8 @@
 <p *ngIf="hoverPin" class="legend" [ngStyle]="{'left': hoverPin.legendPosition.x + 'px', 'top': -hoverPin.legendPosition.y + 'px'}">{{hoverPin.pin.title}}</p>
 <p *ngFor="let pin of pinsOnSelect; let in = index" class="legend" [ngStyle]="{'left': pin.deviceCoordinate.x + 'px', 'top': pin.deviceCoordinate.y + 'px'}">{{pin.title}}</p>
-<app-map-canvas id="canvas" #mapCanvas (hoverOnPin)="changeHoverLegend($event)" (selectedPinsOnGui)="updateSelectLegend($event)"></app-map-canvas>
-
-<div class="slidecontainer">
+<app-map-canvas #mapCanvas (hoverOnPin)="changeHoverLegend($event)" (canvasEmitter)="storeCanvasDom($event)" (selectedPinsOnGui)="updateSelectLegend($event)"></app-map-canvas>
+<app-map-settings class="flex float-right flex-col" [canvas]="canvas"></app-map-settings>
+<!-- <div class="slidecontainer">
     <p>gui-settings works!</p>mapCanvas.guiColumnSettings
     <br>
     <input type="color" id="columnColor" (change)="mapCanvas.uiUpdatePin($event)"
@@ -46,4 +46,4 @@
     <label for="polygonOpacity">polygonOpacity: {{mapCanvas.guiPolygonSettings.opacity}}</label>
     <br>
     <p *ngFor="let pin of pinsOnSelect; let in = index" >{{pin.title}}</p>
-</div>
+</div> -->

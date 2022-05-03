@@ -7,7 +7,24 @@
     width: 300px
     height: 300px 
     background: -moz-element(#canvas)
-#canvas
-    height: 100px
-    width: 100px
 .glass-blur
+    background-repeat: no-repeat
+    background-attachment: fixed
+    background-size: cover // three background settings above sets the backround position fixed
+    box-shadow: inset 0 0 0 3000px rgba(255, 255, 255, 0.3) // because the blur effect won't affect the pixel near border, so it is used as an inner shadow
+    filter: blur(0px) // fix the element
+    overflow: hidden // hide the overflowed blur effect, which is from the before element
+    &:before
+        content: ""
+        position: absolute // position should be same as parent by using absoute
+        top: 0px
+        left: 0px
+        bottom: 0px
+        right: 0px // by applying these above, this element's position and size is constrained to parent
+        background: inherit // usrdo needs inherit the parent's background, which is used to blur
+        box-shadow: inset 0 0 0 200px rgba(255,255,255,0.2) // lighten the inner part of the container
+        filter: blur(10px) // the actuall blur
+    > *
+        position: relative
+.hidex
+    display: none

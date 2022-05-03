@@ -50,6 +50,8 @@ export class AnimateService {
 
     if(this.isNeedImageData == true){
       const imgData = this.renderer.domElement.toDataURL();
+      console.log(imgData);
+      
       this.imageUrl.next(imgData)
       this.isNeedImageData = false;
     }

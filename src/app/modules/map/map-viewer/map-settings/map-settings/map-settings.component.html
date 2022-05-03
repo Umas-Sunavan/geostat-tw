@@ -5,19 +5,48 @@
         class="tint-shadow gradient-bg m-8 bg-primary text-xl py-4 px-8 rounded-full flex items-center text-white"
       >
         設定
-        <img src="/assets/icons/check.svg" />
+        <img src="/assets/icons/tool.svg" />
     </button>
     <button 
         *ngIf="showSettings"
         (click)="toggleShow()"
         class="tint-shadow gradient-bg m-8 bg-primary text-xl py-4 px-8 rounded-full flex items-center text-white"
       >
-      <p>儲存設定</p>
-      <img src="/assets/icons/tool.svg" />
+        <p>儲存設定</p>
+        <img src="/assets/icons/check.svg" />
     </button>
   <section class="glass-blur" [ngStyle]="{ backgroundImage: blurSource }">
-    <div>asfas<br />g asfad</div>
-    <div>asfas<br />g asfad</div>
-    <div>asfas<br />g asfad</div>
+    <div class="bg-white/50 m-4 p-4 rounded-xl flex">
+        <img src="/assets/icons/polygon-triangle.svg" />
+        三角形模式
+    </div>
+    <div class="bg-white/50 m-4 p-4 rounded-xl flex">>
+        <img src="/assets/icons/column-color.svg" />
+        <div>
+            圓柱顏色
+            <input type="color">
+        </div>
+    </div>
+    <div class="">
+        <img src="/assets/icons/column-color.svg" />
+        <div>
+            圓柱顏色
+            <input type="color">
+        </div>
+    </div>
+    <div class="">
+        <img src="/assets/icons/column-color.svg" />
+        <div>
+            圓柱顏色
+            <input type="color">
+        </div>
+    </div>
+    <div class="">
+        <img src="/assets/icons/column-color.svg" />
+        <div>
+            圓柱顏色
+            <input type="color">
+        </div>
+    </div>
   </section>
 </div>

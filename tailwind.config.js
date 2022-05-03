@@ -1,7 +1,8 @@
 module.exports = {
   content: [
     "./src/**/*.{html,ts}",
-  ],
+  ],   
+  mode: 'jit',
   theme: {
     colors: {
       'white': '#ffffff',

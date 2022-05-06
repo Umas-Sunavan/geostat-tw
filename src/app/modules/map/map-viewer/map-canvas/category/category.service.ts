@@ -68,7 +68,7 @@ export class CategoryService {
                       "color": "#d2abff",
                     },
                     "selectedColumn": {
-                      "opacity": 0.4,
+                      "opacity": 1,
                       "color": "#528bff",
                     },
                   },

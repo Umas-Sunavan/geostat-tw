@@ -15,12 +15,16 @@ export class MapViewerComponent implements OnInit {
   selectedPin: { pin: Pin, legendPosition: Vector2}[] = []
   pinsOnSelect: PinWithDnc[] = []
   averageMoving: Vector2[] = []
+  pins: Pin[] = []
+  pinCheckedFromList?: Pin
 
   changeHoverLegend = (options?: { pin: Pin, legendPosition: Vector2}) => {
     this.hoverPin = options
   }
 
   updateSelectLegend = (pinOnSelect: PinWithDnc[]) => {
+    console.log('update legend');
+    
     this.pinsOnSelect.forEach( (pin,i) => {
       const isExist = Boolean(pinOnSelect[i])
       if (isExist) {
@@ -31,19 +35,12 @@ export class MapViewerComponent implements OnInit {
       }
     })
     this.pinsOnSelect = pinOnSelect
-    console.log();
-    
   }
 
   ngOnInit(): void {
   }
 
-  sliderChange = ($event: Event, target: string) => {
-
+  updatePinChecked = (pin: Pin) => {
+    this.pinCheckedFromList = pin
   }
-
-  changeColumnHeight = ($event: Event) => {
-
-  }
-
 }

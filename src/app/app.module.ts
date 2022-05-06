@@ -11,7 +11,9 @@ import { FormsModule } from '@angular/forms';
 import { MapCanvasComponent } from './modules/map/map-viewer/map-canvas/map-canvas.component';
 import { DashboardComponent } from './modules/dashboard/dashboard.component';
 import { MapViewerComponent } from './modules/map/map-viewer/map-viewer.component';
-import { MapSettingsComponent } from './modules/map/map-viewer/map-settings/map-settings/map-settings.component';
+import { Map3dSettingsComponent } from './modules/map/map-viewer/map-settings/map-3d-settings/map-3d-settings.component';
+import { MapPinSettingsComponent } from './modules/map/map-viewer/map-settings/map-pin-settings/map-pin-settings.component';
+import { MapSettingsComponent } from './modules/map/map-viewer/map-settings/map-settings.component';
 
 @NgModule({
   declarations: [
@@ -22,6 +24,8 @@ import { MapSettingsComponent } from './modules/map/map-viewer/map-settings/map-
     HeaderComponent,
     FooterComponent,
     MapViewerComponent,
+    Map3dSettingsComponent,
+    MapPinSettingsComponent,
     MapSettingsComponent,
     
   ],

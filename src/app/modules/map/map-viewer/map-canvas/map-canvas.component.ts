@@ -75,20 +75,37 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   pins: Pin[] = []
   isPaused: boolean = false
   categoryId = '-N-SyzGWgpgWs2szH-aH'
-  hoveringPins?: Pin[]
+  hoveringPins: Pin[] = []
   hoverPinChangeSuject: BehaviorSubject<Pin[]> = new BehaviorSubject(([] as Pin[]))
   font!: Font
   @Output() hoverOnPin: EventEmitter<{pin: Pin, legendPosition: Vector2}| undefined> = new EventEmitter()
-  @Output() selectedPinsOnGui: EventEmitter<PinWithDnc[]> = new EventEmitter()
   canvasDimention = new Vector2(window.innerWidth, window.innerHeight)
   screenRatio = 2
   selectedPins: Pin[] = []
   polygons: Polygon[] = []
+  @Input() set pinCheckedFromSetting(pin:Pin|undefined) {
+    if(pin) {
+      this.selectedPins = this.pinModelService.updateSelectedPins(pin, this.selectedPins)
+      console.log(this.selectedPins);
+      this.updatePolygons()
+      console.log('pin checked passes to canvas');
+      
+      setTimeout(() => {
+        this.onCameraChange()
+      }, 10);
+      this.changeLegendText(pin)
+      this.onPinsHovered([pin])
+    } else {
+      console.warn("no pin selected when updating canvas");
+      
+      
+    }
+  }
+  selectedPinsOnGui: PinWithDnc[] = []
 
   // view
   
-  // this is the default stlye without remote data
-  guiColumnSettings:Gui3dSettings = {
+  mockGuiSeggings: Gui3dSettings = {
     columns: {
       defaultColumn: {
         opacity: 0.1,
@@ -122,7 +139,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
       color: '#528bff',
       opacity: 0.6
   }
-  
+
+  guiColumnSettings:Gui3dSettings = this.mockGuiSeggings
 
   initQueueToUpdateResolution = () => {
     this.queueToUpdateResolution = new Observable(subscriber => {
@@ -208,6 +226,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.canvasContainer.nativeElement.addEventListener('click', this.onMouseClick)
     this.pins = await this.pinModelService.initPinsModel()
     await this.initTile()
+    await this.initCategory()
+    this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
   }
 
   getCategoryIdFromRoute = async ():Promise<string> => {
@@ -292,6 +312,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
       this.updatePolygons()
       this.changePinStyleOnClick(clickedPin)
       this.onCameraChange()
+      console.log(this.selectedPins);
+      
     }
     this.onUserUpdateCamera.next('')
   }
@@ -314,15 +336,18 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     const clickedGroup = pin.mesh
     if (!clickedGroup) return
     const column = this.pinUtilsService.getPinMeshInGroup(clickedGroup, 'column')
-    column.material.color = new Color(0x1a3875)
+    column.material.color = new Color(0x000000)
   }
 
   onCameraChange = () => {
-    const pinsWithDnc = this.pinUtilsService.getPinsDnc(this.selectedPins, this.canvasDimention, this.camera)
-    this.selectedPinsOnGui.emit(pinsWithDnc)
+    this.selectedPinsOnGui = this.pinUtilsService.getPinsDnc(this.selectedPins, this.canvasDimention, this.camera)
   }
 
-  uiUpdatePolygon = (event: Event) => this.updatePolygons()
+  uiUpdatePolygon = (event: Event) => {
+    this.updatePolygons()
+    console.log('update');
+    
+  }
 
   pauseAnimation = () => {
     this.isPaused = true

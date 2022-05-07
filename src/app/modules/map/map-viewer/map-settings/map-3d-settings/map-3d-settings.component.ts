@@ -10,7 +10,7 @@ import { AnimateService } from '../../map-canvas/three-services/animate.service'
   templateUrl: './map-3d-settings.component.html',
   styleUrls: ['./map-3d-settings.component.sass']
 })
-export class Map3dSettingsComponent implements OnInit {
+export class Map3dSettingsComponent implements OnInit, AfterContentInit {
 
   constructor() {
     
@@ -20,10 +20,31 @@ export class Map3dSettingsComponent implements OnInit {
   @Input() blurSource: string = ''
   @Output()columnSettingChange: EventEmitter<Event> = new EventEmitter()
   @Output()polygonSettingChange: EventEmitter<Event> = new EventEmitter()
+  @ViewChild('resizeContainer') resizeContainer!: ElementRef<HTMLDivElement>
+  isScrollBarShow: boolean = false
 
   ngOnInit(): void {
+  }
+
+  ngAfterContentInit(): void {
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+    this.onResize()
+    }, 0);
+  } 
+
+  resize = () => {
     
   }
+
+  onResize = (event?: Event) => {
+    const contentSize = this.resizeContainer.nativeElement.scrollHeight
+    const containerSize = this.resizeContainer.nativeElement.clientHeight
+    this.isScrollBarShow = contentSize > containerSize
+  }
+
 
   changeColumn = (event: Event) => {
     this.columnSettingChange.emit(event)

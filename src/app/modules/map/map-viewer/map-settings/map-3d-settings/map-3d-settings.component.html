@@ -1,13 +1,17 @@
 <section
-  class="glass-blur rounded-2xl"
+  class="glass-blur rounded-2xl mr-3"
   [ngStyle]="{ backgroundImage: blurSource }"
 >
-  <div class="bg-white/90 m-3 p-3 rounded-xl flex">
+<div 
+  (window:resize)="onResize($event)"
+  class="mx-3 my-3 rounded-2xl " 
+  #resizeContainer>
+  <div class="bg-white/90 p-3 rounded-xl flex" [ngClass]="{'mr-3':isScrollBarShow}">
     <img class="p-2" src="/assets/icons/polygon-triangle.svg" />
     <h2 class="p-2 text-xl">三角形模式</h2>
   </div>
   <!-- 圓柱 -->
-  <div class="bg-white/90 m-3 p-3 rounded-xl flex flex-col text-setting-500">
+  <div class="bg-white/90 mr-3 my-3 p-3 rounded-xl flex flex-col text-setting-500" [ngClass]="{'mr-3':isScrollBarShow}">
     <div class="flex p-2 items-center space-x-4">
       <img src="/assets/icons/column-color.svg" />
       <div class="flex flex-col w-full">
@@ -109,7 +113,7 @@
     </div>
   </div>
   <!-- 圓柱底面 -->
-  <div class="bg-white/90 m-3 p-3 rounded-xl flex flex-col text-setting-500">
+  <div class="bg-white/90 mr-3 my-3 p-3 rounded-xl flex flex-col text-setting-500" [ngClass]="{'mr-3':isScrollBarShow}">
     <div class="flex p-2 items-center space-x-4">
       <img src="/assets/icons/column-bottom-color.svg" />
       <div class="flex flex-col w-full">
@@ -145,7 +149,7 @@
     </div>
   </div>
   <!-- 多邊形 -->
-  <div class="bg-white/90 m-3 p-3 rounded-xl flex flex-col text-setting-500">
+  <div class="bg-white/90 mr-3 mt-3 mt-3 p-3 rounded-xl flex flex-col text-setting-500" [ngClass]="{'mr-3':isScrollBarShow}">
     <div class="flex p-2 items-center space-x-4">
       <img src="/assets/icons/column-bottom-color.svg" />
       <div class="flex flex-col w-full">
@@ -180,4 +184,6 @@
       </div>
     </div>
   </div>
+</div>
+
 </section>

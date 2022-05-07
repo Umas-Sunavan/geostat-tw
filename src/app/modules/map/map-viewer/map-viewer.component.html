@@ -1,4 +1,4 @@
-<p
+<!-- <p
   *ngIf="hoverPin"
   class="legend"
   [ngStyle]="{
@@ -7,7 +7,7 @@
   }"
 >
   {{ hoverPin.pin.title }}
-</p>
+</p> -->
 <p
   *ngFor="let pin of mapCanvas.selectedPinsOnGui; let in = index"
   class="legend"
@@ -32,7 +32,7 @@
   [selectedPins]="mapCanvas.selectedPins"
   (columnSettingChange)="mapCanvas.uiUpdatePin($event)"
   (polygonSettingChange)="mapCanvas.uiUpdatePolygon($event)"
-  (onPinChecked)="updatePinChecked($event)"
+  (onPinChecked)="pinCheckedFromSettings($event)"
 ></app-map-settings>
 <div class="slidecontainer">
   <p>gui-settings works!</p>

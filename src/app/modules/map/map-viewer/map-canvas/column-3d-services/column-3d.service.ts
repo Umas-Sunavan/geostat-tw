@@ -100,7 +100,9 @@ export class Column3dService {
     })
   }
 
-  updatePinsStyle = (nextHoverPins:Pin[], resetSettings: Gui3dSettings, lastHoveredPins: Pin[] = [], onHoldPins: Pin[]) => {
+  updatePinsStyle = (pinsToHoverStyle:Pin[], resetSettings: Gui3dSettings, pinsToDefualtStyle: Pin[] = [], pinstoSelectedStyle: Pin[]) => {
+    console.log(`to selected style: ${pinstoSelectedStyle}`);
+    
     const setDefaultPinStyle = (pins: Pin[]) => {
       pins.forEach( pin => {
         const {column, ground} = this.pinUtilsService.getMeshesById(pins, pin.id)
@@ -127,9 +129,9 @@ export class Column3dService {
       })
     }
     
-    setDefaultPinStyle(lastHoveredPins)
-    setHoverPinStyle(nextHoverPins)
-    setSelectPinStyle(onHoldPins)
-    return nextHoverPins
+    setDefaultPinStyle(pinsToDefualtStyle)
+    setHoverPinStyle(pinsToHoverStyle)
+    setSelectPinStyle(pinstoSelectedStyle)
+    return pinsToHoverStyle
   }
 }

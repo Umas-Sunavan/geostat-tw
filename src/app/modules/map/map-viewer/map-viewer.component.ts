@@ -16,31 +16,17 @@ export class MapViewerComponent implements OnInit {
   pinsOnSelect: PinWithDnc[] = []
   averageMoving: Vector2[] = []
   pins: Pin[] = []
-  pinCheckedFromList?: Pin
+  pinCheckedFromList?: Pin[]
 
   changeHoverLegend = (options?: { pin: Pin, legendPosition: Vector2}) => {
     this.hoverPin = options
   }
 
-  updateSelectLegend = (pinOnSelect: PinWithDnc[]) => {
-    console.log('update legend');
-    
-    this.pinsOnSelect.forEach( (pin,i) => {
-      const isExist = Boolean(pinOnSelect[i])
-      if (isExist) {
-        const nextPosition = pinOnSelect[i].deviceCoordinate.clone()
-        const thisPosition = pin.deviceCoordinate
-        const lerp = nextPosition.sub(thisPosition).multiplyScalar(0.2)
-        pinOnSelect[i].deviceCoordinate = pin.deviceCoordinate.clone().add(lerp)
-      }
-    })
-    this.pinsOnSelect = pinOnSelect
-  }
-
   ngOnInit(): void {
   }
 
-  updatePinChecked = (pin: Pin) => {
-    this.pinCheckedFromList = pin
+  pinCheckedFromSettings = (pins: Pin[]) => {
+    const newList = [...pins]
+    this.pinCheckedFromList = newList
   }
 }

@@ -17,15 +17,17 @@ export class MapPinSettingsComponent implements OnInit {
   @Input() set setHoveringPins(pins: Pin[]) {
     this.hoveringPins = pins
   }
-  @Input() set setSelectedPins(pins: Pin[]) {
-    // this.selectedPins = pins
-    // this.updateUnselected()
+  @Input() set setSelectedPins(pins: Pin[]) {   
+    console.log('pins set');
+     
+    this.selectedPins = pins
+    this.updateUnselected()    
   }
   @Input() set setPins(pins:Pin[]) {
     this.pins = pins
     this.updateUnselected()
   }
-  @Output() onPinChecked: EventEmitter<Pin> = new EventEmitter()
+  @Output() onPinChecked: EventEmitter<Pin[]> = new EventEmitter()
 
   ngOnInit(): void {
     
@@ -42,15 +44,15 @@ export class MapPinSettingsComponent implements OnInit {
   uncheckPin = (uncheckPin: Pin) => {
     this.selectedPins = this.selectedPins.filter( pin => pin.id !== uncheckPin.id)
     this.updateUnselected()
-    console.log('unchecked');
-    
-    this.onPinChecked.emit(uncheckPin)
+    this.onPinChecked.emit(this.selectedPins)
   }
 
   checkPin = (pin: Pin) => {
     this.selectedPins?.push(pin)
     this.updateUnselected()    
-    this.onPinChecked.emit(pin)
+    console.log(this.selectedPins);
+    
+    this.onPinChecked.emit(this.selectedPins)
   }
 
 }

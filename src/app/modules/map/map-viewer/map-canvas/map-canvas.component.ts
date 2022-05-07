@@ -83,22 +83,15 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   screenRatio = 2
   selectedPins: Pin[] = []
   polygons: Polygon[] = []
-  @Input() set pinCheckedFromSetting(pin:Pin|undefined) {
-    if(pin) {
-      this.selectedPins = this.pinModelService.updateSelectedPins(pin, this.selectedPins)
-      console.log(this.selectedPins);
-      this.updatePolygons()
-      console.log('pin checked passes to canvas');
-      
-      setTimeout(() => {
+  @Input() set pinCheckedFromSetting(nextSelectedPins:Pin[]|undefined) {    
+    if(nextSelectedPins) {
+      this.updatePolygons()      
+      const deselectedPin = this.pinUtilsService.aFilterFromB(this.selectedPins, nextSelectedPins)
+      this.selectedPins = nextSelectedPins
+      this.hoveringPins = this.column3dService.updatePinsStyle([], this.guiColumnSettings, deselectedPin, this.selectedPins)
         this.onCameraChange()
-      }, 10);
-      this.changeLegendText(pin)
-      this.onPinsHovered([pin])
     } else {
       console.warn("no pin selected when updating canvas");
-      
-      
     }
   }
   selectedPinsOnGui: PinWithDnc[] = []
@@ -254,7 +247,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.camera = this.cameraService.makeCamera(this.canvasDimention)
     this.scene.add(this.camera)
     this.orbitControl = new OrbitControls(this.camera, this.renderer.domElement);
-    this.orbitControl.target.set(0,5,50)
+    this.orbitControl.target.set(20,5,20)
     this.orbitControl.update()
     this.orbitControl.listenToKeyEvents(window as any)
     // this.orbitControl.getDistance()
@@ -311,9 +304,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
       this.selectedPins = this.pinModelService.updateSelectedPins(clickedPin, this.selectedPins)
       this.updatePolygons()
       this.changePinStyleOnClick(clickedPin)
-      this.onCameraChange()
-      console.log(this.selectedPins);
-      
+      this.onCameraChange()      
     }
     this.onUserUpdateCamera.next('')
   }

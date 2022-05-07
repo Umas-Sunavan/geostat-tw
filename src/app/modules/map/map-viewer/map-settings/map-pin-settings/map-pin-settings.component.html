@@ -9,19 +9,20 @@
       <fieldset>
         <div class="flex flex-col">
           <ng-container *ngFor="let pin of selectedPins; index as i">
-            <div
-              class="rounded-full bg-pins-400 py-3 px-6 flex space-x-2 items-center my-1 mx-3"
+            <label
+            [for]="'selected-pin-' + i" 
+              class="rounded-full bg-pins-400 flex space-x-2 items-center my-1 mx-3 py-3 px-6"
             >
-              <label [for]="'selected-pin-' + i" class="flex space-x-2">
+              <label [for]="'selected-pin-' + i" class="flex space-x-2 ">
                 <p class="pr-6">{{ pin.title }}</p>
                 <img src="/assets/icons/polygon-triangle.svg" />
                 <img src="/assets/icons/polygon-rectangle.svg" />
               </label>
               <input type="checkbox" [id]="'selected-pin-' + i" [name]="pin.id" [checked]="true" (change)="uncheckPin(pin)"/>
-            </div>
+            </label>
           </ng-container>
           <ng-container *ngFor="let pin of unselectedPins; index as i">
-            <div
+            <label
               class="rounded-full bg-pins-300 py-3 px-6 flex space-x-2 items-center my-1 mx-3"
             >
               <label [for]="'unselected-pin-' + i" class="flex space-x-2">
@@ -30,7 +31,7 @@
                 <img src="/assets/icons/polygon-rectangle.svg" />
               </label>
               <input type="checkbox" [id]="'unselected-pin-' + i" [name]="pin.id" (change)="checkPin(pin)"/>
-            </div>
+            </label>
           </ng-container>
         </div>
       </fieldset>

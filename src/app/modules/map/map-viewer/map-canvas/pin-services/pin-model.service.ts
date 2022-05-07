@@ -121,8 +121,8 @@ export class PinModelService {
 
   // pin selection
 
-  updateSelectedPins = (pinClicked: Pin, alreadySelectedPins: Pin[]) => {
-    const deselect =  alreadySelectedPins.some( pinOnHold => pinOnHold.id === pinClicked.id)
+  updateSelectedPins = (pinClicked: Pin, alreadySelectedPins: Pin[]) => {    
+    const deselect =  alreadySelectedPins.some( pinOnHold => pinOnHold.id === pinClicked.id)    
     let updatedPins: Pin[] = []
     if (deselect) {
       // Deselect
@@ -130,7 +130,7 @@ export class PinModelService {
     } else {
       // Select
       updatedPins = [...alreadySelectedPins, pinClicked]
-    }
+    }    
     return updatedPins
   }
 

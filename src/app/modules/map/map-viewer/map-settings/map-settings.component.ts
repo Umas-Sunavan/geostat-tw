@@ -22,7 +22,7 @@ export class MapSettingsComponent implements OnInit {
   @Input() pins: Pin[] = []
   @Input() hoveringPins: Pin[] = []
   @Input() selectedPins: Pin[] = []
-  @Output() onPinChecked: EventEmitter<Pin> = new EventEmitter()
+  @Output() onPinChecked: EventEmitter<Pin[]> = new EventEmitter()
   
   testValue = 0.5
   blurSource:string = ''
@@ -35,15 +35,13 @@ export class MapSettingsComponent implements OnInit {
     this.showSettings = !this.showSettings
     if(this.showSettings) {
       this.animateService.getCavasImage().pipe(take(1)).subscribe( value => {
-        console.log(value);
         this.blurSource = `url(${value})`
       })
     }
   }
 
-  pinChecked = (pin: Pin) => {
-    console.log(pin);
-    this.onPinChecked.emit(pin)
+  pinChecked = (pins: Pin[]) => {
+    this.onPinChecked.emit(pins)
   }
 
 }

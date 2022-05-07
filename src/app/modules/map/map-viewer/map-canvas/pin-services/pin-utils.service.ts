@@ -26,6 +26,14 @@ export class PinUtilsService {
     return isGroup
   }
 
+  aFilterFromB = (aPins: Pin[], bPins: Pin[]) => {
+    const diference = aPins.filter( aPin => {
+      const isDuplicate = bPins.some( bPin => aPin.id === bPin.id)
+      return !isDuplicate
+    })
+    return diference
+  }
+
   // find
 
   findPinById = (pins: Pin[], ids: string[]) =>  {

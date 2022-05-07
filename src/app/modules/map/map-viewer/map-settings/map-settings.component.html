@@ -15,7 +15,7 @@
     <p>儲存設定</p>
     <img src="/assets/icons/check.svg" />
   </button>
-  <div class="flex">
+  <div class="flex" *ngIf="showSettings">
     <app-map-pin-settings
       (onPinChecked)="pinChecked($event)"
       [blurSource]="blurSource"
@@ -28,6 +28,7 @@
       [polygonSettings]="polygonSettings"
       [columnSettings]="columnSettings"
       [blurSource]="blurSource"
+      (columnSettingChange)="columnSettingChange($event)"
     ></app-map-3d-settings>
   </div>
 </div>

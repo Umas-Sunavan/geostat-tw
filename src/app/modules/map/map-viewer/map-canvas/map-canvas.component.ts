@@ -1,6 +1,6 @@
 import { AfterContentInit, AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { BoxGeometry, BufferGeometry, Camera, Color, CurvePath, ExtrudeBufferGeometry, ExtrudeGeometry, Line, LineBasicMaterial, LineCurve, Material, Mesh, MeshBasicMaterial, MeshNormalMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PointLight, Raycaster, Renderer, Scene, Shape, ShapeBufferGeometry, ShapeGeometry, Vector, Vector2, Vector3, Vector3Tuple, WebGLRenderer, DoubleSide, Texture, Plane, WebGLRenderTarget, TextureLoader, Intersection, CylinderGeometry, MeshMatcapMaterial, CircleGeometry, Group, TOUCH, MOUSE, BufferAttribute, ShapePath } from 'three';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';			
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -52,9 +52,9 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     private pinUtilsService: PinUtilsService,
     private column3dService: Column3dService,
     private polygon3dService: Polygon3dService,
-    ) {
+  ) {
     this.initQueueToUpdateResolution()
-    
+
   }
 
   @ViewChild('canvasContainer') canvasContainer!: ElementRef<HTMLCanvasElement>;
@@ -78,14 +78,14 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   hoveringPins: Pin[] = []
   hoverPinChangeSuject: BehaviorSubject<Pin[]> = new BehaviorSubject(([] as Pin[]))
   font!: Font
-  @Output() hoverOnPin: EventEmitter<{pin: Pin, legendPosition: Vector2}| undefined> = new EventEmitter()
+  @Output() hoverOnPin: EventEmitter<{ pin: Pin, legendPosition: Vector2 } | undefined> = new EventEmitter()
   canvasDimention = new Vector2(window.innerWidth, window.innerHeight)
   screenRatio = 2
   selectedPins: Pin[] = []
   polygons: Polygon[] = []
   @Output() polygonUpdate: EventEmitter<Polygon[]> = new EventEmitter()
-  @Input() set pinCheckedFromSetting(nextSelectedPins:Pin[]|undefined) {    
-    if(nextSelectedPins) {
+  @Input() set onPinSelected(nextSelectedPins: Pin[] | undefined) {
+    if (nextSelectedPins) {
       const deselectedPin = this.pinUtilsService.aFilterFromB(this.selectedPins, nextSelectedPins)
       this.selectedPins = nextSelectedPins
       this.hoveringPins = this.column3dService.updatePinsStyle([], this.guiColumnSettings, deselectedPin, this.selectedPins)
@@ -100,7 +100,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   selectedPinsOnGui: PinWithDnc[] = []
 
   // view
-  
+
   mockGuiSeggings: Gui3dSettings = {
     columns: {
       defaultColumn: {
@@ -108,35 +108,35 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
         color: '#528bff',
         heightScale: 1,
         scale: 0.5,
-      }, 
+      },
       hoveredColumn: {
         opacity: 0.1,
         color: '#528bff',
-      }, 
+      },
       selectedColumn: {
         opacity: 0.1,
         color: '#528bff',
       },
-    }, 
+    },
     ground: {
       color: '#528bff',
-      opacity: 0.5,  
-    }, 
+      opacity: 0.5,
+    },
     polygon: {
       color: '#528bff',
-      opacity: 0.8,  
-    }, 
+      opacity: 0.8,
+    },
     outline: {
       color: '#ffffff',
       opacity: 0.02,
     }
   }
-  guiPolygonSettings:GuiPolygonSettings = {
-      color: '#528bff',
-      opacity: 0.6
+  guiPolygonSettings: GuiPolygonSettings = {
+    color: '#528bff',
+    opacity: 0.6
   }
 
-  guiColumnSettings:Gui3dSettings = this.mockGuiSeggings
+  guiColumnSettings: Gui3dSettings = this.mockGuiSeggings
 
   initQueueToUpdateResolution = () => {
     this.queueToUpdateResolution = new Observable(subscriber => {
@@ -148,20 +148,22 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   uiUpdatePin = (event: Event) => {
+    console.log('pin updated');
+
     this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
     this.column3dService.updatePinsStyle(this.hoveringPins, this.guiColumnSettings, [], this.selectedPins)
   }
 
   async ngOnInit(): Promise<void> {
-    this.hoverPinChangeSuject.subscribe( nextHoverPins => {
+    this.hoverPinChangeSuject.subscribe(nextHoverPins => {
       this.hoveringPins = this.column3dService.updatePinsStyle(nextHoverPins, this.guiColumnSettings, this.hoveringPins, this.selectedPins)
       nextHoverPins = this.hoveringPins
     })
     this.timeoutToPause()
     this.initOnUserUpdateResolution()
-    this.animateService.onMouseIntersect.subscribe( intersections => this.onMouseIntersect(intersections))
+    this.animateService.onMouseIntersect.subscribe(intersections => this.onMouseIntersect(intersections))
     // this.pins = await this.pinModelService.initPinsModel()
-    
+
     // this.pointDimensionService.writeUserData()
   }
 
@@ -172,13 +174,13 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.onPinsHovered(pins)
   }
 
-  onPinsHovered = (pins:Pin[]) => {
-    pins = pins.slice(0,1)
+  onPinsHovered = (pins: Pin[]) => {
+    pins = pins.slice(0, 1)
     const groups = this.pinUtilsService.mappingToGroups(pins) as Group[]
-    const isAnyPinHovered =pins.length > 0
+    const isAnyPinHovered = pins.length > 0
     this.column3dService.setDepthWrite(groups, isAnyPinHovered, ['column', 'ground'])
     const isChanged = !this.pinUtilsService.isSamePins(this.hoveringPins || [], pins)
-    if(isChanged) {
+    if (isChanged) {
       this.hoverPinChangeSuject.next(pins)
     }
   }
@@ -188,29 +190,29 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
       // this.mousePosition.x: -1~1
       // this.mousePosition.y: 1~-1
       const htmlAbsolutePosition = this.getPositionOnHtml(this.mousePosition, this.canvasDimention)
-      this.hoverOnPin.emit({pin: pin, legendPosition: htmlAbsolutePosition})
+      this.hoverOnPin.emit({ pin: pin, legendPosition: htmlAbsolutePosition })
     } else {
       this.hoverOnPin.emit()
     }
   }
 
-  getPositionOnHtml = (mousePosition: Vector2, canvasDomention: Vector2) => { 
+  getPositionOnHtml = (mousePosition: Vector2, canvasDomention: Vector2) => {
     const x = (mousePosition.x + 1) / 2 * canvasDomention.x // mousePosition.x: -1~1, which should map to canvas left(0) to right(600)
     const y = (mousePosition.y - 1) / 2 * canvasDomention.y // mousePosition.y: 1~-1, which should map to canvas top(0) to bottom(-450)
-    return new Vector2(x,y)
+    return new Vector2(x, y)
   }
 
   initCategory = async () => {
     const categoryId = await this.getCategoryIdFromRoute()
     const onGotCategorySettings = async (setting: CategorySetting) => {
-      this.pins = await this.pinModelService.applyPinHeightFromSetting(setting, this.pins)      
+      this.pins = await this.pinModelService.applyPinHeightFromSetting(setting, this.pins)
       await this.applySettings(setting)
     }
     await this.categoryService.getCategorySetting(categoryId, onGotCategorySettings)
   }
 
   applySettings = async (setting: CategorySetting) => this.guiColumnSettings = setting.options.meshSettings
-  
+
   initOnUserUpdateResolution = () => {
     this.onUserUpdateCamera.pipe(
       switchMap(value => of(value).pipe(delay(1000))) // abandon too-frequent emission
@@ -229,11 +231,11 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
   }
 
-  getCategoryIdFromRoute = async ():Promise<string> => {
-    return new Promise( (resolve, reject) => {
-      this.activatedRoute.paramMap.subscribe( param => {
+  getCategoryIdFromRoute = async (): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      this.activatedRoute.paramMap.subscribe(param => {
         const id = param.get('id')
-        if(!id) throw new Error("No param specified in router");
+        if (!id) throw new Error("No param specified in router");
         resolve(id)
       })
     })
@@ -253,7 +255,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.camera = this.cameraService.makeCamera(this.canvasDimention)
     this.scene.add(this.camera)
     this.orbitControl = new OrbitControls(this.camera, this.renderer.domElement);
-    this.orbitControl.target.set(20,5,20)
+    this.orbitControl.target.set(20, 5, 20)
     this.orbitControl.update()
     this.orbitControl.listenToKeyEvents(window as any)
     // this.orbitControl.getDistance()
@@ -268,9 +270,9 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
       TWO: TOUCH.ROTATE,
     }
     // this.orbitControl.mouseButtons = {
-      // LEFT: MOUSE.PAN,
-      // MIDDLE: MOUSE.DOLLY,
-      // RIGHT: MOUSE.ROTATE
+    // LEFT: MOUSE.PAN,
+    // MIDDLE: MOUSE.DOLLY,
+    // RIGHT: MOUSE.ROTATE
     // }
     // this.orbitControl.maxDistance = 100
     // this.orbitControl.enableDamping = true
@@ -310,7 +312,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
       this.selectedPins = this.pinModelService.updateSelectedPins(clickedPin, this.selectedPins)
       this.updatePolygons()
       this.changePinStyleOnClick(clickedPin)
-      this.onCameraChange()      
+      this.onCameraChange()
     }
     this.onUserUpdateCamera.next('')
   }
@@ -320,9 +322,9 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     const { models, meshes } = this.polygon3dService.createPolygons(this.selectedPins, this.guiPolygonSettings)
     this.polygons.push(...models)
     this.polygonUpdate.emit(this.polygons)
-    meshes.forEach( mesh => this.scene.add(mesh))
+    meshes.forEach(mesh => this.scene.add(mesh))
   }
-  
+
   showUnprojectPosition = (camera: Camera, shaderCoordinate: Vector3) => {
     const reversed = this.pinUtilsService.testUnproject(camera, new Vector3(shaderCoordinate.x, shaderCoordinate.y, shaderCoordinate.z))
     const box = this.getBox(3)
@@ -344,7 +346,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   uiUpdatePolygon = (event: Event) => {
     this.updatePolygons()
     console.log('update');
-    
+
   }
 
   pauseAnimation = () => {

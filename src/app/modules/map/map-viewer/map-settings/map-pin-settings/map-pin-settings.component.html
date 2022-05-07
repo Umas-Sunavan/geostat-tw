@@ -11,8 +11,8 @@
                 <label [for]="'selected-pin-' + i" class="flex space-x-2 mr-auto">
                   <p class="pr-6">{{ pin.title }}</p>
                 </label>
-                <img src="/assets/icons/polygon-triangle.svg" *ngIf="isPinTypeTriangle(pin)"/>
-                <img src="/assets/icons/polygon-rectangle.svg" *ngIf="isPinTypeRectangle(pin)"/>
+                <img src="/assets/icons/polygon-triangle.svg" *ngIf="isPinTypeTriangle(pin)" />
+                <img src="/assets/icons/polygon-rectangle.svg" *ngIf="isPinTypeRectangle(pin)" />
                 <input type="checkbox" [id]="'selected-pin-' + i" [name]="pin.id" [checked]="true"
                   (change)="uncheckPin(pin)" />
               </label>

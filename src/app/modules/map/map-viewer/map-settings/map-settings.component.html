@@ -17,7 +17,7 @@
   </button>
   <div class="flex" *ngIf="showSettings">
     <app-map-pin-settings
-      (onPinChecked)="pinChecked($event)"
+      (pinChecked)="onPinSelected($event)"
       [blurSource]="blurSource"
       [setPins]="pins"
       [setSelectedPins]="selectedPins"
@@ -28,7 +28,8 @@
       [polygonSettings]="polygonSettings"
       [columnSettings]="columnSettings"
       [blurSource]="blurSource"
-      (columnSettingChange)="columnSettingChange($event)"
+      (columnChanged)="onColumnChanged($event)"
+      (polygonChanged)="onPolygonChanged($event)"
     ></app-map-3d-settings>
   </div>
 </div>

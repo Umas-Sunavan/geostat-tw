@@ -11,33 +11,25 @@ import { AnimateService } from '../../map-canvas/three-services/animate.service'
   templateUrl: './map-3d-settings.component.html',
   styleUrls: ['./map-3d-settings.component.sass']
 })
-export class Map3dSettingsComponent implements OnInit, AfterContentInit {
+export class Map3dSettingsComponent implements OnInit {
 
-  constructor() {
-    
-  }
+  constructor() { }
   @Input() columnSettings!: Gui3dSettings
   @Input() polygonSettings!: GuiPolygonSettings
   @Input() blurSource: string = ''
-  @Output()columnSettingChange: EventEmitter<Event> = new EventEmitter()
-  @Output()polygonSettingChange: EventEmitter<Event> = new EventEmitter()
+  @Output() columnChanged: EventEmitter<Event> = new EventEmitter()
+  @Output() polygonChanged: EventEmitter<Event> = new EventEmitter()
   @ViewChild('resizeContainer') resizeContainer!: ElementRef<HTMLDivElement>
   isScrollBarShow: boolean = false
 
   ngOnInit(): void {
   }
 
-  ngAfterContentInit(): void {
-  }
 
   ngAfterViewInit(): void {
     setTimeout(() => {
-    this.onResize()
+      this.onResize()
     }, 0);
-  } 
-
-  resize = () => {
-    
   }
 
   onResize = (event?: Event) => {
@@ -47,13 +39,9 @@ export class Map3dSettingsComponent implements OnInit, AfterContentInit {
   }
 
 
-  changeColumn = (event: Event) => {    
-    this.columnSettingChange.emit(event)
-  }
+  changeColumn = (event: Event) => this.columnChanged.emit(event)
 
-  changePolygon = (event: Event) => {
-    this.polygonSettingChange.emit(event)
-  }
+  changePolygon = (event: Event) => this.polygonChanged.emit(event)
 
 }
 

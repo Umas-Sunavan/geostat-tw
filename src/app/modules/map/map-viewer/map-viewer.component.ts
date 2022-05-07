@@ -12,27 +12,26 @@ export class MapViewerComponent implements OnInit {
 
   constructor() { }
 
-  hoverPin?: { pin: Pin, legendPosition: Vector2}
-  selectedPin: { pin: Pin, legendPosition: Vector2}[] = []
+  hoverPin?: { pin: Pin, legendPosition: Vector2 }
+  selectedPin: { pin: Pin, legendPosition: Vector2 }[] = []
   pinsOnSelect: PinWithDnc[] = []
   averageMoving: Vector2[] = []
   pins: Pin[] = []
-  pinCheckedFromList?: Pin[]
+  pinSelected?: Pin[]
 
-  changeHoverLegend = (options?: { pin: Pin, legendPosition: Vector2}) => {
+  changeHoverLegend = (options?: { pin: Pin, legendPosition: Vector2 }) => {
     this.hoverPin = options
   }
 
   ngOnInit(): void {
   }
 
-  pinCheckedFromSettings = (pins: Pin[]) => {
+  onPinSelected = (pins: Pin[]) => {
     const newList = [...pins]
-    this.pinCheckedFromList = newList
+    this.pinSelected = newList
   }
 
   polygonUpdate = (polygons: Polygon[]) => {
     console.log(polygons);
-    
   }
 }

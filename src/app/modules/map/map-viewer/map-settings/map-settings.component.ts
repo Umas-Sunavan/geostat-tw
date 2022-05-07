@@ -19,13 +19,14 @@ export class MapSettingsComponent implements OnInit {
 
   // @Input('canvas') set canvas() => {}
   @Input() columnSettings!: Gui3dSettings
-  @Output() columnSettingChangeEmit: EventEmitter<Event> = new EventEmitter()
+  @Output() columnChanged: EventEmitter<Event> = new EventEmitter()
+  @Output() polygonChanged: EventEmitter<Event> = new EventEmitter()
   @Input() polygonSettings!: GuiPolygonSettings
   @Input() polygons: Polygon[] = []
   @Input() pins: Pin[] = []
   @Input() hoveringPins: Pin[] = []
   @Input() selectedPins: Pin[] = []
-  @Output() onPinChecked: EventEmitter<Pin[]> = new EventEmitter()
+  @Output() pinSelected: EventEmitter<Pin[]> = new EventEmitter()
   
   testValue = 0.5
   blurSource:string = ''
@@ -43,12 +44,16 @@ export class MapSettingsComponent implements OnInit {
     }
   }
 
-  pinChecked = (pins: Pin[]) => {
-    this.onPinChecked.emit(pins)
+  onPinSelected = (pins: Pin[]) => {
+    this.pinSelected.emit(pins)
   }
 
-  columnSettingChange = (event: Event) => {
-    this.columnSettingChangeEmit.emit(event)
+  onColumnChanged = (event: Event) => {
+    this.columnChanged.emit(event)
+  }
+
+  onPolygonChanged = (event: Event) => {
+    this.polygonChanged.emit(event)
   }
 
 }

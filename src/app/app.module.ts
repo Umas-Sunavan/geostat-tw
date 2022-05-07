@@ -14,6 +14,7 @@ import { MapViewerComponent } from './modules/map/map-viewer/map-viewer.componen
 import { Map3dSettingsComponent } from './modules/map/map-viewer/map-settings/map-3d-settings/map-3d-settings.component';
 import { MapPinSettingsComponent } from './modules/map/map-viewer/map-settings/map-pin-settings/map-pin-settings.component';
 import { MapSettingsComponent } from './modules/map/map-viewer/map-settings/map-settings.component';
+import { CategoryPickerComponent } from './modules/map/map-viewer/category-picker/category-picker.component';
 
 @NgModule({
   declarations: [
@@ -27,6 +28,7 @@ import { MapSettingsComponent } from './modules/map/map-viewer/map-settings/map-
     Map3dSettingsComponent,
     MapPinSettingsComponent,
     MapSettingsComponent,
+    CategoryPickerComponent,
     
   ],
   imports: [

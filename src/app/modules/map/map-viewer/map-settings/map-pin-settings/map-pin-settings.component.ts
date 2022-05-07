@@ -11,12 +11,8 @@ export class MapPinSettingsComponent implements OnInit {
   constructor() { }
   pins: Pin[] = []
   unselectedPins: Pin[] = []
-  hoveringPins: Pin[] = []
   selectedPins: Pin[] = []
   @Input() blurSource:string = ''
-  @Input() set setHoveringPins(pins: Pin[]) {
-    this.hoveringPins = pins
-  }
   @Input() set setSelectedPins(pins: Pin[]) {   
     console.log('pins set');
      

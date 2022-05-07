@@ -19,6 +19,7 @@ export class MapSettingsComponent implements OnInit {
 
   // @Input('canvas') set canvas() => {}
   @Input() columnSettings!: Gui3dSettings
+  @Output() columnSettingChangeEmit: EventEmitter<Event> = new EventEmitter()
   @Input() polygonSettings!: GuiPolygonSettings
   @Input() polygons: Polygon[] = []
   @Input() pins: Pin[] = []
@@ -44,6 +45,10 @@ export class MapSettingsComponent implements OnInit {
 
   pinChecked = (pins: Pin[]) => {
     this.onPinChecked.emit(pins)
+  }
+
+  columnSettingChange = (event: Event) => {
+    this.columnSettingChangeEmit.emit(event)
   }
 
 }

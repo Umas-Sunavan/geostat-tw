@@ -147,7 +147,10 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     })
   }
 
-  uiUpdatePin = (event: Event) => this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
+  uiUpdatePin = (event: Event) => {
+    this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
+    this.column3dService.updatePinsStyle(this.hoveringPins, this.guiColumnSettings, [], this.selectedPins)
+  }
 
   async ngOnInit(): Promise<void> {
     this.hoverPinChangeSuject.subscribe( nextHoverPins => {

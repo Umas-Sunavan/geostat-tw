@@ -29,7 +29,7 @@
   [polygonSettings]="mapCanvas.guiPolygonSettings"
   [pins]="mapCanvas.pins"
   [selectedPins]="mapCanvas.selectedPins"
-  (columnSettingChange)="mapCanvas.uiUpdatePin($event)"
+  (columnSettingChangeEmit)="mapCanvas.uiUpdatePin($event)"
   (polygonSettingChange)="mapCanvas.uiUpdatePolygon($event)"
   (onPinChecked)="pinCheckedFromSettings($event)"
   [polygons]="mapCanvas.polygons"

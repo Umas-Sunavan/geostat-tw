@@ -47,7 +47,7 @@ export class Map3dSettingsComponent implements OnInit, AfterContentInit {
   }
 
 
-  changeColumn = (event: Event) => {
+  changeColumn = (event: Event) => {    
     this.columnSettingChange.emit(event)
   }
 

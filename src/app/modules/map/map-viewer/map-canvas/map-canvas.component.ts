@@ -83,13 +83,16 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   screenRatio = 2
   selectedPins: Pin[] = []
   polygons: Polygon[] = []
+  @Output() polygonUpdate: EventEmitter<Polygon[]> = new EventEmitter()
   @Input() set pinCheckedFromSetting(nextSelectedPins:Pin[]|undefined) {    
     if(nextSelectedPins) {
-      this.updatePolygons()      
       const deselectedPin = this.pinUtilsService.aFilterFromB(this.selectedPins, nextSelectedPins)
       this.selectedPins = nextSelectedPins
       this.hoveringPins = this.column3dService.updatePinsStyle([], this.guiColumnSettings, deselectedPin, this.selectedPins)
+      this.updatePolygons();
+      setTimeout(() => {
         this.onCameraChange()
+      }, 0);
     } else {
       console.warn("no pin selected when updating canvas");
     }
@@ -313,6 +316,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.polygons = this.polygon3dService.removePolygons(this.polygons)
     const { models, meshes } = this.polygon3dService.createPolygons(this.selectedPins, this.guiPolygonSettings)
     this.polygons.push(...models)
+    this.polygonUpdate.emit(this.polygons)
     meshes.forEach( mesh => this.scene.add(mesh))
   }
   

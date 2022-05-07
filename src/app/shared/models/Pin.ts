@@ -1,4 +1,5 @@
 import { Group, Mesh, MeshBasicMaterial, MeshPhongMaterial, MeshStandardMaterial, PlaneGeometry, Vector2, Vector3 } from "three";
+import { PolygonType } from "./Polygon";
 import { TileId } from "./TileId";
 
 export interface Pin {
@@ -10,6 +11,10 @@ export interface Pin {
     positionTile?: Vector2;
     positionLongLat?: Vector2;
     mesh?: Group
+}
+
+export interface PinWithPolygonType extends Pin {
+    polygonType: PolygonType[]
 }
 
 export interface PinWithDnc extends Pin{

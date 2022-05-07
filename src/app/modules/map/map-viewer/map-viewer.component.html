@@ -32,6 +32,7 @@
   (columnSettingChange)="mapCanvas.uiUpdatePin($event)"
   (polygonSettingChange)="mapCanvas.uiUpdatePolygon($event)"
   (onPinChecked)="pinCheckedFromSettings($event)"
+  [polygons]="mapCanvas.polygons"
 ></app-map-settings>
 <div class="slidecontainer">
   <p>gui-settings works!</p>

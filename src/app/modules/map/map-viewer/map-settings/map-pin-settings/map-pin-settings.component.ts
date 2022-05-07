@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { Pin } from 'src/app/shared/models/Pin';
+import { Pin, PinWithPolygonType } from 'src/app/shared/models/Pin';
+import { Polygon, PolygonType } from 'src/app/shared/models/Polygon';
 
 @Component({
   selector: 'app-map-pin-settings',
@@ -12,10 +13,13 @@ export class MapPinSettingsComponent implements OnInit {
   pins: Pin[] = []
   unselectedPins: Pin[] = []
   selectedPins: Pin[] = []
+  selectedPinsWithType: PinWithPolygonType[] = []
+  @Input() polygons: Polygon[] = []
+  @Input() set setPolygons(polygons: Polygon[]) {
+    this.onPolygonUpdated(polygons)
+  }
   @Input() blurSource:string = ''
   @Input() set setSelectedPins(pins: Pin[]) {   
-    console.log('pins set');
-     
     this.selectedPins = pins
     this.updateUnselected()    
   }
@@ -40,15 +44,48 @@ export class MapPinSettingsComponent implements OnInit {
   uncheckPin = (uncheckPin: Pin) => {
     this.selectedPins = this.selectedPins.filter( pin => pin.id !== uncheckPin.id)
     this.updateUnselected()
-    this.onPinChecked.emit(this.selectedPins)
+    this.onPinChecked.emit(this.selectedPins)    
   }
-
+  
   checkPin = (pin: Pin) => {
     this.selectedPins?.push(pin)
-    this.updateUnselected()    
-    console.log(this.selectedPins);
-    
+    this.updateUnselected()
     this.onPinChecked.emit(this.selectedPins)
   }
 
+  onPolygonUpdated = (polygons: Polygon[]) => {
+    this.polygons = polygons
+    this.selectedPinsWithType = this.mapPinsWithPolygonType(this.selectedPins, this.polygons)
+  }
+
+  mapPinsWithPolygonType = (selectedPins: Pin[], polygons: Polygon[]) => {
+    return selectedPins.map( (pin): PinWithPolygonType => {
+      let found = this.findPolygonType(polygons, pin)
+      if (!found.polygonType) {
+        found.polygonType = []
+      }
+      return found
+    })    
+  }
+  
+  findPolygonType = ( polygons: Polygon[], pin: Pin): PinWithPolygonType => {
+    let pinWithtype: PinWithPolygonType = JSON.parse(JSON.stringify(pin))
+    polygons.forEach( polygon => {
+      const foundPin = polygon.points.find( point => pin.id === point.id)
+      if (foundPin) {
+        if (pinWithtype.polygonType) {
+          pinWithtype.polygonType.push(polygon.type)
+        } else {
+          pinWithtype.polygonType = [polygon.type]
+        }
+      }
+    })
+    return pinWithtype
+  }
+
+  // template function
+
+  isPinTypeTriangle = (pin: PinWithPolygonType) => pin.polygonType.some( type => type === PolygonType.triangle)
+  
+  isPinTypeRectangle = (pin: PinWithPolygonType) => pin.polygonType.some( type => type === PolygonType.rectangle)
 }

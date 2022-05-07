@@ -3,6 +3,7 @@ import { take } from 'rxjs';
 import { Gui3dSettings } from 'src/app/shared/models/GuiColumnSettings';
 import { GuiPolygonSettings } from 'src/app/shared/models/GuiPolygonSettings';
 import { Pin } from 'src/app/shared/models/Pin';
+import { Polygon } from 'src/app/shared/models/Polygon';
 import { AnimateService } from '../map-canvas/three-services/animate.service';
 
 @Component({
@@ -19,6 +20,7 @@ export class MapSettingsComponent implements OnInit {
   // @Input('canvas') set canvas() => {}
   @Input() columnSettings!: Gui3dSettings
   @Input() polygonSettings!: GuiPolygonSettings
+  @Input() polygons: Polygon[] = []
   @Input() pins: Pin[] = []
   @Input() hoveringPins: Pin[] = []
   @Input() selectedPins: Pin[] = []

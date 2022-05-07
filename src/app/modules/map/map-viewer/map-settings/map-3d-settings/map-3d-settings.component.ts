@@ -1,7 +1,8 @@
-import { AfterContentInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { take } from 'rxjs';
+import { AfterContentChecked, AfterContentInit, AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { take, window } from 'rxjs';
 import { Gui3dSettings } from 'src/app/shared/models/GuiColumnSettings';
 import { GuiPolygonSettings } from 'src/app/shared/models/GuiPolygonSettings';
+import { Polygon } from 'src/app/shared/models/Polygon';
 import { MapCanvasComponent } from '../../map-canvas/map-canvas.component';
 import { AnimateService } from '../../map-canvas/three-services/animate.service';
 

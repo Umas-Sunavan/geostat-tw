@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { GuiPolygonSettings } from 'src/app/shared/models/GuiPolygonSettings';
 import { Pin } from 'src/app/shared/models/Pin';
-import { Polygon } from 'src/app/shared/models/Polygon';
+import { Polygon, PolygonType } from 'src/app/shared/models/Polygon';
 import { BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshPhongMaterial, Scene, Shape, ShapeGeometry, Vector2 } from 'three';
 import { Column3dService } from '../column-3d-services/column-3d.service';
 
@@ -39,7 +39,7 @@ export class Polygon3dService {
   }
 
   createRectangle = (points: Pin[], settings: GuiPolygonSettings) => {
-    const model = this.createPolygonModel(points, 'rectangle', settings)
+    const model = this.createPolygonModel(points, PolygonType.rectangle, settings)
     const mesh = this.createRectangleMesh(model)
     model.mesh = mesh
     return { model, mesh }
@@ -50,7 +50,7 @@ export class Polygon3dService {
     const meshes = []
     for (let i = 0; i < points.length; i+=3) {
       const polygonPoints = points.slice(i,i+3)
-      const model = this.createPolygonModel(polygonPoints, 'triangle', settings)
+      const model = this.createPolygonModel(polygonPoints, PolygonType.triangle, settings)
       model.mesh = this.createPolygonMesh(model)
       meshes.push(model.mesh)
       models.push(model)
@@ -58,13 +58,14 @@ export class Polygon3dService {
     return { meshes, models }
   }
 
-  createPolygonModel = (pointPins:Pin[], idPrefix: string, settings: GuiPolygonSettings):Polygon => {
+  createPolygonModel = (pointPins:Pin[], idPrefix: PolygonType, settings: GuiPolygonSettings):Polygon => {
     const polygonId = pointPins.map(pin => pin.id).join('_')
     return {
       id: `polygon_${idPrefix}_${polygonId}`,
       points: pointPins,
       color: this.column3dService.parseStringColorToInt(settings.color),
-      opacity: settings.opacity
+      opacity: settings.opacity,
+      type: idPrefix
     }
   }  
   

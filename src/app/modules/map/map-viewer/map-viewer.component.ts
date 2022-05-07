@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Pin, PinWithDnc } from 'src/app/shared/models/Pin';
+import { Polygon } from 'src/app/shared/models/Polygon';
 import { Color, Vector2, Vector3 } from 'three';
 
 @Component({
@@ -28,5 +29,10 @@ export class MapViewerComponent implements OnInit {
   pinCheckedFromSettings = (pins: Pin[]) => {
     const newList = [...pins]
     this.pinCheckedFromList = newList
+  }
+
+  polygonUpdate = (polygons: Polygon[]) => {
+    console.log(polygons);
+    
   }
 }

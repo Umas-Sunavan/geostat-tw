@@ -30,3 +30,7 @@ export interface CategorySetting {
     tableName: string,
     tableSource: string,
 }
+
+export interface CategorySettingWithId extends CategorySetting {
+  categoryId: string
+}

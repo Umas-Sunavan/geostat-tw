@@ -20,6 +20,11 @@ module.exports = {
         400: '#FFE7EF',
         500: '#FF4F4F',
       },
+      'category': {
+        300: '#EBFAE5',
+        400: '#BDEB90',
+        500: '#349E5F',
+      },
     },
   },
   plugins: [],

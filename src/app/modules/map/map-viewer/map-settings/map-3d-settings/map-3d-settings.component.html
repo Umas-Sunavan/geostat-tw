@@ -14,7 +14,7 @@
           <div class="flex items-center">
             <input class="mr-4 w-full h-3 rounded-xl overflow-hidden" type="color"
               [(ngModel)]="columnSettings.columns.defaultColumn.color" (change)="changeColumn($event)" />
-            <p>{{ columnSettings.columns.defaultColumn.color }}</p>
+            <p class="w-16">{{ columnSettings.columns.defaultColumn.color }}</p>
           </div>
         </div>
       </div>
@@ -25,7 +25,7 @@
           <div class="flex items-center">
             <input class="mr-4" type="range" min="0" max="1" step="0.01"
               [(ngModel)]="columnSettings.columns.defaultColumn.heightScale" (change)="changeColumn($event)" />
-            <p>{{ columnSettings.columns.defaultColumn.heightScale }} KM</p>
+            <p class="w-16">{{ columnSettings.columns.defaultColumn.heightScale }} KM</p>
           </div>
         </div>
       </div>
@@ -36,7 +36,7 @@
           <div class="flex items-center">
             <input class="mr-4" type="range" min="0" max="1" step="0.01"
               [(ngModel)]="columnSettings.columns.defaultColumn.opacity" (change)="changeColumn($event)" />
-            <p>
+            <p class="w-16">
               {{
               columnSettings.columns.defaultColumn.opacity * 100
               | number: "1.0-0"
@@ -53,7 +53,7 @@
           <div class="flex items-center">
             <input class="mr-4" type="range" min="0" max="1" step="0.01"
               [(ngModel)]="columnSettings.columns.defaultColumn.scale" (change)="changeColumn($event)" />
-            <p>{{ columnSettings.columns.defaultColumn.scale }} KM</p>
+            <p class="w-16">{{ columnSettings.columns.defaultColumn.scale }} KM</p>
           </div>
         </div>
       </div>
@@ -64,7 +64,7 @@
           <div class="flex items-center">
             <input class="mr-4" type="range" min="0" max="1" step="0.01"
               [(ngModel)]="columnSettings.columns.selectedColumn.opacity" (change)="changeColumn($event)" />
-            <p>
+            <p class="w-16">
               {{
               columnSettings.columns.selectedColumn.opacity * 100
               | number: "1.0-0"
@@ -85,7 +85,7 @@
           <div class="flex items-center">
             <input class="mr-4 w-full h-3 rounded-xl overflow-hidden" type="color"
               [(ngModel)]="columnSettings.ground.color" (change)="changeColumn($event)" />
-            <p>{{ columnSettings.columns.defaultColumn.color }}</p>
+            <p class="w-16">{{ columnSettings.columns.defaultColumn.color }}</p>
           </div>
         </div>
       </div>
@@ -96,7 +96,7 @@
           <div class="flex items-center">
             <input class="mr-4" type="range" min="0" max="1" step="0.01" [(ngModel)]="columnSettings.ground.opacity"
               (change)="changeColumn($event)" />
-            <p>{{ columnSettings.columns.defaultColumn.heightScale }} KM</p>
+            <p class="w-16">{{ columnSettings.columns.defaultColumn.heightScale }} KM</p>
           </div>
         </div>
       </div>
@@ -111,7 +111,7 @@
           <div class="flex items-center">
             <input class="mr-4 w-full h-3 rounded-xl overflow-hidden" type="color" [(ngModel)]="polygonSettings.color"
               (change)="changePolygon($event)" />
-            <p>{{ columnSettings.polygon.color }}</p>
+            <p class="w-16">{{ columnSettings.polygon.color }}</p>
           </div>
         </div>
       </div>
@@ -122,7 +122,7 @@
           <div class="flex items-center">
             <input class="mr-4" type="range" min="0" max="1" step="0.01" [(ngModel)]="polygonSettings.opacity"
               (change)="changePolygon($event)" />
-            <p>{{ columnSettings.polygon.opacity }}%</p>
+            <p class="w-16">{{ columnSettings.polygon.opacity }}%</p>
           </div>
         </div>
       </div>

@@ -1,1 +1,36 @@
-<p>category-picker works!</p>
+<div class="flex flex-col m-6">
+    <p class="text-primary-500 pb-3">高度表示：</p>
+    <button
+        class="tint-shadow gradient-bg bg-primary text-xl mr-auto py-4 px-8 rounded-full flex items-center text-white"
+        (click)="toggleShow()">
+        店營業額
+        <img src="/assets/icons/chevron-down.svg" />
+    </button>
+    <section class="glass-blur rounded-2xl my-6" *ngIf="isShow" [ngStyle]="{'background-image': blurSource}">
+        <div class="bg-white/90 m-3 p-3 rounded-xl flex text-category-500 flex-col">
+            <h2 class="p-2 text-xl">高度表示資料</h2>
+            <form>
+                <fieldset>
+                    <div class="flex flex-col">
+                        <div class="unselected-category">
+                            <ng-container *ngFor="let category of categoriesMappedId; index as i">
+                                <label
+                                    class="rounded-full bg-category-300 py-3 px-6 flex space-x-2 items-center my-1 mx-3">
+                                    <label [for]="'category' + i" class="flex space-x-2 mr-auto">
+                                        <p class="pr-6">{{category.tableName}}</p>
+                                    </label>
+                                    <input type="radio" [id]="'category' + i" name="category" value="category" (change)="categoryChanged(category, category.categoryId)" />
+                                </label>
+                            </ng-container>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+            <button
+                class="rounded-full bg-category-400 py-3 px-6 flex justify-center space-x-2  items-center my-1 mx-3">
+                <p>新增</p>
+                <img src="/assets/icons/add-category.svg">
+            </button>
+        </div>
+    </section>
+</div>

@@ -68,7 +68,7 @@ export class PinModelService {
     const categoryTable = await this.categoryService.getTableFromSettings(setting)
     const { mappedPins, mappedRows } = this.pinCategoryMapping.mappingPinAndTable(categoryTable, pins)
     pins = this.updatePinHeightFromRows(mappedPins, mappedRows)
-    return pins
+    return {setting, pins}
   }
 
   updatePinHeightFromRows = (pins: Pin[], rows: CategoryTableRow[]) => {

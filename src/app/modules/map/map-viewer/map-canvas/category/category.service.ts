@@ -41,10 +41,18 @@ export class CategoryService {
     })
   }
 
-  getCategorySetting = async (id: string, onFinished: (setting: CategorySetting) => Promise<void>) => {
-    // this.categoryService.subscribe( async (categorySettings: CategorySettings) => {   
-      const categorySettings: CategorySettings = {
-        "-N-SyzGWgpgWs2szH-aH": {
+  getCategorySetting = (id: string):Observable<CategorySetting> => {
+    const starCountRef = ref(this.dataBase, `/pointTables/${id}`);
+    return new Observable(subscribe => {
+      onValue(starCountRef, (snapshot) => {
+        const data:CategorySetting = snapshot.val();
+        subscribe.next(data)
+      });
+    })
+  }
+
+  getMockCategorySetting = (id: string):Observable<CategorySetting> => {
+      const categorySettings: CategorySetting = {
             "deleted": true,
             "options": {
                 "cameraPosition": {
@@ -103,13 +111,9 @@ export class CategoryService {
             "tableName": "店營業額",
             "tableSource": "1ER4MhRBniLOaNZ8_vkgv92Egp410nf-z-CkN9KO1LGg"
         }
-      }
-      const setting = categorySettings[id]  
-      await lastValueFrom(of(true).pipe(timeout(1000)))
-      await onFinished(setting)   
-      
-    // })
+    return of(categorySettings)
   }
+
   getCategoryTable = (googleSheetId: string): Observable<CategoryTableRow[]> => {
     const options = {responseType: 'text' as 'json',};
     return this.httpClient.get<GoogleSheetRawData>(`https://docs.google.com/spreadsheets/d/${googleSheetId}/gviz/tq?`, options).pipe(

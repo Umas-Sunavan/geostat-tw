@@ -74,7 +74,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   tilesToMerge: Tile[] = []
   pins: Pin[] = []
   isPaused: boolean = false
-  categoryId = '-N-SyzGWgpgWs2szH-aH'
   hoveringPins: Pin[] = []
   hoverPinChangeSuject: BehaviorSubject<Pin[]> = new BehaviorSubject(([] as Pin[]))
   font!: Font
@@ -202,16 +201,14 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     return new Vector2(x, y)
   }
 
-  initCategory = async () => {
-    const categoryId = await this.getCategoryIdFromRoute()
-    const onGotCategorySettings = async (setting: CategorySetting) => {
-      this.pins = await this.pinModelService.applyPinHeightFromSetting(setting, this.pins)
-      await this.applySettings(setting)
-    }
-    await this.categoryService.getCategorySetting(categoryId, onGotCategorySettings)
+  onCategoryChange = () => {
+    return this.getCategoryIdFromRoute().pipe( 
+      mergeMap( categoryId => this.categoryService.getMockCategorySetting(categoryId)),
+      mergeMap( setting => this.pinModelService.applyPinHeightFromSetting(setting, this.pins)
+    ))
   }
 
-  applySettings = async (setting: CategorySetting) => this.guiColumnSettings = setting.options.meshSettings
+  applySettings = (setting: CategorySetting) => this.guiColumnSettings = setting.options.meshSettings
 
   initOnUserUpdateResolution = () => {
     this.onUserUpdateCamera.pipe(
@@ -227,11 +224,14 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.canvasContainer.nativeElement.addEventListener('click', this.onMouseClick)
     this.pins = await this.pinModelService.initPinsModel()
     await this.initTile()
-    await this.initCategory()
-    this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)
+    this.onCategoryChange().subscribe( ({setting, pins }) => {  
+        this.guiColumnSettings = setting.options.meshSettings 
+        this.pins = pins
+        this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)      
+    })
   }
 
-  getCategoryIdFromRoute = async (): Promise<string> => {
+  getCategoryIdFromRouteAsync = async (): Promise<string> => {
     return new Promise((resolve, reject) => {
       this.activatedRoute.paramMap.subscribe(param => {
         const id = param.get('id')
@@ -239,6 +239,14 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
         resolve(id)
       })
     })
+  }
+
+  getCategoryIdFromRoute = (): Observable<string> => {
+    return this.activatedRoute.paramMap.pipe( map( param => {
+      const id = param.get('id')
+      if (!id) throw new Error("No param specified in router");
+      return id
+    }))
   }
 
   getBox = (size: number = 5) => {

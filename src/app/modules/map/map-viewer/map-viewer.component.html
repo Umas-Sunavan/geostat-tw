@@ -15,11 +15,14 @@
   {{ pin.title }}
 </p>
 <app-map-canvas #mapCanvas (hoverOnPin)="changeHoverLegend($event)" [onPinSelected]="pinSelected"></app-map-canvas>
-<app-map-settings class="flex float-right flex-col" [columnSettings]="mapCanvas.guiColumnSettings"
-  [polygonSettings]="mapCanvas.guiPolygonSettings" [pins]="mapCanvas.pins" [selectedPins]="mapCanvas.selectedPins"
-  (columnChanged)="mapCanvas.uiUpdatePin($event)" (polygonChanged)="mapCanvas.uiUpdatePolygon($event)"
-  (pinSelected)="onPinSelected($event)" [polygons]="mapCanvas.polygons"></app-map-settings>
-<div class="slidecontainer">
+<div class="flex flex-row justify-between">
+  <app-category-picker class="flex flex-col"></app-category-picker>
+  <app-map-settings class="flex float-right flex-col" [columnSettings]="mapCanvas.guiColumnSettings"
+    [polygonSettings]="mapCanvas.guiPolygonSettings" [pins]="mapCanvas.pins" [selectedPins]="mapCanvas.selectedPins"
+    (columnChanged)="mapCanvas.uiUpdatePin($event)" (polygonChanged)="mapCanvas.uiUpdatePolygon($event)"
+    (pinSelected)="onPinSelected($event)" [polygons]="mapCanvas.polygons"></app-map-settings>
+</div>
+<!-- <div class="slidecontainer">
   <p>gui-settings works!</p>
   mapCanvas.guiColumnSettings
   <br />
@@ -68,4 +71,4 @@
   <label for="polygonOpacity">polygonOpacity: {{ mapCanvas.guiPolygonSettings.opacity }}</label>
   <br />
   <p *ngFor="let pin of pinsOnSelect; let in = index">{{ pin.title }}</p>
-</div>
+</div> -->

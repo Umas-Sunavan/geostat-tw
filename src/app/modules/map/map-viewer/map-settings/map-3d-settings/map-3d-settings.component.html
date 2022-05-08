@@ -1,4 +1,4 @@
-<section class="glass-blur rounded-2xl mr-3" [ngStyle]="{ backgroundImage: blurSource }">
+<section class="glass-blur rounded-2xl mr-3 pointer-events-auto" [ngStyle]="{ backgroundImage: blurSource }">
   <div (window:resize)="onResize($event)" class="mx-3 my-3 rounded-2xl " #resizeContainer>
     <div class="bg-white/90 p-3 rounded-xl flex" [ngClass]="{'mr-3':isScrollBarShow}">
       <img class="p-2" src="/assets/icons/polygon-triangle.svg" />

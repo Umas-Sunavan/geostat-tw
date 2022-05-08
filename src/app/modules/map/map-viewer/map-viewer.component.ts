@@ -14,7 +14,7 @@ export class MapViewerComponent implements OnInit {
 
   hoverPin?: { pin: Pin, legendPosition: Vector2 }
   selectedPin: { pin: Pin, legendPosition: Vector2 }[] = []
-  pinsOnSelect: PinWithDnc[] = []
+  pinsSelectedWithDnc: PinWithDnc[] = []
   averageMoving: Vector2[] = []
   pins: Pin[] = []
   pinSelected?: Pin[]
@@ -29,6 +29,19 @@ export class MapViewerComponent implements OnInit {
   onPinSelected = (pins: Pin[]) => {
     const newList = [...pins]
     this.pinSelected = newList
+  }
+
+  onSelectedPinsWithDnc = (pinsWithDnc: any) => {
+    this.pinsSelectedWithDnc.forEach( (pin,i) => {
+      const isExist = Boolean(pinsWithDnc[i])
+      if (isExist) {
+        const nextPosition = pinsWithDnc[i].deviceCoordinate.clone()
+        const thisPosition = pin.deviceCoordinate
+        const lerp = nextPosition.sub(thisPosition).multiplyScalar(0.3)
+        pinsWithDnc[i].deviceCoordinate = pin.deviceCoordinate.clone().add(lerp)
+      }
+    })
+    this.pinsSelectedWithDnc = pinsWithDnc
   }
 
   polygonUpdate = (polygons: Polygon[]) => {

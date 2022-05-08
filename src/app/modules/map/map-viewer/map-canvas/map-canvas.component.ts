@@ -96,7 +96,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
       console.warn("no pin selected when updating canvas");
     }
   }
-  selectedPinsOnGui: PinWithDnc[] = []
+  selectedPinsWithDnc: PinWithDnc[] = []
+  @Output() selectedPinsWithDncEmitter: EventEmitter<PinWithDnc[]> = new EventEmitter<PinWithDnc[]>()
 
   // view
 
@@ -203,7 +204,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
   onCategoryChange = () => {
     return this.getCategoryIdFromRoute().pipe( 
-      mergeMap( categoryId => this.categoryService.getMockCategorySetting(categoryId)),
+      mergeMap( categoryId => this.categoryService.getCategorySetting(categoryId)),
       mergeMap( setting => this.pinModelService.applyPinHeightFromSetting(setting, this.pins)
     ))
   }
@@ -348,7 +349,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   onCameraChange = () => {
-    this.selectedPinsOnGui = this.pinUtilsService.getPinsDnc(this.selectedPins, this.canvasDimention, this.camera)
+    this.selectedPinsWithDnc = this.pinUtilsService.getPinsDnc(this.selectedPins, this.canvasDimention, this.camera)
+    this.selectedPinsWithDncEmitter.emit(this.selectedPinsWithDnc)
   }
 
   uiUpdatePolygon = (event: Event) => {

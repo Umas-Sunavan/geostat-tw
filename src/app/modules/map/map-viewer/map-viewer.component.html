@@ -1,27 +1,34 @@
-<!-- <p
+<p
   *ngIf="hoverPin"
-  class="legend"
+  class="legend pointer-events-none"
   [ngStyle]="{
     left: hoverPin.legendPosition.x + 'px',
     top: -hoverPin.legendPosition.y + 'px'
   }"
 >
   {{ hoverPin.pin.title }}
-</p> -->
-<p *ngFor="let pin of mapCanvas.selectedPinsOnGui; let in = index" class="legend" [ngStyle]="{
+</p>
+<p *ngFor="let pin of pinsSelectedWithDnc; let in = index" class="legend pointer-events-none" [ngStyle]="{
     left: pin.deviceCoordinate.x + 'px',
     top: pin.deviceCoordinate.y + 'px'
   }">
   {{ pin.title }}
 </p>
-<app-map-canvas #mapCanvas (hoverOnPin)="changeHoverLegend($event)" [onPinSelected]="pinSelected"></app-map-canvas>
-<div class="flex flex-row justify-between">
+<div class="flex flex-row justify-between absolute pointer-events-none w-full">
   <app-category-picker class="flex flex-col"></app-category-picker>
   <app-map-settings class="flex float-right flex-col" [columnSettings]="mapCanvas.guiColumnSettings"
     [polygonSettings]="mapCanvas.guiPolygonSettings" [pins]="mapCanvas.pins" [selectedPins]="mapCanvas.selectedPins"
     (columnChanged)="mapCanvas.uiUpdatePin($event)" (polygonChanged)="mapCanvas.uiUpdatePolygon($event)"
     (pinSelected)="onPinSelected($event)" [polygons]="mapCanvas.polygons"></app-map-settings>
 </div>
+<app-map-canvas 
+#mapCanvas
+(hoverOnPin)="changeHoverLegend($event)"
+[onPinSelected]="pinSelected"
+class="absolute h-screen"
+(selectedPinsWithDncEmitter)="onSelectedPinsWithDnc($event)"
+></app-map-canvas>
+
 <!-- <div class="slidecontainer">
   <p>gui-settings works!</p>
   mapCanvas.guiColumnSettings

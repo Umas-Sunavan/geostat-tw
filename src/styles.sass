@@ -21,7 +21,11 @@ body
         bottom: 0px
         right: 0px // by applying these above, this element's position and size is constrained to parent
         background: inherit // usrdo needs inherit the parent's background, which is used to blur
-        box-shadow: inset 0 0 0 200px rgba(255,255,255,0.2) // lighten the inner part of the container
+        box-shadow: inset 0 0 0 500px rgba(255,255,255,0.2) // lighten the inner part of the container
         filter: blur(10px) brightness(1.02) // the actuall blur
     > *
         position: relative
+.icon-transition
+    transition: 500ms cubic-bezier(.18,.89,.64,1.21)
+.rounded-4xl
+    border-radius: 2rem

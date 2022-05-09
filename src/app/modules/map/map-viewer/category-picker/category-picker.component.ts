@@ -15,27 +15,25 @@ export class CategoryPickerComponent implements OnInit {
   constructor(
     private animateService: AnimateService,
     private categoryService: CategoryService,
-    private activatedRoute: ActivatedRoute,
     private router: Router,
   ) { }
 
   blurSource: string = ''
-  categoriesMappedId:CategorySettingWithId[] = []
+  categoriesMappedId: CategorySettingWithId[] = []
+  isAddCategoryShow: boolean = false
 
   async ngOnInit(): Promise<void> {
     this.categoryService.getCategorySettings().subscribe(categoriesObj => {
-      const categoriesMappedId:CategorySettingWithId[] = []
+      const categoriesMappedId: CategorySettingWithId[] = []
       for (const categoryName in categoriesObj) {
         const category = categoriesObj[categoryName]
-        const CategoryMappedId: CategorySettingWithId = { categoryId: categoryName, ...category}
+        const CategoryMappedId: CategorySettingWithId = { categoryId: categoryName, ...category }
         categoriesMappedId.push(CategoryMappedId)
       }
       console.log(categoriesMappedId);
       this.categoriesMappedId = categoriesMappedId
       categoriesMappedId[0].tableName
-    }
-
-    )
+    })
   }
 
   isShow: boolean = true
@@ -54,5 +52,8 @@ export class CategoryPickerComponent implements OnInit {
     this.router.navigate(['/map', `/${id}`])
   }
 
+  showAddCategory = () => {
+    this.isAddCategoryShow = !this.isAddCategoryShow
+  }
 
 }

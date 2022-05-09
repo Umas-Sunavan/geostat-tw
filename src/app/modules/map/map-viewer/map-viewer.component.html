@@ -14,6 +14,7 @@
   }">
   {{ pin.title }}
 </p>
+<!-- TODO: add pointer-events-none to this class -->
 <div class="flex flex-row justify-between absolute pointer-events-none w-full">
   <app-category-picker class="flex flex-col"></app-category-picker>
   <app-map-settings class="flex float-right flex-col" [columnSettings]="mapCanvas.guiColumnSettings"

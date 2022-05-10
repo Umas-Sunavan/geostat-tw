@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc } from 'firebase/firestore/lite';
-import { getDatabase, ref, onValue, Database, push } from "firebase/database";
+import { getDatabase, ref, onValue, Database, push, set } from "firebase/database";
 import { environment } from 'src/environments/environment';
-import { lastValueFrom, map, Observable, of, timeout } from 'rxjs';
+import { catchError, lastValueFrom, map, Observable, of, tap, timeout } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { CategorySetting, CategorySettings } from 'src/app/shared/models/CategorySettings';
 import { CategoryTableRow } from 'src/app/shared/models/CategoryTableRow';
 import { GoogleSheetRawData, GoogleSheetRow } from 'src/app/shared/models/GoogleSheetRawData';
 import { PinsTableService } from '../pin-services/pins-table.service';
+import { Gui3dSettings } from 'src/app/shared/models/GuiColumnSettings';
 
 @Injectable({
   providedIn: 'root'
@@ -23,12 +24,78 @@ export class CategoryService {
   }
 
   firebaseConfig
-  dataBase: Database
+  dataBase: Database  
+  mockSetting: CategorySetting = {
+    "deleted": true,
+    "options": {
+      "cameraPosition": {
+        "x": 10,
+        "y": 20,
+        "z": 0
+      },
+      "colors": {
+        "mainColor": "#ff00ff"
+      },
+      "connectMode": "triangle",
+      "connectedPoints": [
+        1,
+        2,
+        4
+      ],
+      "focusOnPoint": {
+        "x": -10,
+        "y": 0,
+        "z": 0
+      },
+      "meshSettings": {
+        columns: {
+          defaultColumn: {
+            opacity: 0.1,
+            color: '#528bff',
+            heightScale: 1,
+            scale: 0.5,
+          },
+          hoveredColumn: {
+            opacity: 0.1,
+            color: '#528bff',
+          },
+          selectedColumn: {
+            opacity: 0.1,
+            color: '#528bff',
+          },
+        },
+        ground: {
+          color: '#528bff',
+          opacity: 0.5,
+        },
+        polygon: {
+          color: '#528bff',
+          opacity: 0.8,
+        },
+        outline: {
+          color: '#ffffff',
+          opacity: 0.02,
+        }
+      },
+      "radius": 2
+    },
+    "tableCreateDate": "2022/05/08",
+    "tableCreator": "Umas",
+    "tableName": "2022 Q2利潤",
+    "tableSource": "1dS8M_sBKtwwpXg6iWe3poICrJ2_39e1F0Av9mVm6rS4"
+  }
 
   initFirebase = () => {
     const firebaseApp = initializeApp(this.firebaseConfig);
     const database = getDatabase(firebaseApp);
     return database
+  }
+
+  addCategory = (categorySetting: CategorySetting) => {
+    const starCountRef = ref(this.dataBase, '/pointTables');
+    const newPostRef = push(starCountRef);
+    set(newPostRef, categorySetting);
+  
   }
 
   getCategorySettings = ():Observable<CategorySettings> => {
@@ -118,6 +185,17 @@ export class CategoryService {
     const options = {responseType: 'text' as 'json',};
     return this.httpClient.get<GoogleSheetRawData>(`https://docs.google.com/spreadsheets/d/${googleSheetId}/gviz/tq?`, options).pipe(
       this.convertGoogleSheetToAddress,
+    )
+  }
+
+  getCategoryTableByUrl = (url: string): Observable<any> => {
+    const options = {responseType: 'text' as 'json',};
+    return this.httpClient.get<GoogleSheetRawData>(url, options).pipe(
+      map( value => 200),
+      catchError( (error) => {
+        console.log(error.status);
+        return of(error.status)
+      })
     )
   }
   

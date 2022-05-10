@@ -1,0 +1,36 @@
+<div class="z-10 pointer-events-none absolute w-full h-screen top-0 left-0 flex justify-center items-center bg-white/10">
+    <div class="absolute bg-white/30 p-6 rounded-4xl glass-blur" [ngStyle]="{'background-image': blurSource}">
+     <div class="w-50 py-6 px-9 bg-white rounded-2xl text-category-500 pointer-events-auto">
+         <div class="items-center flex">
+             <button class="pl-0 pr-5 py-5" (click)="hide()">
+                 <img src="/assets/icons/chevron-left-category.svg">
+             </button>
+             <h2 class="text-2xl">資料表名稱</h2>
+         </div>
+         <div class="step mt-6 mb-3">
+             <label class="bg-category-300 rounded-xl px-5 py-5 block" for="catalog-link">
+                 <input
+                 id="catalog-link"
+                 type="url"
+                 #name="ngModel"
+                 required
+                 [(ngModel)]="nameString"
+                 placeholder="ex. 各分店營業額, 2022 Q2人事成本"
+                 class="border-b-2 border-category-400 placeholder:text-category-400 bg-category-300 w-full text-xl"
+                 >
+             </label>
+             <div class="px-5 pt-2 text-sm text-error-500">
+                 <p *ngIf="name.touched && name.errors && name.errors['required']">此為必填</p>
+             </div>
+         </div>
+         <div>
+             <button (click)="submit($event)" [ngClass]="name.errors ? 'bg-grey-100 text-grey-300' : 'bg-category-400'" class="rounded-full py-3 flex w-full items-center justify-center space-x-2">
+                 <p>新增</p>
+                 <img *ngIf="!name.errors" class="pb-0.5" src="/assets/icons/chevron-right.svg">
+                 <img *ngIf="name.errors" class="pb-0.5" src="/assets/icons/chevron-right-grey.svg">
+             </button>
+         </div>
+     </div>
+    </div>
+ </div>
+ 

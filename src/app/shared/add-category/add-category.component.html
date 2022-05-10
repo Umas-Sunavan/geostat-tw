@@ -11,7 +11,7 @@
             <h3 class="py-2">一、建立試算表並填入資料</h3>
             <a href="https://docs.google.com/spreadsheets/d/1rGYgg9SDkrafXSGpleAitmpaYMIUd_QNeDnogccZ0Fc/copy" target="_blank" >
                 <button class="bg-category-400 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2">
-                    <p>建立試算表</p>
+                    <p>由範本建立試算表</p>
                     <img class="pb-1.5" src="/assets/icons/external-link.svg">
                 </button>
             </a>
@@ -28,15 +28,14 @@
                 [(ngModel)]="sheetUrl"
                 placeholder="https://docs.google.com/spreadsheets/d/1rGYgg9SDkrafXSGpleAitmpaYMIUd_QNeDnogccZ0Fc/copy"
                 class="border-b-2 border-category-400 placeholder:text-category-400 bg-category-300 w-full"
-                (change)="changeUrl(sheetUrl)"
                 (keyup)="urlKeyUp($event, name.value, name.errors?.['pattern'])"
                 >
             </label>
             <div class="px-5 pt-2 text-sm text-error-500">
                 <p *ngIf="name.touched && name.errors && name.errors['required']">此為必填</p>
                 <p *ngIf="name.touched && name.errors && name.errors['pattern']">必須為google sheet欄位</p>
+                <p>{{googleSheetErrorDscription}}</p>
             </div>
-            {{name.errors | json}}
         </div>
 
         <div class="step mb-6">
@@ -52,11 +51,14 @@
             </div>
         </div>
         <div>
-            <button [ngClass]="name.errors ? 'bg-grey-100 text-grey-300' : 'bg-category-400'" class="rounded-full py-3 flex w-full items-center justify-center space-x-2">
+            <button (click)="submit($event)" [ngClass]="name.errors ? 'bg-grey-100 text-grey-300' : 'bg-category-400'" class="rounded-full py-3 flex w-full items-center justify-center space-x-2">
                 <p>新增</p>
                 <img *ngIf="!name.errors" class="pb-0.5" src="/assets/icons/chevron-right.svg">
                 <img *ngIf="name.errors" class="pb-0.5" src="/assets/icons/chevron-right-grey.svg">
             </button>
+            <div class="px-5 pt-2 text-sm text-error-500">
+                <p *ngIf="showSubmitTip && !name.touched">請先填入試算表連結</p>
+            </div>
         </div>
     </div>
    </div>

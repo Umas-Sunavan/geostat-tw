@@ -36,4 +36,15 @@
         </div>
     </section>
 </div>
-<app-add-category *ngIf="isAddCategoryShow" [setIsShow]="isAddCategoryShow" (showComponentEmitter)="showAddCategory()"></app-add-category>
+<app-add-category
+*ngIf="isAddCategoryShow"
+[setIsShow]="isAddCategoryShow"
+(showComponentEmitter)="showAddCategory()"
+(onSubmit)="onGotSheetUrl($event)"
+></app-add-category>
+<app-add-name
+*ngIf="isAddNameShow"
+[setShow]="isAddNameShow"
+(setHide)="nameMoveLastSetp()"
+(onSubmit)="onGotName($event)"
+></app-add-name>

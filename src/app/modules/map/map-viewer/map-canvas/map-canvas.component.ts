@@ -98,45 +98,12 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
   selectedPinsWithDnc: PinWithDnc[] = []
   @Output() selectedPinsWithDncEmitter: EventEmitter<PinWithDnc[]> = new EventEmitter<PinWithDnc[]>()
-
   // view
-
-  mockGuiSeggings: Gui3dSettings = {
-    columns: {
-      defaultColumn: {
-        opacity: 0.1,
-        color: '#528bff',
-        heightScale: 1,
-        scale: 0.5,
-      },
-      hoveredColumn: {
-        opacity: 0.1,
-        color: '#528bff',
-      },
-      selectedColumn: {
-        opacity: 0.1,
-        color: '#528bff',
-      },
-    },
-    ground: {
-      color: '#528bff',
-      opacity: 0.5,
-    },
-    polygon: {
-      color: '#528bff',
-      opacity: 0.8,
-    },
-    outline: {
-      color: '#ffffff',
-      opacity: 0.02,
-    }
-  }
   guiPolygonSettings: GuiPolygonSettings = {
     color: '#528bff',
     opacity: 0.6
   }
-
-  guiColumnSettings: Gui3dSettings = this.mockGuiSeggings
+  guiColumnSettings: Gui3dSettings = this.categoryService.mockSetting.options.meshSettings
 
   initQueueToUpdateResolution = () => {
     this.queueToUpdateResolution = new Observable(subscriber => {
@@ -225,8 +192,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.canvasContainer.nativeElement.addEventListener('click', this.onMouseClick)
     this.pins = await this.pinModelService.initPinsModel()
     await this.initTile()
-    this.onCategoryChange().subscribe( ({setting, pins }) => {  
-        this.guiColumnSettings = setting.options.meshSettings 
+    this.onCategoryChange().subscribe( ({setting, pins }) => {
         this.pins = pins
         this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)      
     })

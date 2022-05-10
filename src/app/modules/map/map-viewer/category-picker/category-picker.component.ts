@@ -21,6 +21,9 @@ export class CategoryPickerComponent implements OnInit {
   blurSource: string = ''
   categoriesMappedId: CategorySettingWithId[] = []
   isAddCategoryShow: boolean = false
+  isAddNameShow:boolean = false
+  addingSheetUrl?: string
+
 
   async ngOnInit(): Promise<void> {
     this.categoryService.getCategorySettings().subscribe(categoriesObj => {
@@ -48,12 +51,30 @@ export class CategoryPickerComponent implements OnInit {
   }
 
   categoryChanged = (category: CategorySetting, id: string) => {
-    console.log(category);
     this.router.navigate(['/map', `/${id}`])
   }
 
-  showAddCategory = () => {
-    this.isAddCategoryShow = !this.isAddCategoryShow
+  showAddCategory = () => this.isAddCategoryShow = !this.isAddCategoryShow
+
+  nameMoveLastSetp = () => {
+    this.toggleAddName()
+    this.showAddCategory()
+  }
+
+  onGotSheetUrl = (url: string) => {
+    console.log(url); 
+    this.addingSheetUrl = url
+    this.toggleAddName()
+  }
+
+  toggleAddName = () => this.isAddNameShow = !this.isAddNameShow
+
+  onGotName = (name: string) => {
+    const defaultSetting = this.categoryService.mockSetting
+    defaultSetting.tableName = name
+    if(!this.addingSheetUrl) throw new Error("no google sheet url before creating new category on database");
+    defaultSetting.tableSource = this.addingSheetUrl
+    this.categoryService.addCategory(defaultSetting)
   }
 
 }

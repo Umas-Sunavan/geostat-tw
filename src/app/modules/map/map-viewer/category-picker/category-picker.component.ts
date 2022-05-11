@@ -20,9 +20,13 @@ export class CategoryPickerComponent implements OnInit {
 
   blurSource: string = ''
   categoriesMappedId: CategorySettingWithId[] = []
+  radioValue: string = ''
   isAddCategoryShow: boolean = false
   isAddNameShow:boolean = false
+  addedName = ''
+  isCompletedShow: boolean = false
   addingSheetUrl?: string
+  addingCategoryId?: string
 
 
   async ngOnInit(): Promise<void> {
@@ -50,15 +54,15 @@ export class CategoryPickerComponent implements OnInit {
     }
   }
 
-  categoryChanged = (category: CategorySetting, id: string) => {
-    this.router.navigate(['/map', `/${id}`])
+  categoryChanged = (id: string) => {
+    this.router.navigate(['/map', `${id}`])
   }
 
-  showAddCategory = () => this.isAddCategoryShow = !this.isAddCategoryShow
+  toggleAddCategory = () => this.isAddCategoryShow = !this.isAddCategoryShow
 
   nameMoveLastSetp = () => {
     this.toggleAddName()
-    this.showAddCategory()
+    this.toggleAddCategory()
   }
 
   onGotSheetUrl = (url: string) => {
@@ -69,12 +73,24 @@ export class CategoryPickerComponent implements OnInit {
 
   toggleAddName = () => this.isAddNameShow = !this.isAddNameShow
 
+  toggleCompletedShow = () => this.isCompletedShow = !this.isCompletedShow
+
+  switchNewCategory = (boolean: boolean) => {
+    console.log(this.isCompletedShow);
+    if (!this.addingCategoryId) throw new Error("no addingCategoryId. the category could failed without internet connection");
+    this.categoryChanged(this.addingCategoryId)
+    this.radioValue = this.addingCategoryId
+  }
+
   onGotName = (name: string) => {
+    this.toggleAddName()
+    this.toggleCompletedShow()
     const defaultSetting = this.categoryService.mockSetting
     defaultSetting.tableName = name
+    this.addedName = name
     if(!this.addingSheetUrl) throw new Error("no google sheet url before creating new category on database");
     defaultSetting.tableSource = this.addingSheetUrl
-    this.categoryService.addCategory(defaultSetting)
+    this.addingCategoryId = this.categoryService.addCategory(defaultSetting) || ''
   }
 
 }

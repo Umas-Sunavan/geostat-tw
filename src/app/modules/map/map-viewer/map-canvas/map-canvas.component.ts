@@ -194,7 +194,9 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     await this.initTile()
     this.onCategoryChange().subscribe( ({setting, pins }) => {
         this.pins = pins
-        this.pinModelService.updatePin3ds(this.pins, this.scene, this.guiColumnSettings)      
+        console.log(setting.options.meshSettings.columns.defaultColumn.heightScale);
+        this.applySettings(setting)
+        this.pinModelService.updatePin3ds(this.pins, this.scene, setting.options.meshSettings)      
     })
   }
 

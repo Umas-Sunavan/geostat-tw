@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ValidationErrors } from '@angular/forms';
 import { take } from 'rxjs';
 import { AnimateService } from 'src/app/modules/map/map-viewer/map-canvas/three-services/animate.service';
 
@@ -28,16 +29,14 @@ export class AddNameComponent implements OnInit {
   }
 
   onShow = (isShow: boolean) => {
-    console.log('showed');
-    
     this.animateService.getCavasImage().pipe(take(1)).subscribe(value => {
       this.blurSource = `url(${value})`
     })
   }
 
-  submit = (event: Event) => {
+  submit = (errors: ValidationErrors | null) => {
+    if (errors) return
     this.onSubmit.next(this.nameString)
-    this.hide()
   }
 
 }

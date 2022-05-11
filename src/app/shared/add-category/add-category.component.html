@@ -3,7 +3,7 @@
     <div class="w-50 py-6 px-9 bg-white rounded-2xl text-category-500 pointer-events-auto">
         <div class="items-center flex justify-between">
             <h2 class="text-2xl">新增資料步驟</h2>
-            <button class="p-5" (click)="toggleComponent()">
+            <button class="p-5" (click)="hide()">
                 <img src="/assets/icons/cross.svg">
             </button>
         </div>
@@ -31,10 +31,11 @@
                 (keyup)="urlKeyUp($event, name.value, name.errors?.['pattern'])"
                 >
             </label>
-            <div class="px-5 pt-2 text-sm text-error-500">
-                <p *ngIf="name.touched && name.errors && name.errors['required']">此為必填</p>
-                <p *ngIf="name.touched && name.errors && name.errors['pattern']">必須為google sheet欄位</p>
-                <p>{{googleSheetErrorDscription}}</p>
+            <div class="px-5 pt-2 text-sm">
+                <p class="text-error-500" *ngIf="name.touched && name.errors && name.errors['required']">此為必填</p>
+                <p class="text-error-500" *ngIf="name.touched && name.errors && name.errors['pattern']">必須為google sheet欄位</p>
+                <p class="text-error-500">{{googleSheetErrorDscription}}</p>
+                <p class="text-category-500" *ngIf="name.touched && !name.errors">試算表沒有問題，讚！</p>
             </div>
         </div>
 
@@ -51,7 +52,7 @@
             </div>
         </div>
         <div>
-            <button (click)="submit($event)" [ngClass]="name.errors ? 'bg-grey-100 text-grey-300' : 'bg-category-400'" class="rounded-full py-3 flex w-full items-center justify-center space-x-2">
+            <button (click)="submit(name.errors)" [ngClass]="name.errors ? 'bg-grey-100 text-grey-300' : 'bg-category-400'" class="rounded-full py-3 flex w-full items-center justify-center space-x-2">
                 <p>新增</p>
                 <img *ngIf="!name.errors" class="pb-0.5" src="/assets/icons/chevron-right.svg">
                 <img *ngIf="name.errors" class="pb-0.5" src="/assets/icons/chevron-right-grey.svg">

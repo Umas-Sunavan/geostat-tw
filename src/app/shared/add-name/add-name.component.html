@@ -13,9 +13,11 @@
                  id="catalog-link"
                  type="url"
                  #name="ngModel"
+                 #nameInput
                  required
                  [(ngModel)]="nameString"
-                 placeholder="ex. 各分店營業額, 2022 Q2人事成本"
+                 [size]="13"
+                 placeholder="ex. 各分店營業額"
                  class="border-b-2 border-category-400 placeholder:text-category-400 bg-category-300 w-full text-xl"
                  >
              </label>
@@ -24,7 +26,7 @@
              </div>
          </div>
          <div>
-             <button (click)="submit($event)" [ngClass]="name.errors ? 'bg-grey-100 text-grey-300' : 'bg-category-400'" class="rounded-full py-3 flex w-full items-center justify-center space-x-2">
+             <button (click)="submit(name.errors)" [ngClass]="name.errors ? 'bg-grey-100 text-grey-300' : 'bg-category-400'" class="rounded-full py-3 flex w-full items-center justify-center space-x-2">
                  <p>新增</p>
                  <img *ngIf="!name.errors" class="pb-0.5" src="/assets/icons/chevron-right.svg">
                  <img *ngIf="name.errors" class="pb-0.5" src="/assets/icons/chevron-right-grey.svg">

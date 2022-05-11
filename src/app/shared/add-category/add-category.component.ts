@@ -16,11 +16,44 @@ export class AddCategoryComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.checkUrlAccessable.pipe( debounceTime(500), switchMap( url => of(url))).subscribe( url => {
+    this.checkUrlAccessable()
+  }
+
+  showSubmitTip: boolean = false
+  googleSheetErrorDscription: string = ''
+  showTip: boolean = false
+  blurSource: string = ''
+  sheetUrl: string = ''
+  onKeyChange: Subject<any> = new Subject()
+  @Output() onSubmit: EventEmitter<string> = new EventEmitter()
+  @Output() setHide: EventEmitter<undefined> = new EventEmitter()
+  @Input() set setShow( isShow: boolean) {
+    this.animateService.getCavasImage().pipe(take(1)).subscribe(value => {
+      this.blurSource = `url(${value})`
+    })
+  }
+
+  toggleShowTip = () => this.showTip = !this.showTip
+
+  hide = () => this.setHide.emit()
+
+  urlKeyUp = (event: Event, url: string, hasErrorBrforeKeyUp: any) => {
+    if(!hasErrorBrforeKeyUp) {
+      this.onKeyChange.next(url)
+    }
+  }
+
+  checkUrlAccessable = () => {
+    this.onKeyChange.pipe( debounceTime(500), switchMap( url => of(url))).subscribe( url => {
       this.categoryService.getCategoryTableByUrl(url).subscribe( statusCode => {
+        console.log(statusCode);
+        
         switch (statusCode) {
           case 401:
-            this.googleSheetErrorDscription = '沒有權限讀取試算表，您有設公開嗎？'
+            this.googleSheetErrorDscription = '請依照下一步，設定試算表為公開。'
+            break;
+          case 404:
+            this.googleSheetErrorDscription = '超連結裡面沒有試算表，該試算表是否已被刪除？'
             break;
           case 0:
             this.googleSheetErrorDscription = '請貼上正確的試算表，或確保網路正常'
@@ -35,38 +68,6 @@ export class AddCategoryComponent implements OnInit {
     })
   }
 
-  showSubmitTip: boolean = false
-  googleSheetErrorDscription: string = ''
-  showTip: boolean = false
-  isComponentShow: boolean = false
-  blurSource: string = ''
-  sheetUrl: string = 'https://docs.google.com/spreadsheets/d/1rGYgg9SDkrafXSGpleAitmpaYMIUd_QNeDnogccZ0Fc/copy'
-  checkUrlAccessable: Subject<any> = new Subject()
-  @Output() onSubmit: EventEmitter<string> = new EventEmitter()
-  @Output() showComponentEmitter: EventEmitter<undefined> = new EventEmitter()
-  @Input() set setIsShow( isShow: boolean) {
-    this.isComponentShow = isShow
-    if (this.isComponentShow) {
-      this.animateService.getCavasImage().pipe(take(1)).subscribe(value => {
-        this.blurSource = `url(${value})`
-      })
-    }
-  }
-
-  toggleShowTip = () => this.showTip = !this.showTip
-
-  toggleComponent = () => {
-    this.showComponentEmitter.emit()
-  }
-
-  urlKeyUp = (event: Event, url: string, hasErrorBrforeKeyUp: any) => {
-    console.log('keyup');
-    
-    if(!hasErrorBrforeKeyUp) {
-      this.checkUrlAccessable.next(url)
-    }
-  }
-
   getSheetId = () => {
     const idArray:RegExpMatchArray | null = this.sheetUrl.match(/(?<=\/d\/).+(?=\/)/g)
     if (idArray && idArray[0]) {
@@ -76,9 +77,10 @@ export class AddCategoryComponent implements OnInit {
     }
   }
 
-  submit = (event: Event) => {
+  submit = (hasErrors: any) => {
+    if (hasErrors) return
     this.showSubmitTip = true
     this.onSubmit.next(this.sheetUrl)
-    this.toggleComponent()
+    this.hide()
   }
 }

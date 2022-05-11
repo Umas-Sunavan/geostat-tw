@@ -91,11 +91,11 @@ export class CategoryService {
     return database
   }
 
-  addCategory = (categorySetting: CategorySetting) => {
+  addCategory = (categorySetting: CategorySetting):string | null => {
     const starCountRef = ref(this.dataBase, '/pointTables');
     const newPostRef = push(starCountRef);
     set(newPostRef, categorySetting);
-  
+    return newPostRef.key
   }
 
   getCategorySettings = ():Observable<CategorySettings> => {

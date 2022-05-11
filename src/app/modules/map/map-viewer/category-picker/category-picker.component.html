@@ -9,17 +9,17 @@
     <section class="pointer-events-auto glass-blur rounded-2xl my-6" *ngIf="isShow" [ngStyle]="{'background-image': blurSource}">
         <div class="bg-white/90 m-3 p-3 rounded-xl flex text-category-500 flex-col">
             <h2 class="p-2 text-xl">高度表示資料</h2>
-            <form>
+            <form class="my-3 rounded-xl">
                 <fieldset>
                     <div class="flex flex-col">
-                        <div class="unselected-category">
+                        <div class="unselected-category overflow-y-auto">
                             <ng-container *ngFor="let category of categoriesMappedId; index as i">
                                 <label
                                     class="rounded-full bg-category-300 py-3 px-6 flex space-x-2 items-center my-1 mx-3">
                                     <label [for]="'category' + i" class="flex space-x-2 mr-auto">
                                         <p class="pr-6">{{category.tableName}}</p>
                                     </label>
-                                    <input type="radio" [id]="'category' + i" name="category" value="category" (change)="categoryChanged(category, category.categoryId)" />
+                                    <input type="radio" [id]="'category' + i" name="category" [value]="category.categoryId" [(ngModel)]="radioValue" (change)="categoryChanged(category.categoryId)" />
                                 </label>
                             </ng-container>
                         </div>
@@ -28,7 +28,7 @@
             </form>
             <button
                 class="rounded-full bg-category-400 py-3 px-6 flex justify-center space-x-2  items-center my-1 mx-3"
-                (click)="showAddCategory()"
+                (click)="toggleAddCategory()"
                 >
                 <p>新增</p>
                 <img src="/assets/icons/add-category.svg">
@@ -38,8 +38,8 @@
 </div>
 <app-add-category
 *ngIf="isAddCategoryShow"
-[setIsShow]="isAddCategoryShow"
-(showComponentEmitter)="showAddCategory()"
+[setShow]="isAddCategoryShow"
+(setHide)="toggleAddCategory()"
 (onSubmit)="onGotSheetUrl($event)"
 ></app-add-category>
 <app-add-name
@@ -48,3 +48,10 @@
 (setHide)="nameMoveLastSetp()"
 (onSubmit)="onGotName($event)"
 ></app-add-name>
+<app-completed
+*ngIf="isCompletedShow"
+[name]="addedName"
+[setShow]="isCompletedShow"
+(setHide)="toggleCompletedShow()"
+(onSubmit)="switchNewCategory($event)"
+></app-completed>

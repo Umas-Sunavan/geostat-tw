@@ -17,6 +17,7 @@ import { MapSettingsComponent } from './modules/map/map-viewer/map-settings/map-
 import { CategoryPickerComponent } from './modules/map/map-viewer/category-picker/category-picker.component';
 import { AddCategoryComponent } from './shared/add-category/add-category.component';
 import { AddNameComponent } from './shared/add-name/add-name.component';
+import { CompletedComponent } from './shared/completed/completed.component';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,7 @@ import { AddNameComponent } from './shared/add-name/add-name.component';
     CategoryPickerComponent,
     AddCategoryComponent,
     AddNameComponent,
+    CompletedComponent,
     
   ],
   imports: [

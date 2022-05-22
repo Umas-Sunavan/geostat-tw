@@ -21,6 +21,7 @@ export class AddCategoryComponent implements OnInit {
 
   showSubmitTip: boolean = false
   googleSheetErrorDscription: string = ''
+  googleSheetSuccessDscription: string = ''
   showTip: boolean = false
   blurSource: string = ''
   sheetUrl: string = ''
@@ -51,15 +52,19 @@ export class AddCategoryComponent implements OnInit {
         switch (statusCode) {
           case 401:
             this.googleSheetErrorDscription = '請依照下一步，設定試算表為公開。'
+            this.googleSheetSuccessDscription = ''
             break;
           case 404:
             this.googleSheetErrorDscription = '超連結裡面沒有試算表，該試算表是否已被刪除？'
+            this.googleSheetSuccessDscription = ''
             break;
           case 0:
-            this.googleSheetErrorDscription = '請貼上正確的試算表，或確保網路正常'
+            this.googleSheetErrorDscription = '請繼續下一步，設定試算表為公開。或確保網路正常'
+            this.googleSheetSuccessDscription = ''
             break;
           case 200:
             this.googleSheetErrorDscription = ''
+            this.googleSheetSuccessDscription = '試算表沒有問題，讚！'
             break;
           default:
             break;
@@ -69,12 +74,7 @@ export class AddCategoryComponent implements OnInit {
   }
 
   getSheetId = () => {
-    const idArray:RegExpMatchArray | null = this.sheetUrl.match(/(?<=\/d\/).+(?=\/)/g)
-    if (idArray && idArray[0]) {
-      return idArray[0]
-    } else {
-      throw new Error("No id found");
-    }
+    return this.categoryService.getSheetIdFromUrl(this.sheetUrl)
   }
 
   submit = (hasErrors: any) => {

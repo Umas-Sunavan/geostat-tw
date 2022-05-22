@@ -6,6 +6,7 @@ export interface CategorySettings {
 
 export interface CategorySetting {
     deleted: Boolean,
+    valid: Boolean,
     options: {
       cameraPosition: {
         x: number,

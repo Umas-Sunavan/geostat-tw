@@ -27,6 +27,7 @@ export class CategoryService {
   dataBase: Database  
   mockSetting: CategorySetting = {
     "deleted": true,
+    "valid": true,
     "options": {
       "cameraPosition": {
         "x": 10,
@@ -121,6 +122,7 @@ export class CategoryService {
   getMockCategorySetting = (id: string):Observable<CategorySetting> => {
       const categorySettings: CategorySetting = {
             "deleted": true,
+            "valid": true,
             "options": {
                 "cameraPosition": {
                     "x": 10,
@@ -188,13 +190,23 @@ export class CategoryService {
     )
   }
 
-  getCategoryTableByUrl = (url: string): Observable<any> => {
+  getSheetIdFromUrl = (url:string) => {
+    const idArray:RegExpMatchArray | null = url.match(/(?<=\/d\/).+(?=\/)/g)
+    if (idArray && idArray[0]) {
+      return idArray[0]
+    } else {
+      throw new Error("No id found");
+    }
+    
+  }
+
+  getCategoryTableByUrl = (url: string): Observable<number> => {
     const options = {responseType: 'text' as 'json',};
     return this.httpClient.get<GoogleSheetRawData>(url, options).pipe(
       map( value => 200),
       catchError( (error) => {
         console.log(error.status);
-        return of(error.status)
+        return of(error.status as number)
       })
     )
   }

@@ -89,7 +89,7 @@ export class CategoryPickerComponent implements OnInit {
     defaultSetting.tableName = name
     this.addedName = name
     if(!this.addingSheetUrl) throw new Error("no google sheet url before creating new category on database");
-    defaultSetting.tableSource = this.addingSheetUrl
+    defaultSetting.tableSource = this.categoryService.getSheetIdFromUrl(this.addingSheetUrl)
     this.addingCategoryId = this.categoryService.addCategory(defaultSetting) || ''
   }
 

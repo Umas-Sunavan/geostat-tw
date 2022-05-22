@@ -138,8 +138,8 @@ export class TileUtilsService {
 
   getTileMeshById = async (tileIds: TileId[]) => {
     const tiles = this.initTileMeshById(tileIds)
-    // await this.textureService.applyTexture(tiles)
-    await this.textureService.applyMockTexture(tiles)
+    await this.textureService.applyTexture(tiles)
+    // await this.textureService.applyMockTexture(tiles)
     // await this.textureService.applyDisplacementTexture(tiles)
     return tiles
   }

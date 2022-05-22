@@ -33,9 +33,10 @@
             </label>
             <div class="px-5 pt-2 text-sm">
                 <p class="text-error-500" *ngIf="name.touched && name.errors && name.errors['required']">此為必填</p>
-                <p class="text-error-500" *ngIf="name.touched && name.errors && name.errors['pattern']">必須為google sheet欄位</p>
-                <p class="text-error-500">{{googleSheetErrorDscription}}</p>
-                <p class="text-category-500" *ngIf="name.touched && !name.errors">試算表沒有問題，讚！</p>
+                <p class="text-error-500" *ngIf="name.touched && name.errors && name.errors['pattern']">必須為google sheet分享連結</p>
+                <p class="text-error-500" >{{googleSheetErrorDscription}}</p>
+                <p class="text-category-500" *ngIf="name.touched && !name.errors && !googleSheetErrorDscription && !googleSheetSuccessDscription">驗證試算表...</p>
+                <p class="text-category-500" *ngIf="googleSheetSuccessDscription">{{googleSheetSuccessDscription}}</p>
             </div>
         </div>
 
@@ -43,7 +44,7 @@
             <h3 class="py-2">三、設為公開</h3>
             <div class="flex">
                 <button class="flex items-center border-b-2 border-category-400" (click)="toggleShowTip()">
-                    <small class="text-sm ">圖解如何公開</small>
+                    <small class="text-sm ">設公開教學</small>
                     <img src="/assets/icons/chevron-down-category.svg" class="icon-transition" [ngStyle]="{'transform': showTip ? 'rotate(180deg)' : ''}">
                 </button>
             </div>

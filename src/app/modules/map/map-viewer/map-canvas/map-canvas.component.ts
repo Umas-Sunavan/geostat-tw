@@ -4,7 +4,7 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { BehaviorSubject, concatMap, delay, exhaustMap, filter, forkJoin, from, interval, last, lastValueFrom, map, mapTo, merge, mergeMap, Observable, of, Subject, Subscriber, switchMap, take, tap, timeout, timer } from 'rxjs';
+import { BehaviorSubject, catchError, concatMap, delay, exhaustMap, filter, forkJoin, from, interval, last, lastValueFrom, map, mapTo, merge, mergeMap, Observable, of, Subject, Subscriber, switchMap, take, tap, timeout, timer } from 'rxjs';
 import { CategorySetting, CategorySettings } from 'src/app/shared/models/CategorySettings';
 import { ActivatedRoute } from '@angular/router';
 import { PinCategoryMappingService } from './category/pin-category-mapping.service';
@@ -172,9 +172,15 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   onCategoryChange = () => {
     return this.getCategoryIdFromRoute().pipe( 
       mergeMap( categoryId => this.categoryService.getCategorySetting(categoryId)),
+      mergeMap( setting => this.appendUrlStatusCode(setting)),
       mergeMap( setting => this.pinModelService.applyPinHeightFromSetting(setting, this.pins)
-    ))
+      ))
   }
+
+  appendUrlStatusCode = (setting: CategorySetting) => this.categoryService.getCategoryTableByUrl(`https://docs.google.com/spreadsheets/d/${setting.tableSource}/gviz/tq?`).pipe( map(code => {
+    setting.valid = Boolean(code === 200)
+    return setting
+  }))
 
   applySettings = (setting: CategorySetting) => this.guiColumnSettings = setting.options.meshSettings
 
@@ -192,11 +198,14 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.canvasContainer.nativeElement.addEventListener('click', this.onMouseClick)
     this.pins = await this.pinModelService.initPinsModel()
     await this.initTile()
-    this.onCategoryChange().subscribe( ({setting, pins }) => {
-        this.pins = pins
-        console.log(setting.options.meshSettings.columns.defaultColumn.heightScale);
-        this.applySettings(setting)
-        this.pinModelService.updatePin3ds(this.pins, this.scene, setting.options.meshSettings)      
+    this.onCategoryChange().subscribe( (settingAndPins: {setting: CategorySetting;pins: Pin[]}|undefined) => {
+      if (!settingAndPins) {
+        alert('資料來源錯誤。請確保其Google Sheet已設為公開')
+        return
+      }
+      this.pins = settingAndPins.pins
+      this.applySettings(settingAndPins.setting)
+      this.pinModelService.updatePin3ds(this.pins, this.scene, settingAndPins.setting.options.meshSettings)      
     })
   }
 

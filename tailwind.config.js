@@ -8,6 +8,9 @@ module.exports = {
       'white': '#ffffff',
       'black': '#000000',
       'primary': {
+        100: '#F8FCFF',
+        200: '#E5F4FF',
+        400: '#A8DFFF',
         500: '#4B9ECD',
         600: '#24699D',
       },
@@ -21,6 +24,7 @@ module.exports = {
         500: '#FF4F4F',
       },
       'category': {
+        100: '#F5F9EB',
         300: '#EBFAE5',
         400: '#BDEB90',
         500: '#349E5F',
@@ -33,6 +37,11 @@ module.exports = {
       },
       'error': {
         500: '#FE5E5E',
+      },
+      'menu': {
+        500: '#8D9CD0',
+        600: '#6D7EBA',
+        700: '#4D5F9E',
       }
     },
   },

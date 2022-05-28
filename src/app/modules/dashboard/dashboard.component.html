@@ -23,6 +23,7 @@
                 <div class="mt-10 mx-10">
                     <button
                         class="bg-primary-500 create-category tint-shadow-primary mix-blend-darken flex rounded-3xl text-white w-full items-center"
+                        [ngStyle]="{'background-image': 'url(\'./assets/icons/create-category-bg.svg\')'}"
                         (click)="onAddMapClick($event)">
                         <img class="px-3 py-9 xl:p-9" src="./assets/icons/map-add-lg.svg">
                         <div class="flex-col flex-col items-start flex">
@@ -63,6 +64,7 @@
                 <div class="mt-10 mx-10">
                     <button
                         class="bg-category-500 create-category tint-shadow-primary mix-blend-darken flex rounded-3xl text-white w-full items-center"
+                        [ngStyle]="{'background-image': 'url(\'./assets/icons/create-category-bg.svg\')'}"
                         (click)="toggleAddCategoryShow()">
                         <img class="px-3 py-9 xl:p-9"  src="./assets/icons/category-add-lg.svg">
                         <div class="flex-col flex-col items-start flex">

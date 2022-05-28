@@ -121,4 +121,6 @@ export class CategoryPickerComponent implements OnInit {
     this.addingCategoryId = this.categoryService.addCategory(defaultSetting) || ''
   }
 
+  updateSelectedStyle = (id: string) => id === this.radioValue ? `url('./assets/icons/checked-radio.svg')` : 'initial'
+
 }

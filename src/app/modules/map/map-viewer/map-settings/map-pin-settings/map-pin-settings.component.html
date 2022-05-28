@@ -13,8 +13,8 @@
                 </label>
                 <img src="./assets/icons/polygon-triangle.svg" *ngIf="isPinTypeTriangle(pin)" />
                 <img src="./assets/icons/polygon-rectangle.svg" *ngIf="isPinTypeRectangle(pin)" />
-                <input type="checkbox" [id]="'selected-pin-' + i" [name]="pin.id" [checked]="true"
-                  (change)="uncheckPin(pin)" />
+                <input type="checkbox" [id]="'selected-pin-' + i" [name]="pin.id" [checked]="true" [ngStyle]="{'background-image': 'url(\'./assets/icons/checked-box.svg\')'}"
+                  (change)="uncheckPin(pin)"  />
               </label>
             </ng-container>
           </div>

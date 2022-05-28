@@ -19,9 +19,10 @@
                                     <label [for]="'category' + i" class="flex space-x-2 mr-auto">
                                         <p class="pr-6">{{category.tableName}}</p>
                                     </label>
-                                    <input type="radio" [id]="'category' + i" name="category" [value]="category.categoryId" [(ngModel)]="radioValue" (change)="changeCategory(category.categoryId)" />
+                                    <input type="radio" [id]="'category' + i" name="category" [value]="category.categoryId" [(ngModel)]="radioValue" (change)="changeCategory(category.categoryId)" [ngStyle]="{'background-image': updateSelectedStyle(category.categoryId)}"/>
                                 </label>
                             </ng-container>
+                            {{radioValue}}
                         </div>
                     </div>
                 </fieldset>

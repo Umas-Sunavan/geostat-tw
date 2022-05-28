@@ -1,10 +1,10 @@
 <div class="flex">
     <nav class="w-16 bg-menu-500 h-screen flex flex-col items-center justify-between z-20">
         <button class="hover:bg-menu-600 rounded-xl my-2 p-2">
-            <img src="/assets/icons/logo.svg" class="w-8">
+            <img src="./assets/icons/logo.svg" class="w-8">
         </button>
         <button class="hover:bg-menu-600 p-2 my-2 rounded-xl">
-            <img src="/assets/icons/log-out.svg" class="w-8 p-0.5">
+            <img src="./assets/icons/log-out.svg" class="w-8 p-0.5">
             <p class="text-white pt-2">登出</p>
         </button>
     </nav>
@@ -15,16 +15,16 @@
         </section>
         <section class="category bg-primary-100 w-7/12 flex items-end justify-end">
             <div class="absolute w-full h-full pointer-events-none" style="z-index:1; top: 0px; left: 0px;">
-                <img class="absolute" style="left: 40%; top: 13%;" src="/assets/icons/map-circle-xl.svg">
-                <img class="absolute" style="left: 40%; top: 80%;" src="/assets/icons/map-pin-xl.svg">
-                <img class="absolute" style="left: 3%; top: 60%;" src="/assets/icons/map-paper-xl.svg">
+                <img class="absolute" style="left: 40%; top: 13%;" src="./assets/icons/map-circle-xl.svg">
+                <img class="absolute" style="left: 40%; top: 80%;" src="./assets/icons/map-pin-xl.svg">
+                <img class="absolute" style="left: 3%; top: 60%;" src="./assets/icons/map-paper-xl.svg">
             </div>
             <div class="bg-primary-300 text-primary-500 float-right w-5/6 z-10">
                 <div class="mt-10 mx-10">
                     <button
                         class="bg-primary-500 create-category tint-shadow-primary mix-blend-darken flex rounded-3xl text-white w-full items-center"
                         (click)="onAddMapClick($event)">
-                        <img class="px-3 py-9 xl:p-9" src="/assets/icons/map-add-lg.svg">
+                        <img class="px-3 py-9 xl:p-9" src="./assets/icons/map-add-lg.svg">
                         <div class="flex-col flex-col items-start flex">
                             <h2 class="text-xl font-semibold">新增地圖</h2>
                             <p>取一個名字，建立一個新地圖</p>
@@ -34,7 +34,7 @@
                 <div class="list grid grid-cols-1 2xl:grid-cols-2 auto-rows-auto gap-4 overflow-y-auto p-6 mx-6 ml-8">
                     <button *ngFor="let map of maps; index as i" (click)="onMapClick(map.mapId)"
                         class="bg-white p-9 tint-shadow-primary-sm rounded-2xl flex ">
-                        <img class=" mr-4" [src]="'/assets/icons/map-list-' + (map.mapId%3 + 1) + '.svg'">
+                        <img class=" mr-4" [src]="'./assets/icons/map-list-' + (map.mapId%3 + 1) + '.svg'">
                         <div class="flex flex-col items-start text-left">
                             <h2 class="text-xl">{{map.mapName}}</h2>
                             <div *ngIf="map.mapId === editingMapId">
@@ -55,16 +55,16 @@
         </section>
         <section class="category bg-category-100 w-5/12 flex items-end justify-start">
             <div class="absolute w-full h-full pointer-events-none" style="z-index:1; top: 0px; left: 0px;">
-                <img class="absolute" style="left: 70%; top: 70%;" src="/assets/icons/category-circle-xl.svg">
-                <img class="absolute" style="left: 80%; top: 1%;" src="/assets/icons/category-column-tall-xl.svg">
-                <img class="absolute" style="left: 90%; top: 70%;" src="/assets/icons/category-column-short-xl.svg">
+                <img class="absolute" style="left: 70%; top: 70%;" src="./assets/icons/category-circle-xl.svg">
+                <img class="absolute" style="left: 80%; top: 1%;" src="./assets/icons/category-column-tall-xl.svg">
+                <img class="absolute" style="left: 90%; top: 70%;" src="./assets/icons/category-column-short-xl.svg">
             </div>
             <div class="text-category-500 float-left w-5/6 z-10">
                 <div class="mt-10 mx-10">
                     <button
                         class="bg-category-500 create-category tint-shadow-primary mix-blend-darken flex rounded-3xl text-white w-full items-center"
                         (click)="toggleAddCategoryShow()">
-                        <img class="px-3 py-9 xl:p-9"  src="/assets/icons/category-add-lg.svg">
+                        <img class="px-3 py-9 xl:p-9"  src="./assets/icons/category-add-lg.svg">
                         <div class="flex-col flex-col items-start flex">
                             <h2 class="text-xl font-semibold">新增高度資料</h2>
                             <p class="text-left mr-4">取一個名字，建立一個高度資料</p>
@@ -75,7 +75,7 @@
                     <button *ngFor="let category of categories; index as i"
                         class="bg-white p-3 xl:p-6 my-3 space-x-2 xl:space-x-4 tint-shadow-primary-sm rounded-2xl flex items-center text-left">
                         <p class="hidden xl:inline text">{{i+1}}.</p>
-                        <img class="hidden xl:block mr-1 xl:mr-4" [src]="'/assets/icons/category-list-' + (i%3 + 1) + '.svg'">
+                        <img class="hidden xl:block mr-1 xl:mr-4" [src]="'./assets/icons/category-list-' + (i%3 + 1) + '.svg'">
                         <h2 class="text-xl">{{category.tableName}}</h2>
                         <div *ngIf="category.categoryId === editingCategoryId">
                             <div class="dropdown absolute p-2 bg-white rounded-2xl flex flex-col space-y-2 tint-shadow-primary-sm" (click)="clickSpace($event)">

@@ -4,7 +4,7 @@
         class="pointer-events-auto tint-shadow-primary gradient-bg bg-primary text-xl mr-auto py-4 px-8 rounded-full flex items-center text-white"
         (click)="toggleShow()">
         店營業額
-        <img src="/assets/icons/chevron-down-white.svg" />
+        <img src="./assets/icons/chevron-down-white.svg" />
     </button>
     <section class="pointer-events-auto glass-blur rounded-2xl my-6" *ngIf="isShow" [ngStyle]="{'background-image': blurSource}">
         <div class="bg-white/90 m-3 p-3 rounded-xl flex text-category-500 flex-col">
@@ -31,7 +31,7 @@
                 (click)="toggleAddCategory()"
                 >
                 <p>新增</p>
-                <img src="/assets/icons/add-category.svg">
+                <img src="./assets/icons/add-category.svg">
             </button>
         </div>
     </section>

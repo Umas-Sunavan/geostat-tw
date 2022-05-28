@@ -3,8 +3,8 @@
      <div class="w-50 py-6 px-9 bg-white rounded-2xl pointer-events-auto" [ngClass]="'text-' + themeColor + '-500'">
          <div class="items-center flex">
              <button class="pl-0 pr-5 py-5" (click)="hide()">
-                 <img *ngIf="backButtonType === 'cross' " [src]="'/assets/icons/cross-' + themeColor + '.svg'">
-                 <img *ngIf="backButtonType === 'arrow' " [src]="'/assets/icons/chevron-left-' + themeColor + '.svg'">
+                 <img *ngIf="backButtonType === 'cross' " [src]="'./assets/icons/cross-' + themeColor + '.svg'">
+                 <img *ngIf="backButtonType === 'arrow' " [src]="'./assets/icons/chevron-left-' + themeColor + '.svg'">
              </button>
              <h2 class="text-2xl">{{title}}</h2>
          </div>
@@ -29,8 +29,8 @@
          <div>
              <button (click)="submit(name.errors)" class="rounded-full py-3 flex w-full items-center justify-center space-x-2" [ngClass]="name.errors ? 'bg-grey-100 text-grey-300' : 'bg-' + themeColor + '-400'" >
                  <p>新增</p>
-                 <img *ngIf="!name.errors" class="pb-0.5" [src]="'/assets/icons/chevron-right-' + themeColor + '.svg'">
-                 <img *ngIf="name.errors" class="pb-0.5" src="/assets/icons/chevron-right-grey.svg">
+                 <img *ngIf="!name.errors" class="pb-0.5" [src]="'./assets/icons/chevron-right-' + themeColor + '.svg'">
+                 <img *ngIf="name.errors" class="pb-0.5" src="./assets/icons/chevron-right-grey.svg">
              </button>
          </div>
      </div>

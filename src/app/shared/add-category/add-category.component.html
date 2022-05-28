@@ -4,7 +4,7 @@
         <div class="items-center flex justify-between">
             <h2 class="text-2xl">新增資料步驟</h2>
             <button class="p-5" (click)="hide()">
-                <img src="/assets/icons/cross-category.svg">
+                <img src="./assets/icons/cross-category.svg">
             </button>
         </div>
         <div class="step mb-6">
@@ -12,7 +12,7 @@
             <a href="https://docs.google.com/spreadsheets/d/1rGYgg9SDkrafXSGpleAitmpaYMIUd_QNeDnogccZ0Fc/copy" target="_blank" >
                 <button class="bg-category-400 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2">
                     <p>由範本建立試算表</p>
-                    <img class="pb-1.5" src="/assets/icons/external-link.svg">
+                    <img class="pb-1.5" src="./assets/icons/external-link.svg">
                 </button>
             </a>
         </div>
@@ -45,18 +45,18 @@
             <div class="flex">
                 <button class="flex items-center border-b-2 border-category-400" (click)="toggleShowTip()">
                     <small class="text-sm ">設公開教學</small>
-                    <img src="/assets/icons/chevron-down-category.svg" class="icon-transition" [ngStyle]="{'transform': showTip ? 'rotate(180deg)' : ''}">
+                    <img src="./assets/icons/chevron-down-category.svg" class="icon-transition" [ngStyle]="{'transform': showTip ? 'rotate(180deg)' : ''}">
                 </button>
             </div>
             <div class="bg-category-200 rounded-3xl py-3 px-3 mt-3" *ngIf="showTip">
-                <img src="/assets/step3@2x.gif" class="w-96 rounded-xl">
+                <img src="./assets/step3@2x.gif" class="w-96 rounded-xl">
             </div>
         </div>
         <div>
             <button (click)="submit(name.errors)" [ngClass]="name.errors ? 'bg-grey-100 text-grey-300' : 'bg-category-400'" class="rounded-full py-3 flex w-full items-center justify-center space-x-2">
                 <p>新增</p>
-                <img *ngIf="!name.errors" class="pb-0.5" src="/assets/icons/chevron-right-category.svg">
-                <img *ngIf="name.errors" class="pb-0.5" src="/assets/icons/chevron-right-grey.svg">
+                <img *ngIf="!name.errors" class="pb-0.5" src="./assets/icons/chevron-right-category.svg">
+                <img *ngIf="name.errors" class="pb-0.5" src="./assets/icons/chevron-right-grey.svg">
             </button>
             <div class="px-5 pt-2 text-sm text-error-500">
                 <p *ngIf="showSubmitTip && !name.touched">請先填入試算表連結</p>

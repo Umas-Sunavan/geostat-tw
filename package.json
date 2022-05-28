@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "config": "ts-node -O '{\"module\": \"commonjs\"}' ./src/configEnv.index.ts",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

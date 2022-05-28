@@ -61,7 +61,10 @@ export class MapHttpService {
     return this.httpClient.get<HttpMap>(`https://us-central1-twgeostat.cloudfunctions.net/getDB/maps/${id}`)
   }
 
-  addMapSetting = () => {
-
+  changeDefaultCategory = (mapId: string, categoryId: string) => {
+    const headers = new HttpHeaders().set('content-type', 'application/x-www-form-urlencoded')
+    let body = new URLSearchParams();
+    body.set("category", categoryId)
+    return this.httpClient.post<{message:string}>(`https://us-central1-twgeostat.cloudfunctions.net/getDB/maps/${mapId}/category`, body.toString(), { headers })
   }
 }

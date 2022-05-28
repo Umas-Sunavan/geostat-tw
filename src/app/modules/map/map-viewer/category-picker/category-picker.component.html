@@ -18,9 +18,8 @@
                                     class="rounded-full bg-category-200 py-3 px-6 flex space-x-2 items-center my-1 mx-3">
                                     <label [for]="'category' + i" class="flex space-x-2 mr-auto">
                                         <p class="pr-6">{{category.tableName}}</p>
-                                        {{category.categoryId}}
                                     </label>
-                                    <input type="radio" [id]="'category' + i" name="category" [value]="category.categoryId" [(ngModel)]="radioValue" (change)="categoryChanged(category.categoryId)" />
+                                    <input type="radio" [id]="'category' + i" name="category" [value]="category.categoryId" [(ngModel)]="radioValue" (change)="changeCategory(category.categoryId)" />
                                 </label>
                             </ng-container>
                         </div>

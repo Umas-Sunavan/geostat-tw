@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { ActivatedRoute, Route, Router } from '@angular/router';
-import { lastValueFrom, take } from 'rxjs';
+import { BehaviorSubject, lastValueFrom, map, mergeMap, of, Subject, take } from 'rxjs';
+import { MapHttpService } from 'src/app/modules/dashboard/map-http/map-http.service';
 import { CategorySetting, CategorySettings, CategorySettingWithId } from 'src/app/shared/models/CategorySettings';
+import { HttpMap } from 'src/app/shared/models/MapHttp';
 import { CategoryService } from '../map-canvas/category/category.service';
 import { AnimateService } from '../map-canvas/three-services/animate.service';
 
@@ -15,7 +17,8 @@ export class CategoryPickerComponent implements OnInit {
   constructor(
     private animateService: AnimateService,
     private categoryService: CategoryService,
-    private router: Router,
+    private mapHttpService: MapHttpService,
+    private activatedRoute: ActivatedRoute,
   ) { }
 
   blurSource: string = ''
@@ -27,7 +30,25 @@ export class CategoryPickerComponent implements OnInit {
   isCompletedShow: boolean = false
   addingSheetUrl?: string
   addingCategoryId?: string
+  categoryChangeSubject: Subject<string> = new Subject()
+  @Output() changeCategoryOnCanvas: EventEmitter<string> = new EventEmitter()
 
+
+  onCategoryChange = () => {
+    this.categoryChangeSubject.pipe(
+      mergeMap( categoryId => {
+        const mapId = this.activatedRoute.snapshot.paramMap.get("id") || ''
+        return of({mapId, categoryId})
+      }), 
+      mergeMap(({mapId, categoryId}) => {
+        console.log(categoryId);
+        
+        return this.mapHttpService.changeDefaultCategory(mapId, categoryId)
+      })
+    ).subscribe( result => {
+      console.log(result);
+    })
+  }
 
   async ngOnInit(): Promise<void> {
     this.categoryService.getCategorySettings().subscribe(categoriesObj => {
@@ -41,6 +62,13 @@ export class CategoryPickerComponent implements OnInit {
       this.categoriesMappedId = categoriesMappedId
       categoriesMappedId[0].tableName
     })
+    this.onCategoryChange()
+    const mapId = this.activatedRoute.snapshot.paramMap.get("id")
+    if(mapId !== null && +mapId !== NaN) {
+      const map: HttpMap = await lastValueFrom(this.mapHttpService.getMap(+mapId))
+      this.changeCategory(map.defualtCategoryId)
+      this.radioValue = map.defualtCategoryId
+    }
   }
 
   isShow: boolean = true
@@ -53,9 +81,9 @@ export class CategoryPickerComponent implements OnInit {
       })
     }
   }
-
-  categoryChanged = (id: string) => {
-    this.router.navigate(['/map', `${id}`])
+  changeCategory = (categoryId: string) => {
+    this.categoryChangeSubject.next(categoryId)
+    this.changeCategoryOnCanvas.emit(categoryId)
   }
 
   toggleAddCategory = () => this.isAddCategoryShow = !this.isAddCategoryShow
@@ -78,7 +106,7 @@ export class CategoryPickerComponent implements OnInit {
   switchNewCategory = (boolean: boolean) => {
     console.log(this.isCompletedShow);
     if (!this.addingCategoryId) throw new Error("no addingCategoryId. the category could failed without internet connection");
-    this.categoryChanged(this.addingCategoryId)
+    this.changeCategory(this.addingCategoryId)
     this.radioValue = this.addingCategoryId
   }
 

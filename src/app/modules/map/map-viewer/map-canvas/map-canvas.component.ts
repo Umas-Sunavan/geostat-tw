@@ -172,22 +172,13 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     return new Vector2(x, y)
   }
 
-  getCategoryIfFromMapId = (mapIdString: string) => {
+  getCategoryIdFromMapId = (mapIdString: string) => {
     const mapId = Number(mapIdString)
     if (mapId || mapId === 0) {
-      return this.httpMapService.getMap(mapId).pipe( map(map => map.defualtCategoryId) )
+      return this.httpMapService.getMap(mapId).pipe( map( map => map.defualtCategoryId ))
     } else {
       throw new Error("map id should be a number");
     }
-  }
-
-  onCategoryChange = () => {
-    return this.getCategoryIdFromRoute().pipe( 
-      mergeMap( mapId => this.getCategoryIfFromMapId(mapId) ),
-      mergeMap( categoryId => this.categoryService.getCategorySetting(categoryId)),
-      mergeMap( setting => this.appendUrlStatusCode(setting)),
-      mergeMap( setting => this.pinModelService.applyPinHeightFromSetting(setting, this.pins)
-      ))
   }
 
   appendUrlStatusCode = (setting: CategorySetting) => this.categoryService.getCategoryTableByUrl(`https://docs.google.com/spreadsheets/d/${setting.tableSource}/gviz/tq?`).pipe( map(code => {
@@ -211,15 +202,21 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.canvasContainer.nativeElement.addEventListener('click', this.onMouseClick)
     this.pins = await this.pinModelService.initPinsModel()
     await this.initTile()
-    this.onCategoryChange().subscribe( (settingAndPins: {setting: CategorySetting;pins: Pin[]}|undefined) => {
-      if (!settingAndPins) {
-        alert('資料來源錯誤。請確保其Google Sheet已設為公開')
-        return
-      }
-      this.pins = settingAndPins.pins
-      this.applySettings(settingAndPins.setting)
-      this.pinModelService.updatePin3ds(this.pins, this.scene, settingAndPins.setting.options.meshSettings)      
-    })
+  }
+
+  @Input() onCategoryChageFromPicker = (categoryId: string) => {
+    this.categoryService.getCategorySetting(categoryId).pipe( 
+      mergeMap( setting => this.appendUrlStatusCode(setting)),
+      mergeMap( setting => this.pinModelService.applyPinHeightFromSetting(setting, this.pins))
+    ).subscribe( (settingAndPins: {setting: CategorySetting;pins: Pin[]}|undefined) => {
+        if (!settingAndPins) {
+          alert('資料來源錯誤。請確保其Google Sheet已設為公開')
+          return
+        }
+        this.pins = settingAndPins.pins
+        this.applySettings(settingAndPins.setting)
+        this.pinModelService.updatePin3ds(this.pins, this.scene, settingAndPins.setting.options.meshSettings)      
+      })
   }
 
   getCategoryIdFromRouteAsync = async (): Promise<string> => {

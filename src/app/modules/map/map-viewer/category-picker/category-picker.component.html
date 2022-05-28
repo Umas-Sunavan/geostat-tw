@@ -15,9 +15,10 @@
                         <div class="unselected-category overflow-y-auto">
                             <ng-container *ngFor="let category of categoriesMappedId; index as i">
                                 <label
-                                    class="rounded-full bg-category-300 py-3 px-6 flex space-x-2 items-center my-1 mx-3">
+                                    class="rounded-full bg-category-200 py-3 px-6 flex space-x-2 items-center my-1 mx-3">
                                     <label [for]="'category' + i" class="flex space-x-2 mr-auto">
                                         <p class="pr-6">{{category.tableName}}</p>
+                                        {{category.categoryId}}
                                     </label>
                                     <input type="radio" [id]="'category' + i" name="category" [value]="category.categoryId" [(ngModel)]="radioValue" (change)="categoryChanged(category.categoryId)" />
                                 </label>
@@ -38,20 +39,26 @@
 </div>
 <app-add-category
 *ngIf="isAddCategoryShow"
-[setShow]="isAddCategoryShow"
+[useBlurPadding]="true"
+[setPopupBg]="'bg-white/10'"
 (setHide)="toggleAddCategory()"
 (onSubmit)="onGotSheetUrl($event)"
 ></app-add-category>
 <app-add-name
 *ngIf="isAddNameShow"
-[setShow]="isAddNameShow"
+[useBlurPadding]="true"
+[setThemeColor]="'category'"
+[setPopupBg]="'bg-white/10'"
 (setHide)="nameMoveLastSetp()"
 (onSubmit)="onGotName($event)"
 ></app-add-name>
 <app-completed
 *ngIf="isCompletedShow"
 [name]="addedName"
-[setShow]="isCompletedShow"
+[useBlurPadding]="true"
+[setThemeColor]="'category'"
+[setPopupBg]="'bg-white/10'"
+[setCta]="true"
 (setHide)="toggleCompletedShow()"
 (onSubmit)="switchNewCategory($event)"
 ></app-completed>

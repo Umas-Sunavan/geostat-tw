@@ -16,8 +16,18 @@ export class AddNameComponent implements OnInit {
 
   blurSource: string = ''
   nameString: string = ''
+  title: string = '資料表名稱'
+  placeholder: string = "ex. 各分店營業額"
+  backButtonType: string = 'arrow'
+  themeColor = 'primary'
+  popupBgClass = 'bg-white/10'
   @Output()     setHide = new EventEmitter<boolean>()
-  @Input() set  setShow(isShow: boolean) {this.onShow(isShow)}
+  @Input() set setTitle(title: string) { this.title = title}
+  @Input() set setPlaceholder(text: string) { this.placeholder = text}
+  @Input() set setBackButtonType(type: string) { this.backButtonType = type}
+  @Input() set useBlurPadding(enable: boolean) { this.loadBlurSource(enable)}
+  @Input() set setThemeColor(theme: string) { this.themeColor = theme}
+  @Input() set setPopupBg(className: string) { this.popupBgClass = className}
   @Output()     onSubmit = new EventEmitter<string>()
 
   ngOnInit(): void {
@@ -28,10 +38,14 @@ export class AddNameComponent implements OnInit {
     this.blurSource = ''
   }
 
-  onShow = (isShow: boolean) => {
-    this.animateService.getCavasImage().pipe(take(1)).subscribe(value => {
-      this.blurSource = `url(${value})`
-    })
+  loadBlurSource = (enable: boolean) => {
+    if (enable) {
+      this.animateService.getCavasImage().pipe(take(1)).subscribe(value => {
+        this.blurSource = `url(${value})`
+      })
+    } else {
+      this.blurSource = '#ffffff'
+    }
   }
 
   submit = (errors: ValidationErrors | null) => {

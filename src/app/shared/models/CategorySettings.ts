@@ -7,25 +7,7 @@ export interface CategorySettings {
 export interface CategorySetting {
     deleted: Boolean,
     valid: Boolean,
-    options: {
-      cameraPosition: {
-        x: number,
-        y: number,
-        z: number,
-      },
-      colors: {
-        mainColor: string
-      },
-      meshSettings: Gui3dSettings,
-      connectMode: string,
-      connectedPoints: number[],
-      focusOnPoint: {
-        x: number,
-        y: number,
-        z: number,
-      },
-      radius: number
-    },
+    options: CategoryOptions,
     tableCreateDate: string,
     tableCreator: string,
     tableName: string,
@@ -34,4 +16,24 @@ export interface CategorySetting {
 
 export interface CategorySettingWithId extends CategorySetting {
   categoryId: string
+}
+
+export interface CategoryOptions {
+  cameraPosition: {
+    x: number,
+    y: number,
+    z: number,
+  },
+  colors: {
+    mainColor: string
+  },
+  meshSettings: Gui3dSettings,
+  connectMode: string,
+  connectedPoints: number[],
+  focusOnPoint: {
+    x: number,
+    y: number,
+    z: number,
+  },
+  radius: number
 }

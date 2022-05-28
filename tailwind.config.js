@@ -25,7 +25,7 @@ module.exports = {
       },
       'category': {
         100: '#F5F9EB',
-        300: '#EBFAE5',
+        200: '#EBFAE5',
         400: '#BDEB90',
         500: '#349E5F',
       },

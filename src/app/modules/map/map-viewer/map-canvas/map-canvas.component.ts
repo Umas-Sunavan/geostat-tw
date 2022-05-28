@@ -27,6 +27,8 @@ import { PinUtilsService } from './pin-services/pin-utils.service';
 import { Polygon } from 'src/app/shared/models/Polygon';
 import { GuiPolygonSettings } from 'src/app/shared/models/GuiPolygonSettings';
 import { Polygon3dService } from './polygon-service/polygon-3d.service';
+import { HttpMap } from 'src/app/shared/models/MapHttp';
+import { MapHttpService } from 'src/app/modules/dashboard/map-http/map-http.service';
 
 
 
@@ -52,6 +54,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     private pinUtilsService: PinUtilsService,
     private column3dService: Column3dService,
     private polygon3dService: Polygon3dService,
+    private httpMapService: MapHttpService,
   ) {
     this.initQueueToUpdateResolution()
 
@@ -169,8 +172,18 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     return new Vector2(x, y)
   }
 
+  getCategoryIfFromMapId = (mapIdString: string) => {
+    const mapId = Number(mapIdString)
+    if (mapId || mapId === 0) {
+      return this.httpMapService.getMap(mapId).pipe( map(map => map.defualtCategoryId) )
+    } else {
+      throw new Error("map id should be a number");
+    }
+  }
+
   onCategoryChange = () => {
     return this.getCategoryIdFromRoute().pipe( 
+      mergeMap( mapId => this.getCategoryIfFromMapId(mapId) ),
       mergeMap( categoryId => this.categoryService.getCategorySetting(categoryId)),
       mergeMap( setting => this.appendUrlStatusCode(setting)),
       mergeMap( setting => this.pinModelService.applyPinHeightFromSetting(setting, this.pins)
@@ -212,18 +225,18 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   getCategoryIdFromRouteAsync = async (): Promise<string> => {
     return new Promise((resolve, reject) => {
       this.activatedRoute.paramMap.subscribe(param => {
-        const id = param.get('id')
-        if (!id) throw new Error("No param specified in router");
-        resolve(id)
+        const mapId = param.get('id')
+        if (!mapId) throw new Error("No param specified in router");
+        resolve(mapId)
       })
     })
   }
 
   getCategoryIdFromRoute = (): Observable<string> => {
     return this.activatedRoute.paramMap.pipe( map( param => {
-      const id = param.get('id')
-      if (!id) throw new Error("No param specified in router");
-      return id
+      const mapId = param.get('id')
+      if (!mapId) throw new Error("No param specified in router");
+      return mapId
     }))
   }
 

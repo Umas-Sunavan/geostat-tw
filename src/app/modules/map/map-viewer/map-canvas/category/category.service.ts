@@ -5,7 +5,7 @@ import { getDatabase, ref, onValue, Database, push, set } from "firebase/databas
 import { environment } from 'src/environments/environment';
 import { catchError, lastValueFrom, map, Observable, of, tap, timeout } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { CategorySetting, CategorySettings } from 'src/app/shared/models/CategorySettings';
+import { CategoryOptions, CategorySetting, CategorySettings } from 'src/app/shared/models/CategorySettings';
 import { CategoryTableRow } from 'src/app/shared/models/CategoryTableRow';
 import { GoogleSheetRawData, GoogleSheetRow } from 'src/app/shared/models/GoogleSheetRawData';
 import { PinsTableService } from '../pin-services/pins-table.service';
@@ -23,63 +23,64 @@ export class CategoryService {
     this.dataBase = this.initFirebase()
   }
 
+  mockOptions: CategoryOptions = {
+    "cameraPosition": {
+      "x": 10,
+      "y": 20,
+      "z": 0
+    },
+    "colors": {
+      "mainColor": "#ff00ff"
+    },
+    "connectMode": "triangle",
+    "connectedPoints": [
+      1,
+      2,
+      4
+    ],
+    "focusOnPoint": {
+      "x": -10,
+      "y": 0,
+      "z": 0
+    },
+    "meshSettings": {
+      columns: {
+        defaultColumn: {
+          opacity: 0.1,
+          color: '#528bff',
+          heightScale: 1,
+          scale: 0.5,
+        },
+        hoveredColumn: {
+          opacity: 0.1,
+          color: '#528bff',
+        },
+        selectedColumn: {
+          opacity: 0.1,
+          color: '#528bff',
+        },
+      },
+      ground: {
+        color: '#528bff',
+        opacity: 0.5,
+      },
+      polygon: {
+        color: '#528bff',
+        opacity: 0.8,
+      },
+      outline: {
+        color: '#ffffff',
+        opacity: 0.02,
+      }
+    },
+    "radius": 2
+  }
   firebaseConfig
   dataBase: Database  
   mockSetting: CategorySetting = {
     "deleted": true,
     "valid": true,
-    "options": {
-      "cameraPosition": {
-        "x": 10,
-        "y": 20,
-        "z": 0
-      },
-      "colors": {
-        "mainColor": "#ff00ff"
-      },
-      "connectMode": "triangle",
-      "connectedPoints": [
-        1,
-        2,
-        4
-      ],
-      "focusOnPoint": {
-        "x": -10,
-        "y": 0,
-        "z": 0
-      },
-      "meshSettings": {
-        columns: {
-          defaultColumn: {
-            opacity: 0.1,
-            color: '#528bff',
-            heightScale: 1,
-            scale: 0.5,
-          },
-          hoveredColumn: {
-            opacity: 0.1,
-            color: '#528bff',
-          },
-          selectedColumn: {
-            opacity: 0.1,
-            color: '#528bff',
-          },
-        },
-        ground: {
-          color: '#528bff',
-          opacity: 0.5,
-        },
-        polygon: {
-          color: '#528bff',
-          opacity: 0.8,
-        },
-        outline: {
-          color: '#ffffff',
-          opacity: 0.02,
-        }
-      },
-      "radius": 2
-    },
+    "options": this.mockOptions,
     "tableCreateDate": "2022/05/08",
     "tableCreator": "Umas",
     "tableName": "2022 Q2利潤",
@@ -99,6 +100,13 @@ export class CategoryService {
     return newPostRef.key
   }
 
+  addCategoryOptions = async (categoryOptions: CategoryOptions):Promise<string | null> => {
+    const starCountRef = ref(this.dataBase, '/mapOptions');
+    const newPostRef = await push(starCountRef)
+    await set(newPostRef, categoryOptions);
+    return newPostRef.key
+  }
+
   getCategorySettings = ():Observable<CategorySettings> => {
     const starCountRef = ref(this.dataBase, '/pointTables');
     return new Observable(subscribe => {
@@ -107,6 +115,11 @@ export class CategoryService {
         subscribe.next(data)
       });
     })
+  }
+
+  deleteCategorySetting = (id: string) => {
+    const starCountRef = ref(this.dataBase, `/pointTables/${id}`);
+    set(starCountRef, {})
   }
 
   getCategorySetting = (id: string):Observable<CategorySetting> => {

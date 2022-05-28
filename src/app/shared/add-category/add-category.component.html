@@ -1,10 +1,10 @@
-<div class="z-10 pointer-events-none absolute w-full h-screen top-0 left-0 flex justify-center items-center bg-white/10">
+<div class="z-10 pointer-events-none absolute w-full h-screen top-0 left-0 flex justify-center items-center" [ngClass]="popupBgClass">
    <div class="absolute bg-white/30 p-6 rounded-4xl glass-blur" [ngStyle]="{'background-image': blurSource}">
     <div class="w-50 py-6 px-9 bg-white rounded-2xl text-category-500 pointer-events-auto">
         <div class="items-center flex justify-between">
             <h2 class="text-2xl">新增資料步驟</h2>
             <button class="p-5" (click)="hide()">
-                <img src="/assets/icons/cross.svg">
+                <img src="/assets/icons/cross-category.svg">
             </button>
         </div>
         <div class="step mb-6">
@@ -18,7 +18,7 @@
         </div>
         <div class="step mt-6 mb-3">
             <h3 class="py-2">二、複製其連結並貼上</h3>
-            <label class="bg-category-300 rounded-xl px-5 py-5 block" for="catalog-link">
+            <label class="bg-category-200 rounded-xl px-5 py-5 block" for="catalog-link">
                 <input
                 id="catalog-link"
                 type="url"
@@ -27,7 +27,7 @@
                 pattern="https://docs.google.com/spreadsheets/d/.+"
                 [(ngModel)]="sheetUrl"
                 placeholder="https://docs.google.com/spreadsheets/d/1rGYgg9SDkrafXSGpleAitmpaYMIUd_QNeDnogccZ0Fc/copy"
-                class="border-b-2 border-category-400 placeholder:text-category-400 bg-category-300 w-full"
+                class="border-b-2 border-category-400 placeholder:text-category-400 bg-category-200 w-full"
                 (keyup)="urlKeyUp($event, name.value, name.errors?.['pattern'])"
                 >
             </label>
@@ -48,14 +48,14 @@
                     <img src="/assets/icons/chevron-down-category.svg" class="icon-transition" [ngStyle]="{'transform': showTip ? 'rotate(180deg)' : ''}">
                 </button>
             </div>
-            <div class="bg-category-300 rounded-3xl py-3 px-3 mt-3" *ngIf="showTip">
+            <div class="bg-category-200 rounded-3xl py-3 px-3 mt-3" *ngIf="showTip">
                 <img src="/assets/step3@2x.gif" class="w-96 rounded-xl">
             </div>
         </div>
         <div>
             <button (click)="submit(name.errors)" [ngClass]="name.errors ? 'bg-grey-100 text-grey-300' : 'bg-category-400'" class="rounded-full py-3 flex w-full items-center justify-center space-x-2">
                 <p>新增</p>
-                <img *ngIf="!name.errors" class="pb-0.5" src="/assets/icons/chevron-right.svg">
+                <img *ngIf="!name.errors" class="pb-0.5" src="/assets/icons/chevron-right-category.svg">
                 <img *ngIf="name.errors" class="pb-0.5" src="/assets/icons/chevron-right-grey.svg">
             </button>
             <div class="px-5 pt-2 text-sm text-error-500">

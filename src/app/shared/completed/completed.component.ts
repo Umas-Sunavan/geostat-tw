@@ -13,10 +13,16 @@ export class CompletedComponent implements OnInit {
     private animateService: AnimateService
   ) { }
   blurSource: string = ''
-  @Input() set setShow(isShow: boolean) { this.onShow() }
+  themeColor = 'primary'
+  popupBgClass = 'bg-white/10'
+  enableCta = true
+  @Input() set useBlurPadding(enable: boolean) { this.loadBlurSource(enable) }
   @Output() setHide = new EventEmitter<boolean>()
   @Output() onSubmit = new EventEmitter<boolean>()
   @Input() name: string = ''
+  @Input() set setThemeColor(theme: string) { this.themeColor = theme}
+  @Input() set setPopupBg(className: string) { this.popupBgClass = className}
+  @Input() set setCta(enable: boolean) { this.enableCta = enable}
 
   ngOnInit(): void {
   }
@@ -30,10 +36,14 @@ export class CompletedComponent implements OnInit {
     this.setHide.next(true)
   }
 
-  onShow = () => {
-    this.animateService.getCavasImage().pipe(take(1)).subscribe(value => {
-      this.blurSource = `url(${value})`
-    })
+  loadBlurSource = (enable: boolean) => {
+    if (enable) {
+      this.animateService.getCavasImage().pipe(take(1)).subscribe(value => {
+        this.blurSource = `url(${value})`
+      })
+    } else {
+      this.blurSource = '#ffffff'
+    }
   }
 
 }

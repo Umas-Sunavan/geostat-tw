@@ -25,14 +25,12 @@ export class AddCategoryComponent implements OnInit {
   showTip: boolean = false
   blurSource: string = ''
   sheetUrl: string = ''
+  popupBgClass = 'bg-white/10'
   onKeyChange: Subject<any> = new Subject()
   @Output() onSubmit: EventEmitter<string> = new EventEmitter()
   @Output() setHide: EventEmitter<undefined> = new EventEmitter()
-  @Input() set setShow( isShow: boolean) {
-    this.animateService.getCavasImage().pipe(take(1)).subscribe(value => {
-      this.blurSource = `url(${value})`
-    })
-  }
+  @Input() set useBlurPadding( enable: boolean) {this.loadBlurSource(enable)}
+  @Input() set setPopupBg(className: string) { this.popupBgClass = className}
 
   toggleShowTip = () => this.showTip = !this.showTip
 
@@ -41,6 +39,16 @@ export class AddCategoryComponent implements OnInit {
   urlKeyUp = (event: Event, url: string, hasErrorBrforeKeyUp: any) => {
     if(!hasErrorBrforeKeyUp) {
       this.onKeyChange.next(url)
+    }
+  }
+
+  loadBlurSource = (enable: boolean) => {
+    if (enable) {
+      this.animateService.getCavasImage().pipe(take(1)).subscribe(value => {
+        this.blurSource = `url(${value})`
+      })
+    } else {
+      this.blurSource = '#ffffff'
     }
   }
 

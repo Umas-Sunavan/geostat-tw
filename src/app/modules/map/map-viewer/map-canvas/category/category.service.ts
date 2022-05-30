@@ -19,6 +19,8 @@ export class CategoryService {
     private httpClient: HttpClient,
     private pointLocationsService: PinsTableService,
   ) {
+    console.log(environment.firebaseConfig);
+    
     this.firebaseConfig = environment.firebaseConfig
     this.dataBase = this.initFirebase()
   }

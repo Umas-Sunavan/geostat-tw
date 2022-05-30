@@ -13,6 +13,7 @@ export class RendererService {
   makeRenderer = (domToAppend: ElementRef<HTMLCanvasElement>, canvasDimention: Vector2) => {
     this.renderer.setSize(canvasDimention.x, canvasDimention.y)
     domToAppend.nativeElement.appendChild(this.renderer.domElement)
+    this.renderer.shadowMap.enabled = true
     this.renderer.domElement.id = 'canvas'
     return this.renderer
   }

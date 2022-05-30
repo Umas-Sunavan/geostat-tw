@@ -86,6 +86,7 @@ export class Column3dService {
     const normalizedHeight = pin.position3d.y + height / 2
     mesh.geometry.translate(pin.position3d.x,normalizedHeight-0.01,pin.position3d.z)
     mesh.name = name
+    mesh.castShadow = true
     return mesh
   }
 

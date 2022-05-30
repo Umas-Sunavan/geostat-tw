@@ -239,7 +239,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
   getBox = (size: number = 5) => {
     const boxGeo = new BoxGeometry(size, size, size)
-    const boxMaterial = new MeshBasicMaterial({ color: 0xff0000 })
+    const boxMaterial = new MeshPhongMaterial({ color: 0xff0000 })
     const box = new Mesh(boxGeo, boxMaterial)
     return box
   }
@@ -251,7 +251,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.camera = this.cameraService.makeCamera(this.canvasDimention)
     this.scene.add(this.camera)
     this.orbitControl = new OrbitControls(this.camera, this.renderer.domElement);
-    this.orbitControl.target.set(20, 5, 20)
+    this.orbitControl.target.set(25, 0, 26)
     this.orbitControl.update()
     this.orbitControl.listenToKeyEvents(window as any)
     // this.orbitControl.getDistance()

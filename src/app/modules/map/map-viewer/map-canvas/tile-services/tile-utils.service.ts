@@ -101,7 +101,6 @@ export class TileUtilsService {
       const offset = 0.5
       mesh.position.setX(((tileId.x - initTileX + offset)) * tileWidth)
       mesh.position.setZ(((tileId.y - initTileY + offset)) * tileWidth)
-      mesh.receiveShadow = true
       // mesh.position.setY(tileId.z * 0.3)
       mesh.rotateX(-Math.PI * 0.5)
       const tile:Tile = { id: tileId, mesh: mesh}

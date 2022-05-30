@@ -7,7 +7,7 @@ import { MapViewerComponent } from './modules/map/map-viewer/map-viewer.componen
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'dashboard',
+    redirectTo: '/dashboard',
     pathMatch: 'full'  
   },
   {

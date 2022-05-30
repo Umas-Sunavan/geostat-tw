@@ -6,11 +6,6 @@ import { MapViewerComponent } from './modules/map/map-viewer/map-viewer.componen
 
 const routes: Routes = [
   {
-    path: '',
-    redirectTo: '/dashboard',
-    pathMatch: 'full'  
-  },
-  {
     path: 'map/:id',
     component: MapViewerComponent
   },
@@ -20,12 +15,12 @@ const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'dashboard'
+    redirectTo: '/dashboard'
   }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, {useHash: true})],
+  imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

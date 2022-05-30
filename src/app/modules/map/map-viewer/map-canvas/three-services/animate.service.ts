@@ -55,7 +55,7 @@ export class AnimateService {
       this.imageUrl.next(imgData)
       this.isNeedImageData = false;
     }
-    this.orbitControl.update()
+    // orbitControl.update()
     this.onIntersections()
   }
 

@@ -254,7 +254,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.orbitControl.target.set(25, 0, 26)
     this.orbitControl.update()
     this.orbitControl.listenToKeyEvents(window as any)
-    // this.orbitControl.getDistance()
     this.orbitControl.keys = {
       LEFT: 'ArrowLeft', //left arrow
       UP: 'ArrowUp', // up arrow
@@ -265,13 +264,14 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
       ONE: TOUCH.DOLLY_PAN,
       TWO: TOUCH.ROTATE,
     }
-    // this.orbitControl.mouseButtons = {
-    // LEFT: MOUSE.PAN,
-    // MIDDLE: MOUSE.DOLLY,
-    // RIGHT: MOUSE.ROTATE
-    // }
-    // this.orbitControl.maxDistance = 100
-    // this.orbitControl.enableDamping = true
+    this.orbitControl.mouseButtons = {
+    LEFT: MOUSE.PAN,
+    MIDDLE: MOUSE.DOLLY,
+    RIGHT: MOUSE.ROTATE
+    }
+    this.orbitControl.maxDistance = 100
+    this.orbitControl.enableDamping = true
+    this.orbitControl.maxPolarAngle = Math.PI * 0.5
     this.orbitControl.addEventListener('change', this.onCameraChange)
     this.animateService.initAnimate(this.renderer, this.scene, this.camera, this.orbitControl, this.mousePosition)
     this.animateService.animate()

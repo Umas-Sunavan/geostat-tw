@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AmbientLight, HemisphereLight, PointLight, PointLightHelper, Scene } from 'three';
+import { AmbientLight, CameraHelper, DirectionalLight, DirectionalLightHelper, HemisphereLight, PointLight, PointLightHelper, Scene } from 'three';
 
 @Injectable({
   providedIn: 'root'

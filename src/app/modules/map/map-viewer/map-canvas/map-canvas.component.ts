@@ -29,6 +29,7 @@ import { GuiPolygonSettings } from 'src/app/shared/models/GuiPolygonSettings';
 import { Polygon3dService } from './polygon-service/polygon-3d.service';
 import { HttpMap } from 'src/app/shared/models/MapHttp';
 import { MapHttpService } from 'src/app/modules/dashboard/map-http/map-http.service';
+import { environment } from 'src/environments/environment';
 
 
 
@@ -100,6 +101,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     }
   }
   selectedPinsWithDnc: PinWithDnc[] = []
+  debugMode = !environment.production
   @Output() selectedPinsWithDncEmitter: EventEmitter<PinWithDnc[]> = new EventEmitter<PinWithDnc[]>()
   // view
   guiPolygonSettings: GuiPolygonSettings = {
@@ -358,9 +360,11 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   timeoutToPause = () => {
-    setTimeout(() => {
-      this.pauseAnimation()
-    }, 20 * 1000);
+    if (this.debugMode) {
+      setTimeout(() => {
+        this.pauseAnimation()
+      }, 20 * 1000);
+    }
   }
 
 

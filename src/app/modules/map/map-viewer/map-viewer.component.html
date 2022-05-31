@@ -16,7 +16,7 @@
 </p>
 <!-- TODO: add pointer-events-none to this class -->
 <div class="flex flex-row justify-between absolute pointer-events-none w-full">
-  <app-category-picker class="flex flex-col" (changeCategoryOnCanvas)="mapCanvas.onCategoryChageFromPicker($event)"></app-category-picker>
+  <app-category-picker class="flex flex-col" (changeCategoryToCanvas)="mapCanvas.onCategoryChageFromPicker($event)"></app-category-picker>
   <app-map-settings class="flex float-right flex-col" [columnSettings]="mapCanvas.guiColumnSettings"
     [polygonSettings]="mapCanvas.guiPolygonSettings" [pins]="mapCanvas.pins" [selectedPins]="mapCanvas.selectedPins"
     (columnChanged)="mapCanvas.uiUpdatePin($event)" (polygonChanged)="mapCanvas.uiUpdatePolygon($event)"

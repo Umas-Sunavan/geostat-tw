@@ -21,9 +21,12 @@ export class CategoryPickerComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
   ) { }
 
+  isShow: boolean = false
   blurSource: string = ''
-  categoriesMappedId: CategorySettingWithId[] = []
-  radioValue: string = ''
+  categories: CategorySettingWithId[] = []
+  selectedCategoryValue: string = ''
+  selectedCategoryName = ''
+  selectedCategory?: CategorySetting
   isAddCategoryShow: boolean = false
   isAddNameShow:boolean = false
   addedName = ''
@@ -31,47 +34,58 @@ export class CategoryPickerComponent implements OnInit {
   addingSheetUrl?: string
   addingCategoryId?: string
   categoryChangeSubject: Subject<string> = new Subject()
-  @Output() changeCategoryOnCanvas: EventEmitter<string> = new EventEmitter()
+  @Output() changeCategoryToCanvas: EventEmitter<string> = new EventEmitter()
 
-
-  onCategoryChange = () => {
+  initUpdateDefaultCategory = () => {
     this.categoryChangeSubject.pipe(
       mergeMap( categoryId => {
         const mapId = this.activatedRoute.snapshot.paramMap.get("id") || ''
         return of({mapId, categoryId})
       }), 
-      mergeMap(({mapId, categoryId}) => {
-        console.log(categoryId);
-        
-        return this.mapHttpService.changeDefaultCategory(mapId, categoryId)
-      })
-    ).subscribe( result => {
-      console.log(result);
-    })
+      mergeMap(({mapId, categoryId}) => this.mapHttpService.changeDefaultCategory(mapId, categoryId))
+    ).subscribe( result => console.log(result))
   }
 
-  async ngOnInit(): Promise<void> {
-    this.categoryService.getCategorySettings().subscribe(categoriesObj => {
-      const categoriesMappedId: CategorySettingWithId[] = []
-      for (const categoryName in categoriesObj) {
-        const category = categoriesObj[categoryName]
-        const CategoryMappedId: CategorySettingWithId = { categoryId: categoryName, ...category }
-        categoriesMappedId.push(CategoryMappedId)
-      }
-      console.log(categoriesMappedId);
-      this.categoriesMappedId = categoriesMappedId
-      categoriesMappedId[0].tableName
-    })
-    this.onCategoryChange()
-    const mapId = this.activatedRoute.snapshot.paramMap.get("id")
-    if(mapId !== null && +mapId !== NaN) {
-      const map: HttpMap = await lastValueFrom(this.mapHttpService.getMap(+mapId))
-      this.changeCategory(map.defualtCategoryId)
-      this.radioValue = map.defualtCategoryId
+  getCategories = (categoriesObj: CategorySettings) => {
+    const categoriesMappedId: CategorySettingWithId[] = []
+    for (const categoryName in categoriesObj) {
+      const category = categoriesObj[categoryName]
+      const CategoryMappedId: CategorySettingWithId = { categoryId: categoryName, ...category }
+      categoriesMappedId.push(CategoryMappedId)
+    }
+    return categoriesMappedId
+  }
+
+  updateSelectedCategory = (categories: CategorySettingWithId[] , selectedCategoryValue: string) => {
+    const selectedCategory = categories.find( category => category.categoryId === selectedCategoryValue)
+    if (selectedCategory) {
+      this.selectedCategoryName = selectedCategory.tableName
     }
   }
 
-  isShow: boolean = true
+  getCategoryFromFirebase = () => {
+    this.categoryService.getCategorySettings().subscribe(categoriesObj => {
+      this.categories = this.getCategories(categoriesObj)
+      this.updateSelectedCategory(this.categories, this.selectedCategoryValue)
+    })
+  }
+
+  getDefaultCategoryFromDb = async () => {
+    const mapId = this.activatedRoute.snapshot.paramMap.get("id")
+    if(mapId !== null && +mapId !== NaN) {
+      const map: HttpMap = await lastValueFrom(this.mapHttpService.getMap(+mapId))
+      return map.defualtCategoryId
+    } else {
+      throw new Error("map id is not a number");
+    }
+  }
+
+  async ngOnInit(): Promise<void> {
+    this.initUpdateDefaultCategory()
+    const defaultCategoryId = await this.getDefaultCategoryFromDb()
+    this.changeCategory(defaultCategoryId)
+    this.getCategoryFromFirebase()
+  }
 
   toggleShow = () => {
     this.isShow = !this.isShow
@@ -82,9 +96,13 @@ export class CategoryPickerComponent implements OnInit {
     }
   }
   changeCategory = (categoryId: string) => {
+    this.selectedCategoryValue = categoryId
     this.categoryChangeSubject.next(categoryId)
-    this.changeCategoryOnCanvas.emit(categoryId)
+    this.changeCategoryToCanvas.emit(categoryId)
+    this.updateSelectedCategory(this.categories, categoryId)
   }
+
+  // popup functions: 
 
   toggleAddCategory = () => this.isAddCategoryShow = !this.isAddCategoryShow
 
@@ -103,11 +121,9 @@ export class CategoryPickerComponent implements OnInit {
 
   toggleCompletedShow = () => this.isCompletedShow = !this.isCompletedShow
 
-  switchNewCategory = (boolean: boolean) => {
-    console.log(this.isCompletedShow);
+  switchCategoryFromPopup = (boolean: boolean) => {
     if (!this.addingCategoryId) throw new Error("no addingCategoryId. the category could failed without internet connection");
-    this.changeCategory(this.addingCategoryId)
-    this.radioValue = this.addingCategoryId
+    this.changeCategory(this.addingCategoryId)    
   }
 
   onGotName = (name: string) => {
@@ -121,6 +137,6 @@ export class CategoryPickerComponent implements OnInit {
     this.addingCategoryId = this.categoryService.addCategory(defaultSetting) || ''
   }
 
-  updateSelectedStyle = (id: string) => id === this.radioValue ? `url('./assets/icons/checked-radio.svg')` : 'initial'
+  updateSelectedStyle = (id: string) => id === this.selectedCategoryValue ? `url('./assets/icons/checked-radio.svg')` : 'initial'
 
 }

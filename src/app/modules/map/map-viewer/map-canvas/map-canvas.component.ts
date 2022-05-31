@@ -86,6 +86,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   screenRatio = 2
   selectedPins: Pin[] = []
   polygons: Polygon[] = []
+  @Output() isLoadingTile: EventEmitter<boolean> = new EventEmitter()
   @Output() polygonUpdate: EventEmitter<Polygon[]> = new EventEmitter()
   @Input() set onPinSelected(nextSelectedPins: Pin[] | undefined) {
     if (nextSelectedPins) {
@@ -112,9 +113,11 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
   initQueueToUpdateResolution = () => {
     this.queueToUpdateResolution = new Observable(subscriber => {
+      this.isLoadingTile.emit(true)
       this.tileService.updateTilesResolution(this.tiles, this.scene, this.camera).then(next => {
         this.tiles = next
         subscriber.next()
+        this.isLoadingTile.emit(false)
       })
     })
   }

@@ -18,6 +18,7 @@ export class MapViewerComponent implements OnInit {
   averageMoving: Vector2[] = []
   pins: Pin[] = []
   pinSelected?: Pin[]
+  isLoadingTile = false
 
   changeHoverLegend = (options?: { pin: Pin, legendPosition: Vector2 }) => {
     this.hoverPin = options
@@ -46,5 +47,9 @@ export class MapViewerComponent implements OnInit {
 
   polygonUpdate = (polygons: Polygon[]) => {
     console.log(polygons);
+  }
+
+  onLoadingTile = (isLoading: boolean) => {
+    this.isLoadingTile = isLoading
   }
 }

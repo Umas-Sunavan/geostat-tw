@@ -14,7 +14,11 @@
   }">
   {{ pin.title }}
 </p>
-<!-- TODO: add pointer-events-none to this class -->
+<div class="absolute justify-center w-full flex bottom-8">
+  <p *ngIf="isLoadingTile" class="loading pointer-events-none text-xl text-primary-500" >
+    載入圖片中...
+  </p>
+</div>
 <div class="flex flex-row justify-between absolute pointer-events-none w-full">
   <app-category-picker class="flex flex-col" (changeCategoryToCanvas)="mapCanvas.onCategoryChageFromPicker($event)"></app-category-picker>
   <app-map-settings class="flex float-right flex-col" [columnSettings]="mapCanvas.guiColumnSettings"

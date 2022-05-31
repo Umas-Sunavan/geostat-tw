@@ -51,6 +51,16 @@
                             <button class="px-6 py-2 bg-primary-200 rounded-2xl word-break-keep" (click)="editMap($event, map.mapId)">編輯</button>
                         </div>
                     </button>
+                    <ng-container *ngIf="maps.length === 0" >
+                        <button *ngFor="let map of [1,2,3,4,5,6]; index as i"
+                        class="loading bg-white p-9 tint-shadow-primary-sm rounded-2xl flex ">
+                            <div class=" mr-4 p-7 bg-primary-200 rounded-2xl"></div>
+                            <div class="flex flex-col items-start text-left">
+                                <h2 class="text-xl"></h2>
+                                <button class="px-6 py-2 bg-white rounded-2xl word-break-keep"><p class="invisible">編輯</p></button>
+                            </div>
+                        </button>
+                    </ng-container>
                 </div>
             </div>
         </section>
@@ -75,7 +85,8 @@
                 </div>
                 <div class="list flex flex-col overflow-y-auto p-6 mx-6 ml-8">
                     <button *ngFor="let category of categories; index as i"
-                        class="bg-white p-3 xl:p-6 my-3 space-x-2 xl:space-x-4 tint-shadow-primary-sm rounded-2xl flex items-center text-left">
+                        class="justify-between bg-white p-3 xl:p-6 my-3 space-x-2 xl:space-x-4 tint-shadow-primary-sm rounded-2xl flex items-center text-left"
+                        (click)="editCategoryTable($event, category.categoryId)">
                         <p class="hidden xl:inline text">{{i+1}}.</p>
                         <img class="hidden xl:block mr-1 xl:mr-4" [src]="'./assets/icons/category-list-' + (i%3 + 1) + '.svg'">
                         <h2 class="text-xl">{{category.tableName}}</h2>
@@ -91,6 +102,14 @@
                         </div>
                         <button class="px-6 py-2 bg-category-200 rounded-2xl word-break-keep" (click)="editCategory($event, category.categoryId)">編輯</button>
                     </button>
+                    <ng-container *ngIf="categories.length === 0 ">
+                        <button *ngFor="let category of [1,2,3,4,5,6]; index as i"
+                        class="justify-end loading bg-white p-3 xl:p-6 my-3 space-x-2 xl:space-x-4 tint-shadow-primary-sm rounded-2xl flex items-center text-left"
+                        >
+                            <img class="hidden xl:block mr-1 xl:mr-4" [src]="'./assets/icons/category-list-' + (i%3 + 1) + '.svg'">
+                            <button class="px-6 py-2 bg-white rounded-2xl word-break-keep"><p class="invisible">編輯</p></button>
+                        </button>
+                    </ng-container>
                 </div>
             </div>
         </section>

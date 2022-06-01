@@ -9,20 +9,24 @@ export class PinCategoryMappingService {
 
   constructor() { }
 
-  mappingPinAndTable = (rows: CategoryTableRow[], pins: Pin[]) => {
-    const unmappedPins = this.filterMappedPins(rows, pins, true)
-    const unmappedRows = this.filterMappedRows(rows, pins, true)
+  mappingPinAndTable = (table: CategoryTableRow[], pins: Pin[]) => {
+    console.log(table);
+    console.log(pins);
+    const unmappedPins = this.filterMappedPins(table, pins, true)
+    const unmappedRows = this.filterMappedRows(table, pins, true)
     const unmappedCount = [...unmappedPins, ...unmappedRows].length
     if(unmappedCount){
-      console.error("Unmapped pins or category rows detected");
+      // console.error("Unmapped pins or category rows detected");
     } 
-    const mappedPins = this.filterMappedPins(rows, pins, false)
-    const mappedRows = this.filterMappedRows(rows, pins, false)
+    const mappedPins = this.filterMappedPins(table, pins, false)
+    const mappedRows = this.filterMappedRows(table, pins, false)
+    console.log(mappedPins, mappedRows);
+    
     return {mappedPins, mappedRows}
   }
 
-  filterMappedRows = (rows: CategoryTableRow[], pins: Pin[], filterUnmapped: boolean) => {
-    const unmappedRow = rows.filter( row => {      
+  filterMappedRows = (table: CategoryTableRow[], pins: Pin[], filterUnmapped: boolean) => {
+    const unmappedRow = table.filter( row => {      
       const rowExistsInPin = pins.some( pin => pin.title === row.title)
       return filterUnmapped ? !rowExistsInPin : rowExistsInPin
     })

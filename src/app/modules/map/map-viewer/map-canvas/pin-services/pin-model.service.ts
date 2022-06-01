@@ -30,6 +30,10 @@ export class PinModelService {
   ) { }
 
   initPinsModel = async () => {
+    this.pinsTableService.getPinsLonLatCache().subscribe( value => {
+      console.log(value);
+      
+    })
     const googleSheetPinsMappingLonLat = await lastValueFrom(this.pinsTableService.getPinLonLat())
     console.log(googleSheetPinsMappingLonLat);
     

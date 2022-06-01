@@ -86,6 +86,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   screenRatio = 2
   selectedPins: Pin[] = []
   polygons: Polygon[] = []
+  defaultCategoryId: string = ''
   @Output() isLoadingTile: EventEmitter<boolean> = new EventEmitter()
   @Output() polygonUpdate: EventEmitter<Polygon[]> = new EventEmitter()
   @Input() set onPinSelected(nextSelectedPins: Pin[] | undefined) {
@@ -206,18 +207,32 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.canvasContainer.nativeElement.addEventListener('mousewheel', this.onMouseScroll)
     this.canvasContainer.nativeElement.addEventListener('click', this.onMouseClick)
     this.pins = await this.pinModelService.initPinsModel()
+    console.log(this.defaultCategoryId);
+    
+    this.onCategoryChageFromPicker(this.defaultCategoryId) // init after pins ready
     await this.initTile()
   }
 
   @Input() onCategoryChageFromPicker = (categoryId: string) => {
+    console.log(this.defaultCategoryId);
+
+    this.defaultCategoryId = categoryId
+    if(!categoryId) return
     this.categoryService.getCategorySetting(categoryId).pipe( 
-      mergeMap( setting => this.appendUrlStatusCode(setting)),
+      mergeMap( setting => {
+        console.log(setting);
+        
+        return this.appendUrlStatusCode(setting)
+      }),
+      tap( data => console.log(this.pins)),
       mergeMap( setting => this.pinModelService.applyPinHeightFromSetting(setting, this.pins))
     ).subscribe( (settingAndPins: {setting: CategorySetting;pins: Pin[]}|undefined) => {
         if (!settingAndPins) {
           alert('資料來源錯誤。請確保其Google Sheet已設為公開')
           return
         }
+        console.log(this.pins);
+        
         this.pins = settingAndPins.pins
         this.applySettings(settingAndPins.setting)
         this.pinModelService.updatePin3ds(this.pins, this.scene, settingAndPins.setting.options.meshSettings)      

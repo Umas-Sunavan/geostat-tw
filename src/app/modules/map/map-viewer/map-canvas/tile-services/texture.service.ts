@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { delay, firstValueFrom, lastValueFrom, of, take } from 'rxjs';
+import { delay, firstValueFrom, lastValueFrom, Observable, of, take } from 'rxjs';
 import { Color, Texture, TextureLoader } from 'three';
 import { Tile } from 'src/app/shared/models/Tile';
 import { TileId } from 'src/app/shared/models/TileId';
@@ -20,14 +20,18 @@ export class TextureService {
 
 
   applyTexture = async (tiles: Tile[]) => {
-    for (const tile of tiles) {
-      const arrayBuffer = await this.getTextureFromCache(tile.id);
-      const base64 = this.arrayBufferToBase64(arrayBuffer)
-      const texture = await this.getTextureByTextureLoader(base64)
-      if (!tile.mesh) throw new Error("no mesh to apply texture!");
-      tile.mesh.material.map = texture
-      tile.mesh.material.needsUpdate = true;
-    }
+    tiles.map( tile => {
+      return new Promise( async (res, rej) => {
+        const arrayBuffer = await this.getTextureFromCache(tile.id);
+        const base64 = this.arrayBufferToBase64(arrayBuffer)
+        const texture = await this.getTextureByTextureLoader(base64)
+        res(texture)
+        if (!tile.mesh) throw new Error("no mesh to apply texture!");
+        tile.mesh.material.map = texture
+        tile.mesh.material.needsUpdate = true;
+      })
+    })
+    Promise.all(tiles)
   }
 
   getTextureFromCache = async (tileId: TileId) => {

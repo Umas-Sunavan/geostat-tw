@@ -10,8 +10,6 @@ export class PinCategoryMappingService {
   constructor() { }
 
   mappingPinAndTable = (table: CategoryTableRow[], pins: Pin[]) => {
-    console.log(table);
-    console.log(pins);
     const unmappedPins = this.filterMappedPins(table, pins, true)
     const unmappedRows = this.filterMappedRows(table, pins, true)
     const unmappedCount = [...unmappedPins, ...unmappedRows].length
@@ -19,9 +17,7 @@ export class PinCategoryMappingService {
       // console.error("Unmapped pins or category rows detected");
     } 
     const mappedPins = this.filterMappedPins(table, pins, false)
-    const mappedRows = this.filterMappedRows(table, pins, false)
-    console.log(mappedPins, mappedRows);
-    
+    const mappedRows = this.filterMappedRows(table, pins, false)    
     return {mappedPins, mappedRows}
   }
 

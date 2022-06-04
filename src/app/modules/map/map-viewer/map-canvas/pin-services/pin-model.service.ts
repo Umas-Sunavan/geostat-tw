@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { lastValueFrom } from 'rxjs';
+import { concatMap, forkJoin, lastValueFrom, mergeMap, of } from 'rxjs';
 import { CategoryTableRow } from 'src/app/shared/models/CategoryTableRow';
 import { CircleGeometry, CylinderGeometry, Group, Mesh, MeshPhongMaterial, Object3D, Scene, Vector2, Vector3 } from 'three';
 import { GoogleSheetPinMappingLonLat } from 'src/app/shared/models/GoogleSheetPinMappingLonLat';
@@ -13,6 +13,7 @@ import { Gui3dSettings } from 'src/app/shared/models/GuiColumnSettings';
 import { TileUtilsService } from '../tile-services/tile-utils.service';
 import { Column3dService } from '../column-3d-services/column-3d.service';
 import { AnimateService } from '../three-services/animate.service';
+import { GoogleSheetPin } from 'src/app/shared/models/GoogleSheetPin';
 
 @Injectable({
   providedIn: 'root'
@@ -30,15 +31,40 @@ export class PinModelService {
   ) { }
 
   initPinsModel = async () => {
-    this.pinsTableService.getPinsLonLatCache().subscribe( value => {
-      console.log(value);
-      
-    })
-    const googleSheetPinsMappingLonLat = await lastValueFrom(this.pinsTableService.getPinLonLat())
-    console.log(googleSheetPinsMappingLonLat);
-    
+    // retrice all known address from DB (cache). As for the unknown address, theny needs to get geoencoding then put them to DB.
+    const addressFromSheet:GoogleSheetPin[] = await lastValueFrom(this.pinsTableService.getAddressFromSourceSheet())
+    const lonlatCacheFromDb: GoogleSheetPinMappingLonLat[] = await lastValueFrom(this.pinsTableService.getPinsLonLatCache())
+    const {availableCahce, unCachedAddress} = this.filterAvailableLonlatCahce(addressFromSheet, lonlatCacheFromDb)
+    const pinsNeedsToCache = await lastValueFrom(this.pinsTableService.getPinLonLatFromGeoencoding(unCachedAddress))    
+    await lastValueFrom(this.addPinToCache(pinsNeedsToCache))
+    const googleSheetPinsMappingLonLat = [...availableCahce, ...pinsNeedsToCache]
     const pins = this.createPinsModel(googleSheetPinsMappingLonLat)
     return pins
+  }
+
+  addPinToCache = (pins: GoogleSheetPinMappingLonLat[]) => {
+    const requests = pins.map( pin => this.pinsTableService.addAddressCache(pin))
+    if (requests.length > 0) {
+      return of('').pipe( 
+        concatMap( value => forkJoin([...requests]))
+      )
+    } else {
+      return of([])
+    }
+  }
+
+  filterAvailableLonlatCahce = (source: GoogleSheetPin[], cache: GoogleSheetPinMappingLonLat[]) => {
+    const availableCahce: GoogleSheetPinMappingLonLat[] = []
+    const unCachedAddress: GoogleSheetPin[] = []
+    source.filter( sourcePin => {
+      const cachedLonlat = cache.find( cachedLonLat => cachedLonLat.pinData.address === sourcePin.address)
+      if (cachedLonlat) {
+        availableCahce.push(cachedLonlat)
+      } else {
+        unCachedAddress.push(sourcePin)
+      } 
+    })
+    return { availableCahce, unCachedAddress}
   }
 
   createPinsModel = (fromSheet: GoogleSheetPinMappingLonLat[]):Pin[] => {
@@ -53,7 +79,7 @@ export class PinModelService {
       return new Vector2(tileX, tileY)
     }
 
-    return fromSheet.map( (googleSheetPin: GoogleSheetPinMappingLonLat) => {
+    return fromSheet.map( (googleSheetPin: GoogleSheetPinMappingLonLat) => {      
       return {
         id: googleSheetPin.pinData.id,
         height: 0.3,
@@ -69,15 +95,15 @@ export class PinModelService {
   }
 
   applyPinHeightFromSetting = async (setting: CategorySetting, pins: Pin[]) => {
-    if (!setting.valid) return
+    if (!setting.valid) return    
     const categoryTable = await this.categoryService.getTableFromSettings(setting)
     const { mappedPins, mappedRows } = this.pinCategoryMapping.mappingPinAndTable(categoryTable, pins)
-    pins = this.updatePinHeightFromRows(mappedPins, mappedRows)
+    pins = this.updatePinHeightFromRows(mappedPins, mappedRows)    
     return {setting, pins}
   }
 
   updatePinHeightFromRows = (pins: Pin[], rows: CategoryTableRow[]) => {
-    pins.forEach( pin => {
+    pins.forEach( pin => {      
       const mappedRow = rows.find( row => row.title === pin.title)
       if(!mappedRow) throw new Error(`row is not found in pin ${pin.title}`);
       const value = Number(mappedRow.value)
@@ -94,9 +120,13 @@ export class PinModelService {
 
   initPins = (pins: Pin[], scene: Scene, settings: Gui3dSettings) => {
     pins.forEach( pin => {
+      console.log(pin.position3d?.toArray().toString());
+      
       // const pin = pins[0]
       if (!pin.positionLongLat) throw new Error("No Longitude or latitude");
       pin.position3d = this.longLatToPosition3d(pin.positionLongLat)
+      console.log(pin.position3d.toArray().toString());
+      
       const columnGroup = this.column3dService.createColumn3dLayers(pin, settings)
       this.animateService.passIntersetObject([columnGroup])
       

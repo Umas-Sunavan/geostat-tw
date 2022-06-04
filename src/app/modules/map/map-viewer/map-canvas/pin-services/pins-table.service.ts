@@ -28,13 +28,27 @@ export class PinsTableService {
     )
   }
 
+  getPinLonLatFromGeoencoding = (pins: GoogleSheetPin[]): Observable<GoogleSheetPinMappingLonLat[]> => {
+    return of(pins).pipe(
+      this.convertAddressToRawGeoencoding,
+      this.convertGeoencodingToLonLat
+    )
+  }
+
+  getAddressFromSourceSheet = (googleSheetId: string = '1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM'): Observable<GoogleSheetPin[]> => {
+    const options = {responseType: 'text' as 'json',};
+    return this.httpClient.get<GoogleSheetRawData>(`https://docs.google.com/spreadsheets/d/${googleSheetId}/gviz/tq?`, options).pipe(
+      this.convertTalbeToGoogleSheetPins,
+    )
+  }
+
   convertCacheToLonLat = map( (geoencodingCaches: GeoencodingCache[]): GoogleSheetPinMappingLonLat[] => {
     return geoencodingCaches.map( cache => {
-      if (!cache.id) throw new Error("id in the cache is not an number");
+      if (!cache.id) throw new Error("id in the cache is not an number");      
       const pinData =  {
         id: +cache.id,
         address: cache.address,
-        title: cache.address,
+        title: cache.title
       };
       const lonLat = new Vector2(+cache.lon, +cache.lat)
       return {
@@ -156,25 +170,16 @@ export class PinsTableService {
 
   convertAddressToRawGeoencoding = mergeMap( (next: GoogleSheetPin[]): Observable<GoogleSheetPinMappingGeoencodingRaw[]>=> {
     next = next.filter( (v,i) => i < 20)
-    let allRequests = next.map(pointData => {
-      console.log(pointData);
-      
+    let allRequests = next.map(pointData => {      
       const encodedAddress = encodeURIComponent(pointData.address)
       const request = this.getGeoLonLat(encodedAddress, pointData)
       return request
-    });
-    console.log(allRequests);
-    
+    });    
     const groups = this.groupRequest(allRequests)
-    // return from(groups).pipe( mergeMap( forEachGroup => {
-    //   console.log(forEachGroup);
-      
-    //   return forkJoin(forEachGroup)
-    // }))
     return from(groups).pipe( 
-      mergeMap( group => {
+      concatMap( group => {
         return from(group).pipe( 
-          delay(500),
+          delay(250),
           tap( val => console.log('delayeed')),
           mergeMap( rq => rq),
         )
@@ -185,21 +190,18 @@ export class PinsTableService {
 
   groupRequest = (rqs:Observable<GoogleSheetPinMappingGeoencodingRaw>[]): Observable<GoogleSheetPinMappingGeoencodingRaw>[][] => {
     const groups = []        
-    for (let i = 0; i < rqs.length; i+=10) {
-      const emptyGroup = new Array(10).fill(i)
+    for (let i = 0; i < rqs.length; i+=3) {
+      const emptyGroup = new Array(3).fill(i)
       const mappedGroup = emptyGroup.map( (groupId, index) => rqs[groupId + index])
       const solidGroup = mappedGroup.filter( (rq) => Boolean(rq) )
       groups.push(solidGroup)
-    }
-    console.log(groups);
-    
+    }    
     return groups
   }
 
 
   getGeoLonLat = (address: string, pointData: GoogleSheetPin): Observable<GoogleSheetPinMappingGeoencodingRaw> => {
     return this.httpClient.get<GeoencodingRaw>(`https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=AIzaSyAAQr-IWEpmXbcOk3trYWMMcasLuIBZ280`)
-    
     .pipe( map( raw => {
       return {geoencodingRaw: raw, pointData
       }}))
@@ -220,15 +222,15 @@ export class PinsTableService {
     return this.httpClient.get('https://us-central1-twgeostat.cloudfunctions.net/getDB/address')
   }
 
-  addAddressCache = () => {
-    const headers = new HttpHeaders()
-    headers.set('content-type', 'application/x-www-form-urlencoded')
+  addAddressCache = (address: GoogleSheetPinMappingLonLat) => {
+    let headers = new HttpHeaders()
+    headers = headers.set('content-type', 'application/x-www-form-urlencoded')
     const body = new URLSearchParams()
-    body.set("lat", "25.04903031")
-    body.set("lon", "121.64903031")
-    body.set("title", "久天玄女")
-    body.set("address", "中華路五段68號")
-    return this.httpClient.post('https://us-central1-twgeostat.cloudfunctions.net/getDB/address', body, { headers })
+    body.set("lat", address.lonLat.y.toString())
+    body.set("lon", address.lonLat.x.toString())
+    body.set("title", address.pinData.title)
+    body.set("address", address.pinData.address)
+    return this.httpClient.post<{message:string}>('https://us-central1-twgeostat.cloudfunctions.net/getDB/address', body.toString(), { headers })
   }
 
 }

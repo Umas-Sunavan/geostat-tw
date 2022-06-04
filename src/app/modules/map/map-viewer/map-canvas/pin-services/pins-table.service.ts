@@ -18,16 +18,6 @@ export class PinsTableService {
     private httpClient: HttpClient,
   ) { }
 
-  getPinLonLat = (googleSheetId: string = '1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM'): Observable<GoogleSheetPinMappingLonLat[]> => {
-    const options = {responseType: 'text' as 'json',};
-    return this.httpClient.get<GoogleSheetRawData>(`https://docs.google.com/spreadsheets/d/${googleSheetId}/gviz/tq?`, options).pipe(
-      this.convertTalbeToGoogleSheetPins,
-      // this.convertAddressToRawGeoencoding,
-      this.convertAddressToMockGeoencoding,
-      this.convertGeoencodingToLonLat
-    )
-  }
-
   getPinLonLatFromGeoencoding = (pins: GoogleSheetPin[]): Observable<GoogleSheetPinMappingLonLat[]> => {
     return of(pins).pipe(
       this.convertAddressToRawGeoencoding,

@@ -119,9 +119,7 @@ export class PinModelService {
   }
 
   initPins = (pins: Pin[], scene: Scene, settings: Gui3dSettings) => {
-    pins.forEach( pin => {
-      console.log(pin.position3d?.toArray().toString());
-      
+    pins.forEach( pin => {      
       // const pin = pins[0]
       if (!pin.positionLongLat) throw new Error("No Longitude or latitude");
       pin.position3d = this.longLatToPosition3d(pin.positionLongLat)

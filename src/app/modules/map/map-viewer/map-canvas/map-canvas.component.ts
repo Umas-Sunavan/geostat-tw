@@ -48,14 +48,12 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     private lightService: LightService,
     private tileService: TileService,
     private tileUtilsService: TileUtilsService,
-    private tileLonLatCalculation: TileLonglatCalculationService,
     private categoryService: CategoryService,
     private activatedRoute: ActivatedRoute,
     private pinModelService: PinModelService,
     private pinUtilsService: PinUtilsService,
     private column3dService: Column3dService,
     private polygon3dService: Polygon3dService,
-    private httpMapService: MapHttpService,
   ) {
     this.initQueueToUpdateResolution()
 
@@ -176,15 +174,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     const x = (mousePosition.x + 1) / 2 * canvasDomention.x // mousePosition.x: -1~1, which should map to canvas left(0) to right(600)
     const y = (mousePosition.y - 1) / 2 * canvasDomention.y // mousePosition.y: 1~-1, which should map to canvas top(0) to bottom(-450)
     return new Vector2(x, y)
-  }
-
-  getCategoryIdFromMapId = (mapIdString: string) => {
-    const mapId = Number(mapIdString)
-    if (mapId || mapId === 0) {
-      return this.httpMapService.getMap(mapId).pipe( map( map => map.defualtCategoryId ))
-    } else {
-      throw new Error("map id should be a number");
-    }
   }
 
   appendUrlStatusCode = (setting: CategorySetting) => {

@@ -28,7 +28,7 @@
         Geostat.tw
       </a>
     </h2>
-    <h1 class="text-4xl px-6 py-3 font-light">第四季展店地圖</h1>
+    <h1 class="text-4xl px-6 py-3 font-light">{{mapTitle}}</h1>
     <app-category-picker class="flex flex-col m-6" (changeCategoryToCanvas)="mapCanvas.onCategoryChageFromPicker($event)"></app-category-picker>
   </div>
   <app-map-settings class="flex float-right flex-col" [columnSettings]="mapCanvas.guiColumnSettings"

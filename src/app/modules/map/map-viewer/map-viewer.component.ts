@@ -1,7 +1,12 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { lastValueFrom } from 'rxjs';
+import { HttpMap } from 'src/app/shared/models/MapHttp';
 import { Pin, PinWithDnc } from 'src/app/shared/models/Pin';
 import { Polygon } from 'src/app/shared/models/Polygon';
 import { Color, Vector2, Vector3 } from 'three';
+import { MapHttpService } from '../../dashboard/map-http/map-http.service';
 
 @Component({
   selector: 'app-map-viewer',
@@ -10,7 +15,10 @@ import { Color, Vector2, Vector3 } from 'three';
 })
 export class MapViewerComponent implements OnInit {
 
-  constructor() { }
+  constructor(
+    private activatedRoute: ActivatedRoute,
+    private mapHttpService: MapHttpService,
+  ) { }
 
   hoverPin?: { pin: Pin, legendPosition: Vector2 }
   selectedPin: { pin: Pin, legendPosition: Vector2 }[] = []
@@ -19,12 +27,25 @@ export class MapViewerComponent implements OnInit {
   pins: Pin[] = []
   pinSelected?: Pin[]
   isLoadingTile = false
+  mapTitle: string = ""
 
   changeHoverLegend = (options?: { pin: Pin, legendPosition: Vector2 }) => {
     this.hoverPin = options
   }
 
-  ngOnInit(): void {
+  getDefaultCategoryFromDb = async () => {
+    const mapId = this.activatedRoute.snapshot.paramMap.get("id")
+    if(mapId !== null && +mapId !== NaN) {
+      const map: HttpMap = await lastValueFrom(this.mapHttpService.getMap(+mapId))
+      return map
+    } else {
+      throw new Error("map id is not a number");
+    }
+  }
+
+  async ngOnInit(): Promise<void> {
+    const map: HttpMap = await this.getDefaultCategoryFromDb()
+    this.mapTitle = map.mapName
   }
 
   onPinSelected = (pins: Pin[]) => {

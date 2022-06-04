@@ -196,7 +196,10 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     }))
   }
 
-  applySettings = (setting: CategorySetting) => this.guiColumnSettings = setting.options.meshSettings
+  applySettings = (setting: CategorySetting) => {
+    this.guiColumnSettings = setting.options.meshSettings
+    this.guiPolygonSettings = setting.options.meshSettings.polygon
+  }
 
   initOnUserUpdateResolution = () => {
     this.onUserUpdateCamera.pipe(

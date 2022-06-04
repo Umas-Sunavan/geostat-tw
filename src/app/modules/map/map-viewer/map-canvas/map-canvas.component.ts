@@ -187,10 +187,14 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     }
   }
 
-  appendUrlStatusCode = (setting: CategorySetting) => this.categoryService.getCategoryTableByUrl(`https://docs.google.com/spreadsheets/d/${setting.tableSource}/gviz/tq?`).pipe( map(code => {
-    setting.valid = Boolean(code === 200)
-    return setting
-  }))
+  appendUrlStatusCode = (setting: CategorySetting) => {
+    console.log(setting);
+    
+    return this.categoryService.getCategoryTableByUrl(`https://docs.google.com/spreadsheets/d/${setting.tableSource}/gviz/tq?`).pipe( map(code => {
+      setting.valid = Boolean(code === 200)
+      return setting
+    }))
+  }
 
   applySettings = (setting: CategorySetting) => this.guiColumnSettings = setting.options.meshSettings
 
@@ -211,18 +215,19 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     await this.initTile()
   }
 
-  @Input() onCategoryChageFromPicker = (categoryId: string) => {
+  @Input() onCategoryChageFromPicker = async (categoryId: string) => {
+    this.pins = await this.pinModelService.initPinsModel()
     this.defaultCategoryId = categoryId
     if(!categoryId) return
     this.categoryService.getCategorySetting(categoryId).pipe( 
+      take(1),
       mergeMap( setting => this.appendUrlStatusCode(setting)),
-      tap(value => this.pins.map( pin => pin.position3d?.toArray().toString())),
       mergeMap( setting => this.pinModelService.applyPinHeightFromSetting(setting, this.pins))
     ).subscribe( (settingAndPins: {setting: CategorySetting;pins: Pin[]}|undefined) => {
         if (!settingAndPins) {
           alert('資料來源錯誤。請確保其Google Sheet已設為公開')
           return
-        }        
+        }
         this.pins = settingAndPins.pins
         this.applySettings(settingAndPins.setting)
         this.pinModelService.updatePin3ds(this.pins, this.scene, settingAndPins.setting.options.meshSettings)      

@@ -19,7 +19,7 @@ export class LightService {
     const lightHelper = new DirectionalLightHelper(light, 10)
 
     const shadowHelper = new CameraHelper(light.shadow.camera);
-    light.castShadow = true
+    // light.castShadow = true
     light.position.set(35, 40, 20)
     light.shadow.camera.bottom = -20
     light.shadow.camera.top = 10

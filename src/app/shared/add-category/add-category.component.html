@@ -53,10 +53,10 @@
             </div>
         </div>
         <div>
-            <button (click)="submit(name.errors)" [ngClass]="name.errors ? 'bg-grey-100 text-grey-300' : 'bg-category-400'" class="rounded-full py-3 flex w-full items-center justify-center space-x-2">
+            <button (click)="submit(name.errors, googleSheetErrorDscription)" [ngClass]="(name.errors || googleSheetErrorDscription) ? 'bg-grey-100 text-grey-300' : 'bg-category-400'" class="rounded-full py-3 flex w-full items-center justify-center space-x-2">
                 <p>新增</p>
-                <img *ngIf="!name.errors" class="pb-0.5" src="./assets/icons/chevron-right-category.svg">
-                <img *ngIf="name.errors" class="pb-0.5" src="./assets/icons/chevron-right-grey.svg">
+                <img *ngIf="!(name.errors || googleSheetErrorDscription)" class="pb-0.5" src="./assets/icons/chevron-right-category.svg">
+                <img *ngIf="(name.errors || googleSheetErrorDscription)" class="pb-0.5" src="./assets/icons/chevron-right-grey.svg">
             </button>
             <div class="px-5 pt-2 text-sm text-error-500">
                 <p *ngIf="showSubmitTip && !name.touched">請先填入試算表連結</p>

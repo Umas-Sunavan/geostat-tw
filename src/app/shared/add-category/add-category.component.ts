@@ -85,8 +85,8 @@ export class AddCategoryComponent implements OnInit {
     return this.categoryService.getSheetIdFromUrl(this.sheetUrl)
   }
 
-  submit = (hasErrors: any) => {
-    if (hasErrors) return
+  submit = (hasErrors: any, urlInvalid: string) => {
+    if (hasErrors || urlInvalid) return
     this.showSubmitTip = true
     this.onSubmit.next(this.sheetUrl)
     this.hide()

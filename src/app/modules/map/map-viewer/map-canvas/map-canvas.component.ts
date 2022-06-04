@@ -218,7 +218,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     await this.initTile()
   }
 
-  @Input() onCategoryChageFromPicker = async (categoryId: string) => {
+  @Input() onCategoryChageFromPicker = async (categoryId: string) => {  
+    this.pinModelService.removePins(this.pins)
     this.pins = await this.pinModelService.initPinsModel()
     this.defaultCategoryId = categoryId
     if(!categoryId) return

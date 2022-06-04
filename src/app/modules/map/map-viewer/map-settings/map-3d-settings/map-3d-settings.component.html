@@ -85,7 +85,7 @@
           <div class="flex items-center">
             <input class="mr-4 w-full h-3 rounded-xl overflow-hidden" type="color"
               [(ngModel)]="columnSettings.ground.color" (change)="changeColumn($event)" />
-            <p class="w-16">{{ columnSettings.columns.defaultColumn.color }}</p>
+            <p class="w-16">{{ columnSettings.ground.color }}</p>
           </div>
         </div>
       </div>
@@ -96,7 +96,13 @@
           <div class="flex items-center">
             <input class="mr-4" type="range" min="0" max="1" step="0.01" [(ngModel)]="columnSettings.ground.opacity"
               (change)="changeColumn($event)" />
-            <p class="w-16">{{ columnSettings.columns.defaultColumn.heightScale }} KM</p>
+            <p class="w-16">
+              {{
+                columnSettings.ground.opacity * 100
+                | number: "1.0-0"
+                }}
+                %
+            </p>
           </div>
         </div>
       </div>

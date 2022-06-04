@@ -51,7 +51,7 @@
         <div class="flex flex-col">
           <p>圓柱半徑</p>
           <div class="flex items-center">
-            <input class="mr-4" type="range" min="0" max="1" step="0.01"
+            <input class="mr-4" type="range" min="0" max="99" step="0.1"
               [(ngModel)]="columnSettings.columns.defaultColumn.scale" (change)="changeColumn($event)" />
             <p class="w-16">{{ columnSettings.columns.defaultColumn.scale }} KM</p>
           </div>
@@ -62,7 +62,7 @@
         <div class="flex flex-col">
           <p>選中的圓柱透明度</p>
           <div class="flex items-center">
-            <input class="mr-4" type="range" min="0" max="1" step="0.01"
+            <input class="mr-4" type="range" min="0" max="1" step="0.1"
               [(ngModel)]="columnSettings.columns.selectedColumn.opacity" (change)="changeColumn($event)" />
             <p class="w-16">
               {{

@@ -76,6 +76,9 @@ export class Column3dService {
       blending: blending,
       depthWrite: false
     })
+    // one settings.scale unit is 1/12 km
+    const bottomRadius = settings.scale / 12
+    const topRadius = settings.scale / 12
     const height = pin.height * Math.pow(settings.heightScale, 2)
     const radialSegments = 18
     const heightSegments = 5

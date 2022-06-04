@@ -1,12 +1,13 @@
 import { HttpClient, HttpParams, HttpParamsOptions } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { finalize, map, firstValueFrom, BehaviorSubject, switchMap, of, delay, concatMap, take, Observable, lastValueFrom } from 'rxjs';
-import { Camera, DoubleSide, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Scene, Texture, TextureLoader, Vector3 } from 'three';
+import { BoxGeometry, Camera, Color, DoubleSide, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PlaneGeometry, Scene, Texture, TextureLoader, Vector3 } from 'three';
 import { TextureService } from './texture.service';
 import { AnimateService } from '../three-services/animate.service';
 import { TileUtilsService } from './tile-utils.service';
 import { TileId } from 'src/app/shared/models/TileId';
 import { Tile } from 'src/app/shared/models/Tile';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -172,7 +173,13 @@ export class TileService {
 
     const checkSplitTiles = async (fromTiles: Tile[], canvasCenter: Vector3) => {
       let tilesToSplit = this.tileUtilsService.tilesCloseToCanvasCenter(fromTiles, canvasCenter)
-      let cameraZoomedEnough = this.tileUtilsService.isAnyTileCloseToCamera(tilesToSplit, camera)
+      let cameraZoomedEnough = this.tileUtilsService.isAnyTileCloseToCamera(tilesToSplit, camera, scene)
+      if (!environment.production) {
+        // tiles ready to split
+        tilesToSplit.forEach( tile => tile.mesh?.material.color.setRGB(1,0.8,0.8))
+        console.log(cameraZoomedEnough);
+      }
+      
       let repeatCheck = tilesToSplit.length > 0 && cameraZoomedEnough
       while (repeatCheck) {
         try {
@@ -180,7 +187,7 @@ export class TileService {
         } catch (error) {
           console.warn('abandon removing ', tilesToSplit.map(tile => JSON.stringify(tile.id)).join(', '));
         }
-        cameraZoomedEnough = this.tileUtilsService.isAnyTileCloseToCamera(tilesToSplit, camera)
+        cameraZoomedEnough = this.tileUtilsService.isAnyTileCloseToCamera(tilesToSplit, camera, scene)
         tilesToSplit = this.tileUtilsService.tilesCloseToCanvasCenter(fromTiles, canvasCenter)
         repeatCheck = tilesToSplit.length > 0 && cameraZoomedEnough
       }

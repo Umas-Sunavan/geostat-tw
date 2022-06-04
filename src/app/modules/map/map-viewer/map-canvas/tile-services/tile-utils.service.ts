@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Camera, DoubleSide, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Scene, Vector3 } from 'three';
+import { BufferGeometry, Camera, DoubleSide, Line, LineBasicMaterial, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Scene, Vector3 } from 'three';
 import { Tile } from 'src/app/shared/models/Tile';
 import { TileId } from 'src/app/shared/models/TileId';
 import { AnimateService } from '../three-services/animate.service';
 import { TextureService } from './texture.service';
 import { TileService } from './tile.service';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -236,9 +237,22 @@ export class TileUtilsService {
     return new Vector3(tileCenterX, 0, tileCenterY)
   }
 
+  getLine = (positionA: Vector3, positionB: Vector3, scene: Scene) => {
+    const points = [];
+    points.push( positionA);
+    points.push( positionB);
+    const geometry = new BufferGeometry().setFromPoints( points );
+    const material = new LineBasicMaterial( { color: 0x0000ff } );
+    const line2 = new Line( geometry, material );
+    this.debugLines.push(line2)
+    scene.add( line2 );
+  }
+
   // distance
 
-  isAnyTileCloseToCamera = (tiles: Tile[], camera: Camera) => {
+  debugLines: Line<BufferGeometry, LineBasicMaterial>[] =[ ]
+
+  isAnyTileCloseToCamera = (tiles: Tile[], camera: Camera, scene: Scene) => {
     const _getTileCameraDistances = (tiles: Tile[]) => {
       const distances: { tile: Tile, distance: number }[] = []
       const cameraPosition = camera.position.clone()
@@ -250,13 +264,15 @@ export class TileUtilsService {
           console.error('no mesh to child');
         }
       }
+      this.debugLines.forEach( line => line.removeFromParent())
       tiles.forEach(tile => _getDistance(tile))
       return distances
     }
     const lengthMapping = _getTileCameraDistances(tiles)
-    const canTrunChild = lengthMapping.some(({ tile, distance }) => {
-      console.log(tile.id.z, this.getDistanceThresholdOfTileToCamera(tile));
-      
+    const canTrunChild = lengthMapping.some(({ tile, distance }) => {   
+      if (!environment.production) {
+        this.getLine(tile.mesh!.position,tile.mesh!.position.clone().setY(tile.mesh!.position.y + this.getDistanceThresholdOfTileToCamera(tile)),scene)   
+      }
       return distance < this.getDistanceThresholdOfTileToCamera(tile)
     })
     return canTrunChild

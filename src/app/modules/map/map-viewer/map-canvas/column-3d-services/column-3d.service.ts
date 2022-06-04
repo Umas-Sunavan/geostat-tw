@@ -40,11 +40,11 @@ export class Column3dService {
 
   getGround3d = (pin: Pin, blending: any, name:string, settings: GuiGroundSettings, asCircleScale: number) => {
     if (!pin.position3d) throw new Error("No Longitude or latitude when initing mesh");
-    const circleRadius = Math.pow(asCircleScale, 2)
+    const circleRadius = asCircleScale / 12
     const circleGeo = new CircleGeometry(circleRadius, 18)
     circleGeo.rotateX(-Math.PI * 0.5)
     circleGeo.rotateY(Math.PI / 18)
-    const normalizedHeight = pin.id*0.0001 + 0.0001
+    const normalizedHeight = (pin.id % 20) * 0.01 - 0.099
     circleGeo.translate(pin.position3d.x,normalizedHeight,pin.position3d.z)
     const circleMat = new MeshPhongMaterial({
       transparent: true,
@@ -76,8 +76,6 @@ export class Column3dService {
       blending: blending,
       depthWrite: false
     })
-    const bottomRadius = Math.pow(settings.scale, 2)
-    const topRadius = Math.pow(settings.scale, 2)
     const height = pin.height * Math.pow(settings.heightScale, 2)
     const radialSegments = 18
     const heightSegments = 5

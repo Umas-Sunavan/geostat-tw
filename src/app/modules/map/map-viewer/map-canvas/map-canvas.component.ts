@@ -295,11 +295,13 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   initTile = async () => {
+    this.isLoadingTile.emit(true)
     const tileIds = this.tileService.initTileIdsOfLevel8()
     const tiles = await this.tileUtilsService.getTileMeshById(tileIds)
     this.tileUtilsService.updateTileToRaycaster(tiles)
     this.tiles = tiles
     this.tileUtilsService.addTilesToScene(tiles, this.scene)
+    this.isLoadingTile.emit(false)
   }
 
   onMouseMove = async (event: MouseEvent) => {

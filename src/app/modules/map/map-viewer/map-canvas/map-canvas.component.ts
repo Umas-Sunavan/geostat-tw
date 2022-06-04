@@ -262,6 +262,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.scene.add(this.camera)
     this.orbitControl = new OrbitControls(this.camera, this.renderer.domElement);
     this.orbitControl.target.set(21.27, 0, 30.53)
+    this.orbitControl.screenSpacePanning = false
     this.orbitControl.update()
     this.orbitControl.listenToKeyEvents(window as any)
     this.orbitControl.keys = {

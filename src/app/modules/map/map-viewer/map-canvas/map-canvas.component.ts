@@ -261,7 +261,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.camera = this.cameraService.makeCamera(this.canvasDimention)
     this.scene.add(this.camera)
     this.orbitControl = new OrbitControls(this.camera, this.renderer.domElement);
-    this.orbitControl.target.set(25, 0, 26)
+    this.orbitControl.target.set(21.27, 0, 30.53)
     this.orbitControl.update()
     this.orbitControl.listenToKeyEvents(window as any)
     this.orbitControl.keys = {
@@ -348,6 +348,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   onCameraChange = () => {
     this.selectedPinsWithDnc = this.pinUtilsService.getPinsDnc(this.selectedPins, this.canvasDimention, this.camera)
     this.selectedPinsWithDncEmitter.emit(this.selectedPinsWithDnc)
+    this.orbitControl.target.setY(0)
   }
 
   uiUpdatePolygon = (event: Event) => {

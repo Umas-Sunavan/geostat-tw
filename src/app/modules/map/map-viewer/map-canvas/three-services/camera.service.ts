@@ -10,7 +10,7 @@ export class CameraService {
 
   makeCamera = (dimention: Vector2) => {
     const camera = new PerspectiveCamera(45, dimention.x / dimention.y, 0.01, 1000)
-    camera.position.set(25, 20, 36)
+    camera.position.set(20.19, 10.82, 44.58)
     return camera
     
   }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { lastValueFrom, map } from 'rxjs';
 import { CategorySetting, CategorySettings, CategorySettingWithId } from 'src/app/shared/models/CategorySettings';
@@ -30,6 +30,8 @@ export class DashboardComponent implements OnInit {
   showAddCompletePopup: boolean = false
   addedMapName: string = ""
   addedMapId: string = ""
+  editButtonTopPosition = "0px"
+  @ViewChildren('mapCard') mapCards?: QueryList<ElementRef<HTMLDivElement>>
 
   async ngOnInit(): Promise<void> {
     this.maps = await lastValueFrom(this.updateMaps())
@@ -44,7 +46,16 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['map',id])
   }
 
+  calculateCardYPosition = (card: HTMLDivElement, scrollContainer?: HTMLElement|null) => {
+    if (card.parentElement && scrollContainer) {
+      const cardCorrectY = card.offsetTop - scrollContainer.scrollTop
+      this.editButtonTopPosition = cardCorrectY + 'px'
+    }
+  }
+
   editMap = (event: MouseEvent, id: number) => {
+    const card = event.target as HTMLDivElement
+    this.calculateCardYPosition(card, card.parentElement?.parentElement?.parentElement)
     event.stopPropagation();
     this.editingMapId = id
   }
@@ -166,8 +177,9 @@ export class DashboardComponent implements OnInit {
 
   editCategory = (event: MouseEvent, id: string) => {
     event.stopPropagation();
-    console.log(event);
     this.editingCategoryId = id
+    const card = event.target as HTMLDivElement
+    this.calculateCardYPosition(card, card.parentElement?.parentElement)
   }
 
 

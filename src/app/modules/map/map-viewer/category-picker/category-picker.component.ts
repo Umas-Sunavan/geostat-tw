@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { ActivatedRoute, Route, Router } from '@angular/router';
 import { BehaviorSubject, lastValueFrom, map, mergeMap, of, Subject, take } from 'rxjs';
-import { MapHttpService } from 'src/app/modules/dashboard/map-http/map-http.service';
+import { MapHttpService } from 'src/app/shared/services/map-http/map-http.service';
 import { CategorySetting, CategorySettings, CategorySettingWithId } from 'src/app/shared/models/CategorySettings';
 import { HttpMap } from 'src/app/shared/models/MapHttp';
 import { CategoryService } from '../map-canvas/category/category.service';

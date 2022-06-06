@@ -28,7 +28,7 @@ import { Polygon } from 'src/app/shared/models/Polygon';
 import { GuiPolygonSettings } from 'src/app/shared/models/GuiPolygonSettings';
 import { Polygon3dService } from './polygon-service/polygon-3d.service';
 import { HttpMap } from 'src/app/shared/models/MapHttp';
-import { MapHttpService } from 'src/app/modules/dashboard/map-http/map-http.service';
+import { MapHttpService } from 'src/app/shared/services/map-http/map-http.service';
 import { environment } from 'src/environments/environment';
 
 

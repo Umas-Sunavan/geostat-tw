@@ -6,7 +6,7 @@ import { HttpMap } from 'src/app/shared/models/MapHttp';
 import { Pin, PinWithDnc } from 'src/app/shared/models/Pin';
 import { Polygon } from 'src/app/shared/models/Polygon';
 import { Color, Vector2, Vector3 } from 'three';
-import { MapHttpService } from '../../dashboard/map-http/map-http.service';
+import { MapHttpService } from '../../../shared/services/map-http/map-http.service';
 
 @Component({
   selector: 'app-map-viewer',

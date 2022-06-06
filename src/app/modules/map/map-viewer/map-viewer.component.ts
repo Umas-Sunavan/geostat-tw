@@ -28,6 +28,7 @@ export class MapViewerComponent implements OnInit {
   pinSelected?: Pin[]
   isLoadingTile = false
   mapTitle: string = ""
+  hoverLogo = false
   showResetPosition = false
   resetCooldown = false
 

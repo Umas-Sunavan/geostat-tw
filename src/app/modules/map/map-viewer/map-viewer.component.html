@@ -30,6 +30,13 @@
     </h2>
     <h1 class="text-4xl px-6 py-3 font-light">{{mapTitle}}</h1>
     <app-category-picker class="flex flex-col m-6" (changeCategoryToCanvas)="mapCanvas.onCategoryChageFromPicker($event)"></app-category-picker>
+    <button
+    *ngIf="showResetPosition"
+    (click)="mapCanvas.resetPosition()"
+    class="m-6 mr-auto bg-white text-xl py-4 pl-7 pr-8 rounded-full flex items-center text-primary-500 pointer-events-auto">
+      <img class="mr-2" src="./assets/icons/compass.svg" />
+      回到原點
+    </button>
   </div>
   <app-map-settings class="flex float-right flex-col" [columnSettings]="mapCanvas.guiColumnSettings"
     [polygonSettings]="mapCanvas.guiPolygonSettings" [pins]="mapCanvas.pins" [selectedPins]="mapCanvas.selectedPins"

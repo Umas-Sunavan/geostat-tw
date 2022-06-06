@@ -8,9 +8,11 @@ export class CameraService {
 
   constructor() { }
 
+  defaultCameraPosition = [20.19, 10.82, 44.58] as const
+
   makeCamera = (dimention: Vector2) => {
     const camera = new PerspectiveCamera(45, dimention.x / dimention.y, 0.01, 1000)
-    camera.position.set(20.19, 10.82, 44.58)
+    camera.position.set(...this.defaultCameraPosition)
     return camera
     
   }

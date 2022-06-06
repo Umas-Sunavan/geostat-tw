@@ -87,6 +87,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   defaultCategoryId: string = ''
   @Output() isLoadingTile: EventEmitter<boolean> = new EventEmitter()
   @Output() polygonUpdate: EventEmitter<Polygon[]> = new EventEmitter()
+  @Output() cameraPositionCanReset: EventEmitter<boolean> = new EventEmitter()
   @Input() set onPinSelected(nextSelectedPins: Pin[] | undefined) {
     if (nextSelectedPins) {
       const deselectedPin = this.pinUtilsService.aFilterFromB(this.selectedPins, nextSelectedPins)
@@ -259,7 +260,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.camera = this.cameraService.makeCamera(this.canvasDimention)
     this.scene.add(this.camera)
     this.orbitControl = new OrbitControls(this.camera, this.renderer.domElement);
-    this.orbitControl.target.set(21.27, 0, 30.53)
+    this.resetPosition()
     this.orbitControl.screenSpacePanning = false
     this.orbitControl.update()
     this.orbitControl.listenToKeyEvents(window as any)
@@ -350,6 +351,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.selectedPinsWithDnc = this.pinUtilsService.getPinsDnc(this.selectedPins, this.canvasDimention, this.camera)
     this.selectedPinsWithDncEmitter.emit(this.selectedPinsWithDnc)
     this.orbitControl.target.setY(0)
+    this.cameraPositionCanReset.emit(true)
   }
 
   uiUpdatePolygon = (event: Event) => {
@@ -377,5 +379,10 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     }
   }
 
+  resetPosition = () => {
+    this.orbitControl.target.set(21.27, 0, 30.53)
+    this.camera.position.set(...this.cameraService.defaultCameraPosition)
+    this.cameraPositionCanReset.emit(false)
+  }
 
 }

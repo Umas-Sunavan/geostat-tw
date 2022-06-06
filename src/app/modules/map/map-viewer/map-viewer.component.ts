@@ -28,6 +28,8 @@ export class MapViewerComponent implements OnInit {
   pinSelected?: Pin[]
   isLoadingTile = false
   mapTitle: string = ""
+  showResetPosition = false
+  resetCooldown = false
 
   changeHoverLegend = (options?: { pin: Pin, legendPosition: Vector2 }) => {
     this.hoverPin = options
@@ -72,5 +74,17 @@ export class MapViewerComponent implements OnInit {
 
   onLoadingTile = (isLoading: boolean) => {
     this.isLoadingTile = isLoading
+  }
+
+  onCameraPositionCanReset = (canShow: boolean) => {
+    if (canShow && !this.resetCooldown) {
+      this.showResetPosition = true
+    } else {
+      this.showResetPosition = false
+      this.resetCooldown = true
+      setTimeout(() => {
+        this.resetCooldown = false
+      }, 1000);
+    }
   }
 }

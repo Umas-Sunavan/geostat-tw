@@ -67,7 +67,7 @@ export class AddCategoryComponent implements OnInit {
             this.googleSheetSuccessDscription = ''
             break;
           case 0:
-            this.googleSheetErrorDscription = '請繼續下一步，設定試算表為公開。或確保網路正常'
+            this.googleSheetErrorDscription = '請依照下一步，設定試算表為公開。'
             this.googleSheetSuccessDscription = ''
             break;
           case 200:

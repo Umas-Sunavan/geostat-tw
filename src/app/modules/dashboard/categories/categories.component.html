@@ -1,1 +1,75 @@
-<p>categories works!</p>
+<div class="absolute w-full h-full pointer-events-none" style="z-index:1; top: 0px; left: 0px;">
+    <img class="absolute" style="left: 70%; top: 70%;" src="./assets/icons/category-circle-xl.svg">
+    <img class="absolute" style="left: 80%; top: 1%;" src="./assets/icons/category-column-tall-xl.svg">
+    <img class="absolute" style="left: 90%; top: 70%;" src="./assets/icons/category-column-short-xl.svg">
+</div>
+<div class="text-category-500 float-left w-5/6 z-10">
+    <div class="mt-10 mx-10">
+        <button
+            class="bg-category-500 create-button-bg tint-shadow-primary mix-blend-darken flex rounded-3xl text-white w-full items-center"
+            [ngStyle]="{'background-image': 'url(\'./assets/icons/create-category-bg.svg\')'}"
+            (click)="toggleAdderShow()">
+            <img class="px-3 py-9 xl:p-9"  src="./assets/icons/category-add-lg.svg">
+            <div class="flex-col flex-col items-start flex">
+                <h2 class="text-xl font-semibold">新增高度資料</h2>
+                <p class="text-left mr-4">取一個名字，建立一個高度資料</p>
+            </div>
+        </button>
+    </div>
+    <div class="list flex flex-col overflow-y-auto p-6 mx-6 ml-8">
+        <button *ngFor="let category of categories; index as i"
+            class="justify-between bg-white p-3 xl:p-6 my-3 space-x-2 xl:space-x-4 tint-shadow-primary-sm rounded-2xl flex items-center text-left"
+            (click)="editSourceTable($event, category.categoryId)">
+            <div class="flex items-center space-x-2">
+                <p class="hidden xl:inline text">{{i+1}}.</p>
+                <img class="hidden xl:block mr-1 xl:mr-4" [src]="'./assets/icons/category-list-' + (i%3 + 1) + '.svg'">
+            </div>
+            <h2 class="text-xl">{{category.tableName}}</h2>
+            <div *ngIf="category.categoryId === editingCategoryId">
+                <div class="dropdown absolute p-2 bg-white rounded-2xl flex flex-col space-y-2 tint-shadow-primary-sm"  [ngStyle]="{'top': editButtonTopPosition}">
+                    <button class="px-6 py-2 hover:bg-category-200 rounded-2xl" (click)="onDeleteClick($event, category.categoryId)">
+                        刪除
+                    </button>
+                    <button class="px-6 py-2 hover:bg-category-200 rounded-2xl" (click)="editSourceTable($event, category.categoryId)">
+                        編輯資料
+                    </button>
+                </div>
+            </div>
+            <button class="px-6 py-2 bg-category-200 rounded-2xl word-break-keep" (click)="onEditClick($event, category.categoryId)">編輯</button>
+        </button>
+        <ng-container *ngIf="categories.length === 0 ">
+            <button *ngFor="let category of [1,2,3,4,5,6]; index as i"
+            class="justify-end loading bg-white p-3 xl:p-6 my-3 space-x-2 xl:space-x-4 tint-shadow-primary-sm rounded-2xl flex items-center text-left"
+            >
+                <img class="hidden xl:block mr-1 xl:mr-4" [src]="'./assets/icons/category-list-' + (i%3 + 1) + '.svg'">
+                <button class="px-6 py-2 bg-white rounded-2xl word-break-keep"><p class="invisible">編輯</p></button>
+            </button>
+        </ng-container>
+    </div>
+</div>
+
+<!-- 新增資料表 -->
+<app-add-category
+*ngIf="isAdderShow"
+[useBlurPadding]="false"
+[setPopupBg]="'bg-black/10'"
+(setHide)="toggleAdderShow()"
+(onSubmit)="onAdded($event)"
+></app-add-category>
+<app-add-name
+*ngIf="isNamingShow"
+[useBlurPadding]="false"
+[setThemeColor]="'category'"
+[setPopupBg]="'bg-black/10'"
+(setHide)="onNamingCancel()"
+(onSubmit)="onNamed($event)"
+></app-add-name>
+<app-completed
+*ngIf="isCompletedShow"
+[name]="categoryNameToAdd"
+[useBlurPadding]="false"
+[setThemeColor]="'category'"
+[setPopupBg]="'bg-black/10'"
+(setHide)="toggleCompletedShow()"
+[setCta]="false"
+></app-completed>

@@ -1,5 +1,5 @@
 <div class="flex">
-    <nav class="w-16 bg-menu-500 h-screen flex flex-col items-center justify-between z-20">
+    <nav class="w-16 bg-menu-500 h-screen hidden md:flex flex-col items-center justify-between z-20">
         <button class="hover:bg-menu-600 rounded-xl my-2 p-2">
             <img src="./assets/icons/logo.svg" class="w-8">
         </button>
@@ -8,12 +8,12 @@
             <p class="text-white pt-2">登出</p>
         </button>
     </nav>
-    <main class="flex w-full pointer-events-auto dashboard" (click)="clickSpace($event, mapsComponent, categoriesComponent)">
-        <section class="absolute text-primary-500 flex flex-col justify-between h-full p-6">
+    <main class="flex w-full flex-col md:flex-row h-screen pointer-events-auto dashboard" (click)="clickSpace($event, mapsComponent, categoriesComponent)">
+        <section class="absolute top-0 text-primary-500 flex-col justify-between p-6">
             <h1 class="text-2xl font-medium tracking-widest">GeoStat.tw</h1>
             <!-- <small class="tracking-wide">Portions of this content are ©2022 by Umas Sunavan. Content available under a license.</small> -->
         </section>
-        <app-maps #mapsComponent class="category bg-primary-100 w-7/12 flex items-end justify-end"></app-maps>
-        <app-categories #categoriesComponent class="category bg-category-100 w-5/12 flex items-end justify-start"></app-categories>
+        <app-maps #mapsComponent class="category bg-primary-100 md:w-7/12 flex items-end justify-end"></app-maps>
+        <app-categories #categoriesComponent class="category bg-category-100 w-full md:w-5/12 flex items-end justify-start"></app-categories>
     </main>
 </div>

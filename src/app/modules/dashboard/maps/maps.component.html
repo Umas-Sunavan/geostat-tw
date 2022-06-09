@@ -11,8 +11,8 @@
             (click)="onAddClick($event)">
             <img class="px-3 py-9 xl:p-9" src="./assets/icons/map-add-lg.svg">
             <div class="flex-col flex-col items-start flex">
-                <h2 class="text-xl font-semibold">新增地圖</h2>
-                <p>取一個名字，建立一個新地圖</p>
+                <h2 class="dashboard-text-xl font-semibold">新增地圖</h2>
+                <p class="dashboard-text-base text-left mr-4">取一個名字，建立一個新地圖</p>
             </div>
         </button>
     </div>
@@ -21,7 +21,7 @@
             class="bg-white p-9 tint-shadow-primary-sm rounded-2xl flex ">
             <img class=" mr-4" [src]="'./assets/icons/map-list-' + (map.mapId%3 + 1) + '.svg'">
             <div class="flex flex-col items-start text-left">
-                <h2 class="text-xl">{{map.mapName}}</h2>
+                <h2 class="dashboard-text-xl">{{map.mapName}}</h2>
                 <div *ngIf="map.mapId === editingMapId">
                     <div class="dropdown absolute p-2 bg-white rounded-2xl flex flex-col space-y-2 tint-shadow-primary-sm"
                         (click)="clickSpace($event)" [ngStyle]="{'top': editButtonTopPosition}">
@@ -35,7 +35,7 @@
                         </button>
                     </div>
                 </div>
-                <button class="px-6 py-2 bg-primary-200 rounded-2xl word-break-keep"
+                <button class="dashboard-text-base px-3 py-1 md:px-6 md:py-2 bg-primary-200 rounded-2xl word-break-keep"
                     (click)="onEditClick($event, map.mapId)">編輯</button>
             </div>
         </button>
@@ -44,8 +44,8 @@
                 class="loading bg-white p-9 tint-shadow-primary-sm rounded-2xl flex ">
                 <div class=" mr-4 p-7 bg-primary-200 rounded-2xl"></div>
                 <div class="flex flex-col items-start text-left">
-                    <h2 class="text-xl"></h2>
-                    <button class="px-6 py-2 bg-white rounded-2xl word-break-keep">
+                    <h2 class="dashboard-text-xl"></h2>
+                    <button class="dashboard-text-base px-6 py-2 bg-white rounded-2xl word-break-keep">
                         <p class="invisible">編輯</p>
                     </button>
                 </div>

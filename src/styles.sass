@@ -53,3 +53,30 @@ body
 @keyframes shine
     to
         background-position-x: -300%
+
+
+.dashboard-text-xl
+    @apply text-sm
+@screen sm 
+    .dashboard-text-xl
+        @apply text-xl
+@screen md 
+    .dashboard-text-xl
+        @apply text-base
+@screen xl 
+    .dashboard-text-xl
+        @apply text-xl
+
+
+    
+.dashboard-text-base
+    @apply text-xs
+@screen sm 
+    .dashboard-text-base
+        @apply text-base
+@screen md 
+    .dashboard-text-base
+        @apply text-xs
+@screen xl 
+    .dashboard-text-base
+        @apply text-base

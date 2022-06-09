@@ -11,8 +11,8 @@
             (click)="toggleAdderShow()">
             <img class="px-3 py-9 xl:p-9"  src="./assets/icons/category-add-lg.svg">
             <div class="flex-col flex-col items-start flex">
-                <h2 class="text-xl font-semibold">新增高度資料</h2>
-                <p class="text-left mr-4">取一個名字，建立一個高度資料</p>
+                <h2 class="dashboard-text-xl font-semibold">新增高度資料</h2>
+                <p class="dashboard-text-base text-left mr-4">取一個名字，建立一個高度資料</p>
             </div>
         </button>
     </div>
@@ -24,7 +24,7 @@
                 <p class="hidden xl:inline text">{{i+1}}.</p>
                 <img class="hidden xl:block mr-1 xl:mr-4" [src]="'./assets/icons/category-list-' + (i%3 + 1) + '.svg'">
             </div>
-            <h2 class="text-xl">{{category.tableName}}</h2>
+            <h2 class="dashboard-text-xl mr-2">{{category.tableName}}</h2>
             <div *ngIf="category.categoryId === editingCategoryId">
                 <div class="dropdown absolute p-2 bg-white rounded-2xl flex flex-col space-y-2 tint-shadow-primary-sm"  [ngStyle]="{'top': editButtonTopPosition}">
                     <button class="px-6 py-2 hover:bg-category-200 rounded-2xl" (click)="onDeleteClick($event, category.categoryId)">
@@ -35,7 +35,7 @@
                     </button>
                 </div>
             </div>
-            <button class="px-6 py-2 bg-category-200 rounded-2xl word-break-keep" (click)="onEditClick($event, category.categoryId)">編輯</button>
+            <button class="dashboard-text-base px-6 py-2 bg-category-200 rounded-2xl word-break-keep" (click)="onEditClick($event, category.categoryId)">編輯</button>
         </button>
         <ng-container *ngIf="categories.length === 0 ">
             <button *ngFor="let category of [1,2,3,4,5,6]; index as i"
@@ -43,6 +43,7 @@
             >
                 <img class="hidden xl:block mr-1 xl:mr-4" [src]="'./assets/icons/category-list-' + (i%3 + 1) + '.svg'">
                 <button class="px-6 py-2 bg-white rounded-2xl word-break-keep"><p class="invisible">編輯</p></button>
+                <button class="dashboard-text-base px-6 py-2 bg-white rounded-2xl word-break-keep"><p class="invisible">編輯</p></button>
             </button>
         </ng-container>
     </div>

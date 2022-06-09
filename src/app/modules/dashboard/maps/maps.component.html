@@ -1,9 +1,13 @@
-<div class="absolute w-full h-full pointer-events-none" style="z-index:1; top: 0px; left: 0px;">
-    <img class="absolute" style="left: 40%; top: 13%;" src="./assets/icons/map-circle-xl.svg">
-    <img class="absolute" style="left: 40%; top: 80%;" src="./assets/icons/map-pin-xl.svg">
-    <img class="absolute" style="left: 3%; top: 60%;" src="./assets/icons/map-paper-xl.svg">
-</div>
-<div class="bg-primary-300 text-primary-500 float-right w-5/6 z-10" (click)="clickSpace($event)">
+<div class="
+    bg-primary-300 text-primary-500 md:float-right 
+    w-full sm:w-3/4 md:w-full xl:w-5/6
+    mx-auto md:mx-0 mt-10 md:mt-0 z-10
+    " (click)="clickSpace($event)">
+    <div class="absolute left-0 top-0 w-full h-full pointer-events-none overflow-hidden">
+        <img class="absolute map-icon" src="./assets/icons/map-circle-xl.svg">
+        <img class="absolute map-icon" src="./assets/icons/map-pin-xl.svg">
+        <img class="absolute map-icon" src="./assets/icons/map-paper-xl.svg">
+    </div>    
     <div class="mt-10 mx-10">
         <button
             class="bg-primary-500 create-button-bg tint-shadow-primary mix-blend-darken flex rounded-3xl text-white w-full items-center"

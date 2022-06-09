@@ -1,9 +1,13 @@
-<div class="absolute w-full h-full pointer-events-none" style="z-index:1; top: 0px; left: 0px;">
-    <img class="absolute" style="left: 70%; top: 70%;" src="./assets/icons/category-circle-xl.svg">
-    <img class="absolute" style="left: 80%; top: 1%;" src="./assets/icons/category-column-tall-xl.svg">
-    <img class="absolute" style="left: 90%; top: 70%;" src="./assets/icons/category-column-short-xl.svg">
-</div>
-<div class="text-category-500 float-left w-5/6 z-10">
+
+<div class="
+    text-category-500 float-left 
+    w-full sm:w-3/4 md:w-full xl:w-5/6
+    mx-auto md:mx-0 z-10">
+    <div class="absolute left-0 w-full h-full pointer-events-none overflow-hidden" style="z-index: 0;">
+        <img class="absolute category-icon" src="./assets/icons/category-circle-xl.svg">
+        <img class="absolute category-icon" src="./assets/icons/category-column-tall-xl.svg">
+        <img class="absolute category-icon" src="./assets/icons/category-column-short-xl.svg">
+    </div>
     <div class="mt-10 mx-10">
         <button
             class="bg-category-500 create-button-bg tint-shadow-primary mix-blend-darken flex rounded-3xl text-white w-full items-center"

@@ -14,7 +14,8 @@ input[type="range"]
     outline: none /* 避免點選會有藍線或虛線 */
     border-radius: 30px
     background: #8354bf
-    width: 170px
+    min-width: 50px
+    width: 100%
 input[type="range"]::-moz-range-thumb
     -webkit-appearance: none
     -moz-appearance: none
@@ -49,6 +50,3 @@ input[type="range"]::-webkit-slider-thumb:after
     content: ""
     pointer-events: none
     transition: .2s
-.glass-blur > div
-    max-height: calc(100vh - 9.8rem)
-    overflow-y: auto

@@ -1,59 +1,71 @@
-<p
-  *ngIf="hoverPin"
-  class="legend pointer-events-none"
-  [ngStyle]="{
-    left: hoverPin.legendPosition.x + 'px',
-    top: -hoverPin.legendPosition.y + 'px'
-  }"
->
-  {{ hoverPin.pin.title }}
-</p>
-<p *ngFor="let pin of pinsSelectedWithDnc; let in = index" class="legend pointer-events-none" [ngStyle]="{
-    left: pin.deviceCoordinate.x + 'px',
-    top: pin.deviceCoordinate.y + 'px'
-  }">
-  {{ pin.title }}
-</p>
-<div class="absolute justify-center w-full flex bottom-8">
-  <p *ngIf="isLoadingTile" class="loading pointer-events-none text-xl text-primary-500" >
-    載入圖片中...
+<div>
+  <p
+    *ngIf="hoverPin"
+    class="legend pointer-events-none"
+    [ngStyle]="{
+      left: hoverPin.legendPosition.x + 'px',
+      top: -hoverPin.legendPosition.y + 'px'
+    }"
+  >
+    {{ hoverPin.pin.title }}
   </p>
-</div>
-<div class="flex flex-row justify-between absolute pointer-events-none w-full">
-  <div class="flex flex-col h-screen justify-between">
-    <div class="flex flex-col p-6 text-primary-500 pointer-events-auto">
-      <h2>
-        <a 
-        class="text-2xl my-6 mx-3 p-3 font-medium hover:bg-primary-500 hover:text-white rounded-2xl flex items-center"
-        [routerLink]="['dashboard']" (mouseenter)="hoverLogo = true" (mouseleave)="hoverLogo = false">
-          <img *ngIf="hoverLogo" src="./assets/icons/logo.svg" class="w-8 pr-1 pb-1">
-          <img *ngIf="!hoverLogo" src="./assets/icons/logo-primary.svg" class="w-8 pr-1 pb-1">
-          Geostat.tw
-        </a>
-      </h2>
-      <h1 class="text-4xl px-6 py-3 font-light">{{mapTitle}}</h1>
-      <app-category-picker class="flex flex-col m-6" (changeCategoryToCanvas)="mapCanvas.onCategoryChageFromPicker($event)"></app-category-picker>
-    </div>
-    <button
-    *ngIf="showResetPosition"
-    (click)="mapCanvas.resetPosition()"
-    class="m-6 mr-auto bg-white text-xl py-4 pl-7 pr-8 rounded-full flex items-center text-primary-500 pointer-events-auto">
-      <img class="mr-2" src="./assets/icons/compass.svg" />
-      回到原點
-    </button>
-    
+  <p *ngFor="let pin of pinsSelectedWithDnc; let in = index" class="fixed legend pointer-events-none" [ngStyle]="{
+      left: pin.deviceCoordinate.x + 'px',
+      top: pin.deviceCoordinate.y + 'px'
+    }">
+    {{ pin.title }}
+  </p>
+  <div class="absolute justify-center w-full flex bottom-8">
+    <p *ngIf="isLoadingTile" class="loading pointer-events-none text-xl text-primary-500" >
+      載入圖片中...
+    </p>
   </div>
-  <app-map-settings class="flex float-right flex-col" [columnSettings]="mapCanvas.guiColumnSettings"
-    [polygonSettings]="mapCanvas.guiPolygonSettings" [pins]="mapCanvas.pins" [selectedPins]="mapCanvas.selectedPins"
-    (columnChanged)="mapCanvas.uiUpdatePin($event)" (polygonChanged)="mapCanvas.uiUpdatePolygon($event)"
-    (pinSelected)="onPinSelected($event)" [polygons]="mapCanvas.polygons"></app-map-settings>
+  <div class="flex flex-row justify-between absolute pointer-events-none w-full">
+    <div class="flex flex-col h-screen justify-between">
+      <div class="
+      md:p-6 
+      flex flex-col text-primary-500 pointer-events-auto">
+        <h2>
+          <a 
+          class="
+          md:text-2xl 
+          mx-3 p-3 md:my-6 
+          font-medium hover:bg-primary-500 hover:text-white rounded-2xl flex items-center"
+          [routerLink]="['dashboard']" (mouseenter)="hoverLogo = true" (mouseleave)="hoverLogo = false">
+            <img *ngIf="hoverLogo" src="./assets/icons/logo.svg" class="w-8 pr-1 pb-1">
+            <img *ngIf="!hoverLogo" src="./assets/icons/logo-primary.svg" class="w-8 pr-1 pb-1">
+            Geostat.tw
+          </a>
+        </h2>
+        <h1 class="
+        text-lg md:text-4xl px-6 py-3 
+        font-light">{{mapTitle}}</h1>
+        <app-category-picker class="flex flex-col m-6" (changeCategoryToCanvas)="mapCanvas.onCategoryChageFromPicker($event)"></app-category-picker>
+      </div>
+      <button
+      *ngIf="showResetPosition"
+      (click)="mapCanvas.resetPosition()"
+      class="
+      ml-6 mb-6 mr-auto px-4 py-2 md:py-4 md:pl-7 md:pr-8 
+      bg-white rounded-full flex items-center text-primary-500 pointer-events-auto
+      md:text-xl ">
+        <img class="mr-2" src="./assets/icons/compass.svg" />
+        回到原點
+      </button>
+      
+    </div>
+    <app-map-settings class="flex float-right flex-col" [columnSettings]="mapCanvas.guiColumnSettings"
+      [polygonSettings]="mapCanvas.guiPolygonSettings" [pins]="mapCanvas.pins" [selectedPins]="mapCanvas.selectedPins"
+      (columnChanged)="mapCanvas.uiUpdatePin($event)" (polygonChanged)="mapCanvas.uiUpdatePolygon($event)"
+      (pinSelected)="onPinSelected($event)" [polygons]="mapCanvas.polygons"></app-map-settings>
+  </div>
+  <app-map-canvas 
+  #mapCanvas
+  (hoverOnPin)="changeHoverLegend($event)"
+  [onPinSelected]="pinSelected"
+  class="absolute h-screen"
+  (selectedPinsWithDncEmitter)="onSelectedPinsWithDnc($event)"
+  (isLoadingTile)="onLoadingTile($event)"
+  (cameraPositionCanReset)="onCameraPositionCanReset($event)"
+  ></app-map-canvas>
 </div>
-<app-map-canvas 
-#mapCanvas
-(hoverOnPin)="changeHoverLegend($event)"
-[onPinSelected]="pinSelected"
-class="absolute h-screen"
-(selectedPinsWithDncEmitter)="onSelectedPinsWithDnc($event)"
-(isLoadingTile)="onLoadingTile($event)"
-(cameraPositionCanReset)="onCameraPositionCanReset($event)"
-></app-map-canvas>

@@ -1,9 +1,9 @@
 <section class="glass-blur rounded-2xl pointer-events-auto" [ngStyle]="{ backgroundImage: blurSource }">
-  <div class="bg-white/90 m-3 p-3 rounded-xl flex text-pins-500 flex-col">
+  <div class="bg-white/90 m-3 p-3 rounded-xl flex text-pins-500 flex-col settings-height">
     <h2 class="p-2 text-xl">選取落點</h2>
     <form>
       <fieldset>
-        <div class="flex flex-col pins">
+        <div class="flex flex-col list-scroll-size overflow-y-auto">
           <div class="selected-pins">
             <ng-container *ngFor="let pin of selectedPinsWithType; index as i">
               <label [for]="'selected-pin-' + i"

@@ -1,12 +1,18 @@
 <div class="flex flex-col">
-    <p class="text-primary-500 pb-3">高度表示：</p>
+    <p class="
+    text-xs md:text-base 
+    text-primary-500
+    pb-3">高度表示：</p>
     <button
-        class="pointer-events-auto tint-shadow-primary gradient-bg bg-primary text-xl mr-auto py-4 px-8 rounded-full flex items-center text-white"
+        class="
+        md:text-xl
+        pointer-events-auto tint-shadow-primary gradient-bg bg-primary rounded-full flex items-center text-white
+        mr-auto px-4 py-2 md:py-4 md:px-8 "
         (click)="toggleShow()">
         {{selectedCategoryName}}
         <img src="./assets/icons/chevron-down-white.svg" />
     </button>
-    <section class="pointer-events-auto glass-blur rounded-2xl my-6" *ngIf="isShow" [ngStyle]="{'background-image': blurSource}">
+    <section class="position-absolute left-0 pointer-events-auto glass-blur rounded-2xl my-6" *ngIf="isShow" [ngStyle]="{'background-image': blurSource}">
         <div class="bg-white/90 m-3 p-3 rounded-xl flex text-category-500 flex-col">
             <h2 class="p-2 text-xl">高度表示資料</h2>
             <form class="my-3 rounded-xl">

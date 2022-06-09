@@ -8,7 +8,7 @@
         <img class="absolute category-icon" src="./assets/icons/category-column-tall-xl.svg">
         <img class="absolute category-icon" src="./assets/icons/category-column-short-xl.svg">
     </div>
-    <div class="mt-10 mx-10">
+    <div class="mt-10 mx-10 z-10 relative">
         <button
             class="
             bg-category-500 create-button-bg tint-shadow-primary mix-blend-darken 
@@ -24,7 +24,8 @@
         </button>
     </div>
     <div class="
-        list flex flex-col overflow-y-auto p-3 p-6 mx-6 ml-8
+        list flex flex-col overflow-y-auto relative
+        p-3 p-6 mx-6 ml-8 
         ">
         <button *ngFor="let category of categories; index as i"
             class="justify-between bg-white p-3 xl:p-6 my-3 md:space-x-2 xl:space-x-4 tint-shadow-primary-sm rounded-2xl flex items-center text-left"
@@ -38,10 +39,10 @@
             <h2 class="dashboard-text-xl mr-2">{{category.tableName}}</h2>
             <div *ngIf="category.categoryId === editingCategoryId">
                 <div class="dropdown absolute p-2 bg-white rounded-2xl flex flex-col space-y-2 tint-shadow-primary-sm"  [ngStyle]="{'top': editButtonTopPosition}">
-                    <button class="px-6 py-2 hover:bg-category-200 rounded-2xl" (click)="onDeleteClick($event, category.categoryId)">
+                    <button class="dashboard-text-base px-6 py-2 hover:bg-category-200 rounded-2xl" (click)="onDeleteClick($event, category.categoryId)">
                         刪除
                     </button>
-                    <button class="px-6 py-2 hover:bg-category-200 rounded-2xl" (click)="editSourceTable($event, category.categoryId)">
+                    <button class="dashboard-text-base px-6 py-2 hover:bg-category-200 rounded-2xl" (click)="editSourceTable($event, category.categoryId)">
                         編輯資料
                     </button>
                 </div>

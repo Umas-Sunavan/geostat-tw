@@ -86,10 +86,10 @@ export class PinUtilsService {
   }
 
   getPinIdFromGroup = (group:Group) => {
-    const id = group.name.match(/(?=.+_?)\d+/);
-    const isValidId = id && id[0]
+    const id = group.name.split(/pin_group_(\d+)/)
+    const isValidId = id && id[1]
     if(isValidId) {
-      return id[0]
+      return id[1]
     } else {
       throw new Error("hovered pin has no valid id");
     }

@@ -204,9 +204,9 @@ export class CategoryService {
   }
 
   getSheetIdFromUrl = (url:string) => {
-    const idArray:RegExpMatchArray | null = url.match(/(?<=\/d\/).+(?=\/)/g)
-    if (idArray && idArray[0]) {
-      return idArray[0]
+    const splitUrl: string[] = url.split(/(.+)\/d\/(.+)\//g)
+    if (splitUrl && splitUrl[2]) {
+      return splitUrl[2]
     } else {
       throw new Error("No id found");
     }

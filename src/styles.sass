@@ -2,10 +2,17 @@
 @tailwind components
 @tailwind utilities
 /* You can add global styles to this file, and also import other style files */
+
+html
+//   min-height: 100vh
+//   height: -webkit-fill-available
 body
     margin: 0px
     font-family: 'Catamaran', sans-serif
     font-weight: 400
+    min-height: 100vh
+    /* mobile viewport bug fix */
+    min-height: -webkit-fill-available
 .glass-blur
     background-repeat: no-repeat
     background-attachment: fixed

@@ -1,7 +1,7 @@
 <div>
   <p
     *ngIf="hoverPin"
-    class="legend pointer-events-none"
+    class="z-20 legend pointer-events-none"
     [ngStyle]="{
       left: hoverPin.legendPosition.x + 'px',
       top: -hoverPin.legendPosition.y + 'px'
@@ -9,18 +9,18 @@
   >
     {{ hoverPin.pin.title }}
   </p>
-  <p *ngFor="let pin of pinsSelectedWithDnc; let in = index" class="fixed legend pointer-events-none" [ngStyle]="{
+  <p *ngFor="let pin of pinsSelectedWithDnc; let in = index" class="z-20 fixed legend pointer-events-none" [ngStyle]="{
       left: pin.deviceCoordinate.x + 'px',
       top: pin.deviceCoordinate.y + 'px'
     }">
     {{ pin.title }}
   </p>
-  <div class="absolute justify-center w-full flex bottom-8">
+  <div class="z-20 absolute justify-center w-full flex bottom-8">
     <p *ngIf="isLoadingTile" class="loading pointer-events-none text-xl text-primary-500" >
       載入圖片中...
     </p>
   </div>
-  <div class="flex flex-row justify-between absolute pointer-events-none w-full">
+  <div class="z-20 flex flex-row justify-between absolute pointer-events-none w-full">
     <div class="flex flex-col h-screen justify-between">
       <div class="
       md:p-6 
@@ -63,7 +63,7 @@
   #mapCanvas
   (hoverOnPin)="changeHoverLegend($event)"
   [onPinSelected]="pinSelected"
-  class="absolute h-screen"
+  class="z-10 absolute h-screen"
   (selectedPinsWithDncEmitter)="onSelectedPinsWithDnc($event)"
   (isLoadingTile)="onLoadingTile($event)"
   (cameraPositionCanReset)="onCameraPositionCanReset($event)"

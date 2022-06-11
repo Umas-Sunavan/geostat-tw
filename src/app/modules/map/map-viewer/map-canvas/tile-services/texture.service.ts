@@ -23,15 +23,34 @@ export class TextureService {
     tiles.map( tile => {
       return new Promise( async (res, rej) => {
         const arrayBuffer = await this.getTextureFromCache(tile.id);
-        const base64 = this.arrayBufferToBase64(arrayBuffer)
+        let base64 = this.arrayBufferToBase64(arrayBuffer)
+        // base64 = await this.resizedataURL(base64,256,256)`
         const texture = await this.getTextureByTextureLoader(base64)
-        res(texture)
+        texture.anisotropy = 0.0625
         if (!tile.mesh) throw new Error("no mesh to apply texture!");
         tile.mesh.material.map = texture
         tile.mesh.material.needsUpdate = true;
+        res(texture)
+        
       })
     })
     Promise.all(tiles)
+  }
+
+  resizedataURL = (datas: any, wantedWidth: number, wantedHeight: number): Promise<string> => {
+    return new Promise( (res, rej) => {
+      var img = document.createElement('img');
+      img.onload = function() {        
+              var canvas = document.createElement('canvas');
+              var ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+              canvas.width = wantedWidth;
+              canvas.height = wantedHeight;
+              ctx.drawImage(this as any, 0, 0, wantedWidth, wantedHeight);
+              var dataURI = canvas.toDataURL();
+              res(dataURI)
+          };
+      img.src = datas;
+    })     
   }
 
   getTextureFromCache = async (tileId: TileId) => {

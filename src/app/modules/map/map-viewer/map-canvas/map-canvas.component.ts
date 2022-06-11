@@ -282,7 +282,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     }
     this.orbitControl.maxDistance = 100
     // @ts-ignore
-    if(navigator.userAgentData.mobile) this.orbitControl.enableDamping = true
+    if(!navigator.userAgentData.mobile) this.orbitControl.enableDamping = true
     this.orbitControl.maxPolarAngle = Math.PI * 0.5 - 0.1
     this.orbitControl.addEventListener('change', this.onCameraChange)
     this.animateService.initAnimate(this.renderer, this.scene, this.camera, this.orbitControl, this.mousePosition)

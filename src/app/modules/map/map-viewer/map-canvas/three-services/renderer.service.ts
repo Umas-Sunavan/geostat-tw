@@ -18,6 +18,14 @@ export class RendererService {
     return this.renderer
   }
 
+  chechClientPerformance = () => {
+    const expectedFrameRate = this.renderer.info.render.frame / 30
+    const highPerformance = expectedFrameRate > 10
+    const lowPerformance = expectedFrameRate < 4
+    const result = highPerformance? ClientPerformance.HIGH: lowPerformance? ClientPerformance.LOW: ClientPerformance.MEDIUM
+    return result
+  }
+
   updateMouse = (event: MouseEvent) => {
     const domLeftPadding = this.renderer.domElement.offsetLeft
     const domTopPadding = this.renderer.domElement.offsetTop

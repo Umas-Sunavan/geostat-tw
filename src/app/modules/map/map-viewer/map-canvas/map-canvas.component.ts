@@ -291,7 +291,18 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.plane.position.setY(-0.1)
     this.animateService.onFrameRender.subscribe(({ renderer, raycaster }) => {
     })
-    this.lightService.makeLight(this.scene)
+    this.lightService.makeLights(this.scene)
+
+    setTimeout(() => {
+      const performance = this.rendererService.chechClientPerformance()
+      if (performance === ClientPerformance.HIGH) {
+        this.renderer = new WebGLRenderer({ antialias: true, precision: "highp" })
+      }
+      if (performance === ClientPerformance.MEDIUM) {
+        this.renderer = new WebGLRenderer({ antialias: false, precision: "lowp" })
+      }
+      console.log('apply performance: ', performance);
+    }, 6000);
   }
 
   initTile = async () => {

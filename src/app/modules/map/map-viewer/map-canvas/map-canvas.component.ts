@@ -272,7 +272,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
       BOTTOM: 'ArrowDown' // down arrow
     }
     this.orbitControl.touches = {
-      ONE: TOUCH.DOLLY_PAN,
+      ONE: TOUCH.PAN,
       TWO: TOUCH.ROTATE,
     }
     this.orbitControl.mouseButtons = {
@@ -365,6 +365,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.selectedPinsWithDncEmitter.emit(this.selectedPinsWithDnc)
     this.orbitControl.target.setY(0)
     this.cameraPositionCanReset.emit(true)
+    
   }
 
   uiUpdatePolygon = (event: Event) => {

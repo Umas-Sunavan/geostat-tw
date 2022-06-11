@@ -9,12 +9,12 @@ export class LightService {
 
   constructor() { }
 
-  makeLight = (scene: Scene) => {
+  makeLights = (scene: Scene) => {
     this.makeAmbientLight(scene)
-    this.makePointLight(scene)
+    this.makeDirectionalLight(scene)
   }
 
-  makePointLight = (scene: Scene) => {
+  makeDirectionalLight = (scene: Scene) => {
     const light = new DirectionalLight(0xffffff,0.1)
     const lightHelper = new DirectionalLightHelper(light, 10)
 

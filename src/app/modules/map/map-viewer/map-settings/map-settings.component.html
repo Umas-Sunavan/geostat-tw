@@ -21,14 +21,14 @@
     <p>儲存設定</p>
     <img src="./assets/icons/check.svg" />
   </button>
-  <div class="flex flex-col-reverse md:flex-row overflow-y-auto settings-container-height rounded-2xl" *ngIf="showSettings">
+  <div class="pointer-events-none flex flex-col-reverse md:flex-row overflow-y-auto settings-container-height rounded-2xl" *ngIf="showSettings">
     <app-map-pin-settings
       (pinChecked)="onPinSelected($event)"
       [blurSource]="blurSource"
       [setPins]="pins"
       [setSelectedPins]="selectedPins"
       [setPolygons]="polygons"
-      class="flex float-right flex-col md:pr-4 mt-4 md:mt-0"
+      class="pointer-events-auto flex float-right flex-col md:pr-4 mt-4 md:mt-0"
     ></app-map-pin-settings>
     <app-map-3d-settings
       [polygonSettings]="polygonSettings"
@@ -36,6 +36,7 @@
       [blurSource]="blurSource"
       (columnChanged)="onColumnChanged($event)"
       (polygonChanged)="onPolygonChanged($event)"
+      class="pointer-events-auto"
     ></app-map-3d-settings>
   </div>
 </div>

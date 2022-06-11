@@ -1,4 +1,5 @@
 import { ElementRef, Injectable } from '@angular/core';
+import { ClientPerformance } from 'src/app/shared/enums/clientPerformance';
 import { Vector2, WebGLRenderer } from 'three';
 
 @Injectable({

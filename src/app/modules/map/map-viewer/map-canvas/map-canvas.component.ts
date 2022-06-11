@@ -30,6 +30,7 @@ import { Polygon3dService } from './polygon-service/polygon-3d.service';
 import { HttpMap } from 'src/app/shared/models/MapHttp';
 import { MapHttpService } from 'src/app/shared/services/map-http/map-http.service';
 import { environment } from 'src/environments/environment';
+import { ClientPerformance } from 'src/app/shared/enums/clientPerformance';
 
 
 
@@ -280,7 +281,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     RIGHT: MOUSE.ROTATE
     }
     this.orbitControl.maxDistance = 100
-    this.orbitControl.enableDamping = true
+    // @ts-ignore
+    if(navigator.userAgentData.mobile) this.orbitControl.enableDamping = true
     this.orbitControl.maxPolarAngle = Math.PI * 0.5 - 0.1
     this.orbitControl.addEventListener('change', this.onCameraChange)
     this.animateService.initAnimate(this.renderer, this.scene, this.camera, this.orbitControl, this.mousePosition)

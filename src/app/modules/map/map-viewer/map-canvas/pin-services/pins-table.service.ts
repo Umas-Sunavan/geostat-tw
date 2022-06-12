@@ -25,7 +25,7 @@ export class PinsTableService {
     )
   }
 
-  getAddressFromSourceSheet = (googleSheetId: string = '1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM'): Observable<GoogleSheetPin[]> => {
+  getAddressFromSourceSheet = (googleSheetId: string): Observable<GoogleSheetPin[]> => {
     const options = {responseType: 'text' as 'json',};
     return this.httpClient.get<GoogleSheetRawData>(`https://docs.google.com/spreadsheets/d/${googleSheetId}/gviz/tq?`, options).pipe(
       this.convertTalbeToGoogleSheetPins,

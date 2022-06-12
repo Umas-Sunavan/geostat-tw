@@ -30,9 +30,9 @@ export class PinModelService {
     private animateService: AnimateService
   ) { }
 
-  initPinsModel = async () => {
+  initPinsModel = async (pinTableSource: string) => {
     // retrice all known address from DB (cache). As for the unknown address, theny needs to get geoencoding then put them to DB.
-    const addressFromSheet:GoogleSheetPin[] = await lastValueFrom(this.pinsTableService.getAddressFromSourceSheet())
+    const addressFromSheet:GoogleSheetPin[] = await lastValueFrom(this.pinsTableService.getAddressFromSourceSheet(pinTableSource))
     const lonlatCacheFromDb: GoogleSheetPinMappingLonLat[] = await lastValueFrom(this.pinsTableService.getPinsLonLatCache())
     const {availableCahce, unCachedAddress} = this.filterAvailableLonlatCahce(addressFromSheet, lonlatCacheFromDb)
     const pinsNeedsToCache = await lastValueFrom(this.pinsTableService.getPinLonLatFromGeoencoding(unCachedAddress))    

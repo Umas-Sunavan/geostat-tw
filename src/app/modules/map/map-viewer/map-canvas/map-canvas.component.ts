@@ -180,7 +180,6 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
 
   appendUrlStatusCode = (setting: CategorySetting) => {
     console.log(setting);
-    
     return this.categoryService.getCategoryTableByUrl(`https://docs.google.com/spreadsheets/d/${setting.tableSource}/gviz/tq?`).pipe( map(code => {
       setting.valid = Boolean(code === 200)
       return setting
@@ -204,14 +203,16 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.initThree()
     this.canvasContainer.nativeElement.addEventListener('mousewheel', this.onMouseScroll)
     this.canvasContainer.nativeElement.addEventListener('click', this.onMouseClick)
-    this.pins = await this.pinModelService.initPinsModel()    
+    // this.pinTableSource = this.pinModelService.getPinTableSource(mapId)
+    this.pins = await this.pinModelService.initPinsModel('1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM')
     this.onCategoryChageFromPicker(this.defaultCategoryId) // init after pins ready
     await this.initTile()
   }
 
   @Input() onCategoryChageFromPicker = async (categoryId: string) => {  
     this.pinModelService.removePins(this.pins)
-    this.pins = await this.pinModelService.initPinsModel()
+    // this.pinTableSource = this.pinModelService.getPinTableSource(mapId)
+    this.pins = await this.pinModelService.initPinsModel('1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM')
     this.defaultCategoryId = categoryId
     if(!categoryId) return
     this.categoryService.getCategorySetting(categoryId).pipe( 

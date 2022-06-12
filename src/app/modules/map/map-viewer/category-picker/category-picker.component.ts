@@ -83,8 +83,8 @@ export class CategoryPickerComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.initUpdateDefaultCategory()
     const defaultCategoryId = await this.getDefaultCategoryFromDb()
-    this.changeCategory(defaultCategoryId)
     this.getCategoryFromFirebase()
+      this.changeCategory(map.defaultCategoryId)
   }
 
   toggleShow = () => {

@@ -20,11 +20,11 @@ export class MapHttpService {
   getMockMaps = ():Observable<HttpMap[]> => {
     return of(
       [
-        { "mapId": 1, "mapName": "分店資料", "createdTime": "2022-05-22T03:34:43Z", "creator": "admin", "defualtCategoryId": "-N-SasgrgpgWs2szH-aH" },
-        { "mapId": 2, "mapName": "簡報用地圖", "createdTime": "2022-05-24T05:35:35Z", "creator": "admin", "defualtCategoryId": "-N1hLpiGatywxzYbbuJy" },
-        { "mapId": 3, "mapName": "開張分店地圖", "createdTime": "2022-05-24T13:05:06Z", "creator": "admin", "defualtCategoryId": "adwqfeswdq" },
-        { "mapId": 4, "mapName": "開張分店地圖", "createdTime": "2022-05-24T13:09:58Z", "creator": "admin", "defualtCategoryId": "adwqfeswdq" },
-        { "mapId": 5, "mapName": "實體行銷舉辦分店地圖", "createdTime": "2022-05-24T13:13:31Z", "creator": "admin", "defualtCategoryId": "-N-SasgrgpgWs2szH-aH" }]
+        { "mapId": 1, "mapName": "分店資料", "createdTime": "2022-05-22T03:34:43Z", "creator": "admin", "defaultCategoryId": "-N-SasgrgpgWs2szH-aH" , "pinSheetId": "1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM"},
+        { "mapId": 2, "mapName": "簡報用地圖", "createdTime": "2022-05-24T05:35:35Z", "creator": "admin", "defaultCategoryId": "-N1hLpiGatywxzYbbuJy" , "pinSheetId": "1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM"},
+        { "mapId": 3, "mapName": "開張分店地圖", "createdTime": "2022-05-24T13:05:06Z", "creator": "admin", "defaultCategoryId": "adwqfeswdq" , "pinSheetId": "1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM"},
+        { "mapId": 4, "mapName": "開張分店地圖", "createdTime": "2022-05-24T13:09:58Z", "creator": "admin", "defaultCategoryId": "adwqfeswdq" , "pinSheetId": "1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM"},
+        { "mapId": 5, "mapName": "實體行銷舉辦分店地圖", "createdTime": "2022-05-24T13:13:31Z", "creator": "admin", "defaultCategoryId": "-N-SasgrgpgWs2szH-aH" , "pinSheetId": "1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM"}]
     )
   }
 
@@ -44,12 +44,13 @@ export class MapHttpService {
     let body = new URLSearchParams();
     body.set('name', name);
     body.set('creator', creator);
-    body.set('defualtCategoryId', defaultCategoryId);
+    body.set('defaultCategoryId', defaultCategoryId);
     body.set('mapSettingId', mapOptionId);
+    body.set('pinSheetId', 'null');
     // const body = {
     //   name:name,
     //   creator: creator,
-    //   defualtCategoryId: defaultCategoryId,
+    //   defaultCategoryId: defaultCategoryId,
     //   mapSettingId: mapOptionId
     // }
     let headers = new HttpHeaders().set('content-type', 'application/x-www-form-urlencoded')

@@ -3,5 +3,5 @@ export interface HttpMap {
   mapName:string
   createdTime:string
   creator:string
-  defualtCategoryId:string
+  defaultCategoryId:string
 }

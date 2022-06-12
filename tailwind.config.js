@@ -8,6 +8,7 @@ module.exports = {
       'white': '#ffffff',
       'black': '#000000',
       'primary': {
+        50: '#fcfeff',
         100: '#F8FCFF',
         200: '#E5F4FF',
         400: '#A8DFFF',
@@ -24,6 +25,7 @@ module.exports = {
         500: '#FF4F4F',
       },
       'category': {
+        50: '#fdfff9',
         100: '#F5F9EB',
         200: '#EBFAE5',
         400: '#BDEB90',

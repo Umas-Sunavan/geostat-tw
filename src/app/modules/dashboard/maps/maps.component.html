@@ -27,7 +27,11 @@
         list grid grid-cols-1 2xl:grid-cols-2 auto-rows-min gap-4 overflow-y-auto relative
         p-3 md:p-6 mx-6 ml-8">
         <button *ngFor="let map of maps; index as i" (click)="onMapClick(map.mapId)"
-            class="bg-white p-3 md:p-9 tint-shadow-primary-sm rounded-2xl flex ">
+            class="
+            p-3 md:p-9
+            bg-white tint-shadow-primary-sm rounded-2xl flex
+            hover:bg-primary-50
+            ">
             <img class="mr-4" [src]="'./assets/icons/map-list-' + (map.mapId%3 + 1) + '.svg'">
             <div class="flex flex-col items-start text-left">
                 <h2 class="dashboard-text-xl">{{map.mapName}}</h2>

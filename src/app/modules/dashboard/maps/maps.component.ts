@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, mergeMap, of } from 'rxjs';
 import { HttpMap } from 'src/app/shared/models/MapHttp';
 import { MapHttpService } from 'src/app/shared/services/map-http/map-http.service';
 import { CategoryService } from '../../map/map-viewer/map-canvas/category/category.service';
@@ -46,12 +46,15 @@ export class MapsComponent implements OnInit {
     this.categoryService.addCategoryOptions(this.categoryService.mockOptions).then( optionId => {
       console.log(optionId);
       if (!optionId) throw new Error("failed to create category options");
-      this.mapHttpService.addMap(name,"admin", "-N-SasgrgpgWs2szH-aH",optionId).subscribe( result => {
-        console.log(result);
-        this.addedMapName = result.name
-        this.addedMapId = result.id
-        this.toggleAddCompletePopup()
-      })
+      this.mapHttpService.addMap(name,"admin", "-N-SasgrgpgWs2szH-aH",optionId).pipe(
+        mergeMap( result => {
+          this.addedMapName = result.name
+          this.addedMapId = result.id
+          this.toggleAddCompletePopup()
+          return of(result)
+        }),
+        mergeMap( result => this.updateList()),
+      ).subscribe( list => this.maps = list)
     })
     this.toggleNamingPopup()
   }

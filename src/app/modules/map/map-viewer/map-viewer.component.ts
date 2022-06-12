@@ -88,4 +88,8 @@ export class MapViewerComponent implements OnInit {
       }, 1000);
     }
   }
+
+  addPinSheetPopup = (isNoPinSheet: boolean) => {
+    
+  }
 }

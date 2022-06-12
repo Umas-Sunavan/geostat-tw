@@ -6,6 +6,7 @@ import { CategorySetting, CategorySettings, CategorySettingWithId } from 'src/ap
 import { HttpMap } from 'src/app/shared/models/MapHttp';
 import { CategoryService } from '../map-canvas/category/category.service';
 import { AnimateService } from '../map-canvas/three-services/animate.service';
+import { PinsTableService } from '../map-canvas/pin-services/pins-table.service';
 
 @Component({
   selector: 'app-category-picker',
@@ -19,6 +20,7 @@ export class CategoryPickerComponent implements OnInit {
     private categoryService: CategoryService,
     private mapHttpService: MapHttpService,
     private activatedRoute: ActivatedRoute,
+    private pinsTableService: PinsTableService,
   ) { }
 
   isShow: boolean = false
@@ -35,6 +37,7 @@ export class CategoryPickerComponent implements OnInit {
   addingCategoryId?: string
   categoryChangeSubject: Subject<string> = new Subject()
   @Output() changeCategoryToCanvas: EventEmitter<string> = new EventEmitter()
+  @Output() noPinSheet: EventEmitter<boolean> = new EventEmitter()
 
   initUpdateDefaultCategory = () => {
     this.categoryChangeSubject.pipe(
@@ -70,11 +73,11 @@ export class CategoryPickerComponent implements OnInit {
     })
   }
 
-  getDefaultCategoryFromDb = async () => {
+  getMapDataFromDb = async () => {
     const mapId = this.activatedRoute.snapshot.paramMap.get("id")
     if(mapId !== null && +mapId !== NaN) {
       const map: HttpMap = await lastValueFrom(this.mapHttpService.getMap(+mapId))
-      return map.defualtCategoryId
+      return map
     } else {
       throw new Error("map id is not a number");
     }
@@ -82,9 +85,15 @@ export class CategoryPickerComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.initUpdateDefaultCategory()
-    const defaultCategoryId = await this.getDefaultCategoryFromDb()
-    this.getCategoryFromFirebase()
+    const map = await this.getMapDataFromDb()
+    const pinSheet = await lastValueFrom(this.pinsTableService.getAddressFromSourceSheet(map.pinSheetId))
+    console.log(pinSheet);
+    if (pinSheet) {
       this.changeCategory(map.defaultCategoryId)
+      this.getCategoryFromFirebase()
+    } else {
+      this.noPinSheet.emit(true)
+    }
   }
 
   toggleShow = () => {

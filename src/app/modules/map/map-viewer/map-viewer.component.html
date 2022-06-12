@@ -40,7 +40,7 @@
         <h1 class="
         text-lg md:text-4xl px-6 py-3 
         font-light">{{mapTitle}}</h1>
-        <app-category-picker class="flex flex-col m-6" (changeCategoryToCanvas)="mapCanvas.onCategoryChageFromPicker($event)"></app-category-picker>
+        <app-category-picker class="flex flex-col m-6" (noPinSheet)="addPinSheetPopup($event)" (changeCategoryToCanvas)="mapCanvas.onCategoryChageFromPicker($event)"></app-category-picker>
       </div>
       <button
       *ngIf="showResetPosition"

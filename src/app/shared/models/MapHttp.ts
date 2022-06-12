@@ -4,4 +4,5 @@ export interface HttpMap {
   createdTime:string
   creator:string
   defaultCategoryId:string
+  pinSheetId: string
 }

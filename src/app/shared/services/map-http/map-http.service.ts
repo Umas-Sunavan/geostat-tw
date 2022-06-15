@@ -46,7 +46,7 @@ export class MapHttpService {
     body.set('creator', creator);
     body.set('defaultCategoryId', defaultCategoryId);
     body.set('mapSettingId', mapOptionId);
-    body.set('pinSheetId', 'null');
+    body.set('pinSheetId', '');
     // const body = {
     //   name:name,
     //   creator: creator,

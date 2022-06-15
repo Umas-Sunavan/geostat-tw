@@ -18,7 +18,14 @@
     "importHelpers": true,
     "target": "es2017",
     "module": "es2020",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "types": [
+      
+    ],
     "lib": [
+      "es2017",
       "es2020",
       "dom"
     ]

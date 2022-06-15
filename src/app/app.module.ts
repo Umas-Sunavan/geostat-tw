@@ -20,6 +20,7 @@ import { AddNameComponent } from './shared/add-name/add-name.component';
 import { CompletedComponent } from './shared/completed/completed.component';
 import { MapsComponent } from './modules/dashboard/maps/maps.component';
 import { CategoriesComponent } from './modules/dashboard/categories/categories.component';
+import { AddPinSheetComponent } from './shared/add-pin-sheet/add-pin-sheet.component';
 
 @NgModule({
   declarations: [
@@ -39,6 +40,7 @@ import { CategoriesComponent } from './modules/dashboard/categories/categories.c
     CompletedComponent,
     MapsComponent,
     CategoriesComponent,
+    AddPinSheetComponent,
     
   ],
   imports: [

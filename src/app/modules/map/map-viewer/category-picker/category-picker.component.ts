@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ActivatedRoute, Route, Router } from '@angular/router';
 import { BehaviorSubject, lastValueFrom, map, mergeMap, of, Subject, take } from 'rxjs';
 import { MapHttpService } from 'src/app/shared/services/map-http/map-http.service';
@@ -37,9 +37,13 @@ export class CategoryPickerComponent implements OnInit {
   addingCategoryId?: string
   categoryChangeSubject: Subject<string> = new Subject()
   @Output() changeCategoryToCanvas: EventEmitter<string> = new EventEmitter()
-  @Output() noPinSheet: EventEmitter<boolean> = new EventEmitter()
+  @Input('setMapModelFromDb') set setMapModelFromDb(map:HttpMap) {
+    if (map) {
+      this.onGetMapModel(map)
+    }
+  }
 
-  initUpdateDefaultCategory = () => {
+  initDefaultCategorySubscriber = () => {
     this.categoryChangeSubject.pipe(
       mergeMap( categoryId => {
         const mapId = this.activatedRoute.snapshot.paramMap.get("id") || ''
@@ -83,17 +87,21 @@ export class CategoryPickerComponent implements OnInit {
     }
   }
 
-  async ngOnInit(): Promise<void> {
-    this.initUpdateDefaultCategory()
-    const map = await this.getMapDataFromDb()
-    const pinSheet = await lastValueFrom(this.pinsTableService.getAddressFromSourceSheet(map.pinSheetId))
-    console.log(pinSheet);
-    if (pinSheet) {
-      this.changeCategory(map.defaultCategoryId)
-      this.getCategoryFromFirebase()
+  onGetMapModel = (map: HttpMap) => {
+    if (map.pinSheetId) {
+      console.log(map);
+      this.pinsTableService.getAddressFromSourceSheet(map.pinSheetId).pipe(take(1)).subscribe( pinSheet => {
+        if(!pinSheet) throw new Error("no sheet source table id found");
+        this.changeCategory(map.defaultCategoryId)
+        this.getCategoryFromFirebase()
+      })
     } else {
-      this.noPinSheet.emit(true)
+      throw new Error("map sheet id from DB is not found");
     }
+  }
+
+  async ngOnInit(): Promise<void> {
+    this.initDefaultCategorySubscriber()
   }
 
   toggleShow = () => {

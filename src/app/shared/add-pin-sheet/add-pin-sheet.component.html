@@ -54,7 +54,9 @@
                  </div>
              </div>
              <div>
-                <button *ngIf="this.gapiInited && this.gisInited" (click)="handleAuthClick()">登入</button>
+                <button *ngIf="gapiInited && gisInited" (click)="handleAuthClick()">登入</button>
+                {{gapiInited}}
+                {{gisInited}}
                 <button *ngIf="signoutShow">Sign Out</button>
                 <button *ngIf="authorizeShow">Authorize</button>
                 {{exampleContent}}

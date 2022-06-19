@@ -8,66 +8,18 @@
                      <img src="./assets/icons/cross-category.svg">
                  </button>
              </div>
-             <p class="text-sm">地圖目前沒有落點，需要有落點資料以產生圓柱。由下方指示新增試算表，並填入地址資料即可。</p>
-             <div class="step mb-6">
-                 <h3 class="py-2">一、建立試算表並填入資料</h3>
+             <p class="pb-6">落點由試算表產生，是在地圖上用來視覺化資料的圓柱。</p>
+             <div class="step mb-6" [ngSwitch]="gapiInited && gisInited" >
                  <!-- <a href="https://docs.google.com/spreadsheets/d/1rGYgg9SDkrafXSGpleAitmpaYMIUd_QNeDnogccZ0Fc/copy" target="_blank" > -->
-                     <button class="bg-category-400 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2" (click)="createNewPinSheet()">
-                         <p>由範本建立試算表</p>
-                         <img class="pb-1.5" src="./assets/icons/external-link.svg">
-                     </button>
+                     <button  *ngSwitchCase="true" class="bg-category-400 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2" (click)="handleAuthClick()">
+                        <p>授權Geostat.tw建立試算表</p>
+                        <img class="pb-1.5" src="./assets/icons/external-link.svg">
+                    </button>
+                    <button  *ngSwitchCase="false" class="bg-grey-100 text-grey-300 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2">
+                        <p>授權Geostat.tw建立試算表</p>
+                        <img class="pb-1.5" src="./assets/icons/external-link.svg">
+                    </button>
                  <!-- </a> -->
-             </div>
-             <div class="step mt-6 mb-3">
-                 <h3 class="py-2">二、複製其連結並貼上</h3>
-                 <label class="bg-category-200 rounded-xl p-4 block" for="catalog-link">
-                     <input
-                     id="catalog-link"
-                     type="url"
-                     #name="ngModel"
-                     required
-                     pattern="https://docs.google.com/spreadsheets/d/.+"
-                     [(ngModel)]="sheetUrl"
-                     placeholder="https://docs.google.com/spreadsheets/d/1rGYgg9SDkrafXSGpleAitmpaYMIUd_QNeDnogccZ0Fc/copy"
-                     class="px-2 py-1 border-b-2 border-category-400 placeholder:text-category-400 bg-category-200 w-full"
-                     (keyup)="urlKeyUp($event, name.value, name.errors?.['pattern'])"
-                     >
-                 </label>
-                 <div class="px-5 pt-2 text-sm">
-                     <p class="text-error-500" *ngIf="name.touched && name.errors && name.errors['required']">此為必填</p>
-                     <p class="text-error-500" *ngIf="name.touched && name.errors && name.errors['pattern']">必須為google sheet分享連結</p>
-                     <p class="text-error-500" >{{googleSheetErrorDscription}}</p>
-                     <p class="text-category-500" *ngIf="name.touched && !name.errors && !googleSheetErrorDscription && !googleSheetSuccessDscription">驗證試算表...</p>
-                     <p class="text-category-500" *ngIf="googleSheetSuccessDscription">{{googleSheetSuccessDscription}}</p>
-                 </div>
-             </div>
-             <div class="step mb-6" *ngIf="googleSheetErrorDscription">
-                 <h3 class="py-2">三、設為公開</h3>
-                 <div class="flex">
-                     <button class="flex items-center border-b-2 border-category-400" (click)="toggleShowTip()">
-                         <small class="text-sm ">如何設公開？</small>
-                         <img src="./assets/icons/chevron-down-category.svg" class="icon-transition" [ngStyle]="{'transform': showTip ? 'rotate(180deg)' : ''}">
-                     </button>
-                 </div>
-                 <div class="bg-category-200 rounded-3xl py-3 px-3 mt-3" *ngIf="showTip">
-                     <img src="./assets/step3@2x.gif" class="w-96 rounded-xl">
-                 </div>
-             </div>
-             <div>
-                <button *ngIf="gapiInited && gisInited" (click)="handleAuthClick()">登入</button>
-                {{gapiInited}}
-                {{gisInited}}
-                <button *ngIf="signoutShow">Sign Out</button>
-                <button *ngIf="authorizeShow">Authorize</button>
-                {{exampleContent}}
-                 <button (click)="submit(name.errors, googleSheetErrorDscription)" [ngClass]="(name.errors || googleSheetErrorDscription) ? 'bg-grey-100 text-grey-300' : 'bg-category-400'" class="rounded-full py-3 flex w-full items-center justify-center space-x-2">
-                     <p>新增</p>
-                     <img *ngIf="!(name.errors || googleSheetErrorDscription)" class="pb-0.5" src="./assets/icons/chevron-right-category.svg">
-                     <img *ngIf="(name.errors || googleSheetErrorDscription)" class="pb-0.5" src="./assets/icons/chevron-right-grey.svg">
-                 </button>
-                 <div class="px-5 pt-2 text-sm text-error-500">
-                     <p *ngIf="showSubmitTip && !name.touched">請先填入試算表連結</p>
-                 </div>
              </div>
          </div>
      </div>

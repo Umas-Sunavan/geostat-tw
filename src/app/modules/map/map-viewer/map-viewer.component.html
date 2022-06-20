@@ -73,7 +73,8 @@
   ></app-map-canvas>
 </div>
 <add-pin-sheet-component
-*ngIf="true"
+*ngIf="isAddPinSheetShow"
+(setHide)="hideAddPinSheet()"
 [useBlurPadding]="true"
 [setPopupBg]="'bg-white/10'"
 [mapName]="mapTitle"

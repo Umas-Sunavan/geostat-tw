@@ -1,28 +1,55 @@
-<div class="z-10 pointer-events-none absolute w-full h-full top-0 left-0 flex justify-center items-center" [ngClass]="popupBgClass">
+<div class="z-10 pointer-events-none absolute w-full h-full top-0 left-0 flex justify-center items-center" [ngClass]="popupBgClass" *ngIf="isGenerating">
     <div class="absolute bg-white/30 p-6 rounded-4xl glass-blur" [ngStyle]="{'background-image': blurSource}">
      <div class="w-50 pl-9 pr-3 px-9 bg-white rounded-2xl text-category-500 pointer-events-auto">
          <div class="pr-6 max-h-full overflow-auto py-6">
              <div class="items-center flex justify-between">
-                 <h2 class="text-2xl">為地圖新增地址資料</h2>
-                 <button class="p-5" (click)="hide()">
+                 <h2 class="py-5 text-2xl">為地圖新增地址資料</h2>
+                 <!-- <button class="" (click)="hide()">
                      <img src="./assets/icons/cross-category.svg">
-                 </button>
+                 </button> -->
              </div>
              <p class="pb-6">落點由試算表產生，是在地圖上用來視覺化資料的圓柱。</p>
              <div class="step mb-6" [ngSwitch]="gapiInited && gisInited" >
-                 <!-- <a href="https://docs.google.com/spreadsheets/d/1rGYgg9SDkrafXSGpleAitmpaYMIUd_QNeDnogccZ0Fc/copy" target="_blank" > -->
-                     <button  *ngSwitchCase="true" class="bg-category-400 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2" (click)="handleAuthClick()">
+                <ng-container *ngSwitchCase="true" [ngSwitch]="isAuthorizing">
+                    <button *ngSwitchCase="false"  class="bg-category-400  rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2" (click)="handleAuthClick()">
                         <p>授權Geostat.tw建立試算表</p>
-                        <img class="pb-1.5" src="./assets/icons/external-link.svg">
                     </button>
-                    <button  *ngSwitchCase="false" class="bg-grey-100 text-grey-300 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2">
-                        <p>授權Geostat.tw建立試算表</p>
-                        <img class="pb-1.5" src="./assets/icons/external-link.svg">
+                    <button *ngSwitchCase="true"  class="bg-grey-100 text-grey-300 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2" >
+                        <p>試算表產生中...</p>
                     </button>
-                 <!-- </a> -->
+                </ng-container>
+                <button  *ngSwitchCase="false" class="bg-grey-100 text-grey-300 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2">
+                    <p>授權Geostat.tw建立試算表</p>
+                </button>
              </div>
          </div>
      </div>
     </div>
  </div>
- 
+
+ <div class="z-10 pointer-events-none absolute w-full h-full top-0 left-0 flex justify-center items-center" [ngClass]="popupBgClass" *ngIf="isEditing">
+    <div class="absolute bg-white/30 p-6 rounded-4xl glass-blur" [ngStyle]="{'background-image': blurSource}">
+     <div class="w-50 pl-9 pr-3 px-9 bg-white rounded-2xl text-category-500 pointer-events-auto">
+         <div class="pr-6 max-h-full overflow-auto py-6">
+             <div class="items-center flex justify-between">
+                 <h2 class="text-2xl">落點清單已建立</h2>
+                 <button class="p-5" (click)="hide()">
+                     <img src="./assets/icons/cross-category.svg">
+                 </button>
+             </div>
+             <p class="pb-6">編輯地址清單即可產生落點。</p>
+             <div class="step mb-6" >
+                <a [href]="'https://docs.google.com/spreadsheets/d/' + sheetId + '/'" target="_blank" (click)="isClickedSheetUrl = true">
+                    <button class="bg-category-400 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2">
+                        <p>編輯地址清單</p>
+                        <img class="pb-1.5" src="./assets/icons/external-link.svg">
+                    </button>
+                </a>
+                <button class="mt-3 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2" [ngClass]="{'bg-category-400 ': isClickedSheetUrl, 'bg-grey-100 ': !isClickedSheetUrl, 'text-grey-300 ': !isClickedSheetUrl}" (click)="hide()">
+                    <p>編輯完成</p>
+                </button>
+             </div>
+         </div>
+     </div>
+    </div>
+ </div>

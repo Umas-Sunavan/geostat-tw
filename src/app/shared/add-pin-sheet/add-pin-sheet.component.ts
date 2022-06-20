@@ -27,55 +27,15 @@ export class AddPinSheetComponent implements OnInit {
     private categoryService: CategoryService,
   ) { }
 
-
-  public authIsLoaded: boolean = false;
-  public isLoggedIn: boolean = false;
-  public user: any;
-
-  updateSigninStatus = (signedIn: boolean = true) => {
-    // console.log(GoogleAuth);
-    
-    // // @ts-ignore
-    // var user = GoogleAuth.currentUser.get();
-    // var isAuthorized = user.hasGrantedScopes(this.SCOPES);
-    // if (isAuthorized) {
-    //   console.log('You are currently signed in and have granted ' +
-    //   'access to this app.');
-    // } else {
-    //   console.log('You have not authorized this app or you are ' +
-    //   'signed out.');
-    // }
-  }
-
-  intializeGapiClient = async () => {
-    await gapi.client.init({
-      apiKey: this.API_KEY,
-      discoveryDocs: this.DISCOVERY_DOC,
-      // clientId: this.CLIENT_ID,
-      // scope: this.SCOPES,
-    })
-    // const GoogleAuth = gapi.auth2.getAuthInstance();
-
-    //   // Listen for sign-in state changes.
-    //   console.log(GoogleAuth);
-      
-    //   GoogleAuth.isSignedIn.listen(this.updateSigninStatus);
-
-    //   // Handle initial sign-in state. (Determine if user is already signed in.)
-    //   // const user = GoogleAuth.currentUser.get();
-    //   this.updateSigninStatus();
-
-    //   // // Call handleAuthClick function when user clicks on
-    //   // //      "Sign In/Authorize" button.
-    //   // $('#revoke-access-button').click(function() {
-    //   //   revokeAccess();
-    //   // });
-
-    this.gapiInited = true;
-  }
-
   gapiLoaded = () => {
-    gapi.load('client', this.intializeGapiClient);
+    const _intializeGapiClient = async () => {
+      await gapi.client.init({
+        apiKey: this.API_KEY,
+        discoveryDocs: this.DISCOVERY_DOC,
+      })
+      this.gapiInited = true;
+    }
+    gapi.load('client', _intializeGapiClient);
   }
  
   gisLoaded = () => {
@@ -89,19 +49,16 @@ export class AddPinSheetComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.checkUrlAccessable()
-    // this.initOAuth2()
     this.gapiLoaded()
     this.gisLoaded()
   }
 
-  showSubmitTip: boolean = false
-  googleSheetErrorDscription: string = ''
-  googleSheetSuccessDscription: string = ''
-  showTip: boolean = false
   blurSource: string = ''
-  sheetUrl: string = ''
   popupBgClass = 'bg-white/10'
+  isGenerating = true
+  isEditing = false
+  isAuthorizing = false
+  isClickedSheetUrl = false
   onKeyChange: Subject<any> = new Subject()
   @Output() onSubmit: EventEmitter<string> = new EventEmitter()
   @Output() setHide: EventEmitter<undefined> = new EventEmitter()
@@ -109,16 +66,7 @@ export class AddPinSheetComponent implements OnInit {
   @Input() set setPopupBg(className: string) { this.popupBgClass = className }
   @Input() mapName!: string
 
-
-  toggleShowTip = () => this.showTip = !this.showTip
-
   hide = () => this.setHide.emit()
-
-  urlKeyUp = (event: Event, url: string, hasErrorBrforeKeyUp: any) => {
-    if (!hasErrorBrforeKeyUp) {
-      this.onKeyChange.next(url)
-    }
-  }
 
   loadBlurSource = (enable: boolean) => {
     if (enable) {
@@ -128,51 +76,6 @@ export class AddPinSheetComponent implements OnInit {
     } else {
       this.blurSource = '#ffffff'
     }
-  }
-
-  checkUrlAccessable = () => {
-    this.onKeyChange.pipe(debounceTime(500), switchMap(url => of(url))).subscribe(url => {
-      this.categoryService.getCategoryTableByUrl(url).subscribe(statusCode => {
-        console.log(statusCode);
-
-        switch (statusCode) {
-          case 401:
-            this.googleSheetErrorDscription = '請依照下一步，設定試算表為公開。'
-            this.googleSheetSuccessDscription = ''
-            break;
-          case 404:
-            this.googleSheetErrorDscription = '超連結裡面沒有試算表，該試算表是否已被刪除？'
-            this.googleSheetSuccessDscription = ''
-            break;
-          case 0:
-            this.googleSheetErrorDscription = '請依照下一步，設定試算表為公開。'
-            this.googleSheetSuccessDscription = ''
-            break;
-          case 200:
-            this.googleSheetErrorDscription = ''
-            this.googleSheetSuccessDscription = '試算表沒有問題，讚！'
-            break;
-          default:
-            break;
-        }
-      })
-    })
-  }
-
-  getSheetId = () => {
-    return this.categoryService.getSheetIdFromUrl(this.sheetUrl)
-  }
-
-  submit = (hasErrors: any, urlInvalid: string) => {
-    if (hasErrors || urlInvalid) return
-    this.showSubmitTip = true
-    this.onSubmit.next(this.sheetUrl)
-    this.hide()
-  }
-
-  createNewPinSheet = () => {
-    console.log('createNewPinSheet');
-
   }
 
   // sheet API
@@ -196,6 +99,7 @@ export class AddPinSheetComponent implements OnInit {
   handleAuthClick = () => {
     this.tokenClient.callback = async (resp:any) => {
       if (resp.error !== undefined) {
+
         throw (resp);
       }
       this.signoutShow = true
@@ -266,7 +170,7 @@ export class AddPinSheetComponent implements OnInit {
     {
       "repeatCell": {
         "range": {
-          "sheetId": +this.sheetId,
+          "sheetId": 0,
           "startRowIndex": 0,
           "endRowIndex": 1,
           "startColumnIndex": 0,
@@ -300,7 +204,7 @@ export class AddPinSheetComponent implements OnInit {
     {
       "repeatCell": {
         "range": {
-          "sheetId": +this.sheetId,
+          "sheetId": 0,
           "startRowIndex": 1,
           "endRowIndex": 99,
           "startColumnIndex": 0,
@@ -340,7 +244,7 @@ export class AddPinSheetComponent implements OnInit {
       
         // Union field dimension_range can be only one of the following:
         "range": {
-          "sheetId": +this.sheetId,
+          "sheetId": 0,
           "dimension": "COLUMNS", 
           "startIndex": 1,
           "endIndex":2
@@ -354,7 +258,7 @@ export class AddPinSheetComponent implements OnInit {
     {
       "updateSheetProperties": {
         "properties": {
-          "sheetId": +this.sheetId,
+          "sheetId": 0,
           "gridProperties": {
             "frozenRowCount": 1,
           }
@@ -378,6 +282,12 @@ export class AddPinSheetComponent implements OnInit {
     return gapi.client.sheets.spreadsheets.batchUpdate(params, batchUpdateSpreadsheetRequestBody)
   }
 
+  saveSheetId = (response:gapi.client.Response<gapi.client.sheets.Spreadsheet>) => {
+    if( !response.result.spreadsheetId ) throw console.error("no sheet id found")
+    this.sheetId = response.result.spreadsheetId
+    return response
+  }
+
   createPermission = (response:gapi.client.Response<gapi.client.sheets.Spreadsheet>) => {
     const fileId = response.result.spreadsheetId
     if (!fileId) throw new Error("no sheet file id found when creating file permission");
@@ -389,7 +299,8 @@ export class AddPinSheetComponent implements OnInit {
   }
 
   listMajors = async () => {
-    let response;
+    this.isAuthorizing = true
+    // let response;
     try {
       gapi.client.sheets.spreadsheets.create({
         // @ts-ignore
@@ -397,50 +308,37 @@ export class AddPinSheetComponent implements OnInit {
           title: `${this.mapName}的地址資料`
         }
       })
-        .then( sheet =>  this.batchUpdateCellData(sheet))
-        .then( result => {
-          return this.createPermission(result)
-          // setInterval( ()=> {
-          //   const params = {
-          //     spreadsheetId: result.result.spreadsheetId!,
-          //     range: 'Sheet1!A:B',
-          //     valueRenderOption: 'FORMATTED_VALUE',
-          //     dateTimeRenderOption: 'FORMATTED_STRING',
-          //   };
-          //   const request = gapi.client.sheets.spreadsheets.values.get(params);
-          // } , 5000)
-        })
+        .then( response => this.saveSheetId(response))
+        .then( response => this.batchUpdateCellData(response))
+        .then( response => this.createPermission(response))
         .then( response => {
           console.log(response.result.permissionDetails);
+          this.isGenerating = false
+          this.isEditing = true
+          this.isAuthorizing = false
+        })
+        .catch( error => {
+          this.isAuthorizing = false
+          console.log(error);
           
-        }
-          
-        )
-
-      // gapi.client.drive.files.list({
-      //   'pageSize': 10,
-      //   'fields': 'files(id, name)',
-      // }).then( result =>{
-      //   console.log(result);
-        
-      // })
-      response = await gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
-        range: 'Class Data!A2:E',
-      });
+        })
+    //   response = await gapi.client.sheets.spreadsheets.values.get({
+    //     spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
+    //     range: 'Class Data!A2:E',
+    //   });
     } catch (err:any) {
       this.exampleContent = err.message;
       return;
     }
-    const range = response.result;
-    if (!range || !range.values || range.values.length == 0) {
-      this.exampleContent = 'No values found.';
-      return;
-    }
-    // Flatten to string to display
-    const output = range.values.reduce(
-        (str:any, row:any) => `${str}${row[0]}, ${row[4]}\n`,
-        'Name, Major:\n');
-    this.exampleContent = output;
+    // const range = response.result;
+    // if (!range || !range.values || range.values.length == 0) {
+    //   this.exampleContent = 'No values found.';
+    //   return;
+    // }
+    // // Flatten to string to display
+    // const output = range.values.reduce(
+    //     (str:any, row:any) => `${str}${row[0]}, ${row[4]}\n`,
+    //     'Name, Major:\n');
+    // this.exampleContent = output;
   }
 }

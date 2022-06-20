@@ -34,6 +34,14 @@ export class MapViewerComponent implements OnInit {
   hoverLogo = false
   showResetPosition = false
   resetCooldown = false
+  isAddPinSheetShow = false
+
+  hideAddPinSheet = () => {
+    
+    this.isAddPinSheetShow = !this.isAddPinSheetShow
+  }
+
+
   changeHoverLegend = (options?: { pin: Pin, legendPosition: Vector2 }) => {
     this.hoverPin = options
   }
@@ -102,6 +110,6 @@ export class MapViewerComponent implements OnInit {
   }
 
   beginAddPinSheetFlow = () => {
-    
+    this.isAddPinSheetShow = true
   }
 }

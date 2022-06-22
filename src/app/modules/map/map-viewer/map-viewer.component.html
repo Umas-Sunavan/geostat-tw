@@ -70,11 +70,12 @@
   (selectedPinsWithDncEmitter)="onSelectedPinsWithDnc($event)"
   (isLoadingTile)="onLoadingTile($event)"
   (cameraPositionCanReset)="onCameraPositionCanReset($event)"
+  [onGetPinSheetId]="pinSheetId"
   ></app-map-canvas>
 </div>
 <add-pin-sheet-component
-*ngIf="isAddPinSheetShow"
-(setHide)="hideAddPinSheet()"
+*ngIf="isAddPinSheetFlowShow"
+(onComplete)="completeAddPinSheetFlow($event)"
 [useBlurPadding]="true"
 [setPopupBg]="'bg-white/10'"
 [mapName]="mapTitle"

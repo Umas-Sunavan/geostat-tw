@@ -8,6 +8,7 @@ import { Polygon } from 'src/app/shared/models/Polygon';
 import { Color, Vector2, Vector3 } from 'three';
 import { MapHttpService } from '../../../shared/services/map-http/map-http.service';
 import { PinsTableService } from './map-canvas/pin-services/pins-table.service';
+import { AnimateService } from './map-canvas/three-services/animate.service';
 
 @Component({
   selector: 'app-map-viewer',
@@ -35,13 +36,19 @@ export class MapViewerComponent implements OnInit {
   hoverLogo = false
   showResetPosition = false
   resetCooldown = false
-  isAddPinSheetShow = false
+  isAddPinSheetFlowShow = false
+  pinSheetId?:string 
 
-  hideAddPinSheet = () => {
-    
-    this.isAddPinSheetShow = !this.isAddPinSheetShow
+  completeAddPinSheetFlow= (sheetId: string) => {
+    this.isAddPinSheetFlowShow = !this.isAddPinSheetFlowShow
+    this.updatePinSheet(sheetId)
   }
 
+  updatePinSheet = (sheetId:string) => {
+    this.pinsTableService.updatePinSheetId(this.mapModelFromDb.mapId, sheetId).subscribe( result => {
+      console.log(result);
+    })
+  }
 
   changeHoverLegend = (options?: { pin: Pin, legendPosition: Vector2 }) => {
     this.hoverPin = options
@@ -62,14 +69,15 @@ export class MapViewerComponent implements OnInit {
     this.animateService.removeAllIntersetObject()
     this.mapModelFromDb = await this.getDefaultCategoryFromDb()
     this.mapTitle = this.mapModelFromDb.mapName
-    
-    if (this.mapModelFromDb.pinSheetId) {
-      const pinSheet = await lastValueFrom(this.pinsTableService.getAddressFromSourceSheet(this.mapModelFromDb.pinSheetId))
-      console.log(pinSheet);
-      if(!pinSheet) throw new Error("no sheet source table id found");
+    const id = this.mapModelFromDb.pinSheetId
+    if (id !== "null" && id !== "") {
+      this.pinSheetId = id
+      console.log(this.pinSheetId);
+      
+      const pinSheet = await lastValueFrom(this.pinsTableService.getAddressFromSourceSheet(id))
+      if(!pinSheet) throw new Error("found pin sheet id but no sheet content loaded");
     } else {
       this.beginAddPinSheetFlow()
-      throw new Error("no sheet source id found");
     }
   }
 
@@ -111,7 +119,5 @@ export class MapViewerComponent implements OnInit {
     }
   }
 
-  beginAddPinSheetFlow = () => {
-    this.isAddPinSheetShow = true
-  }
+  beginAddPinSheetFlow = () => this.isAddPinSheetFlowShow = true
 }

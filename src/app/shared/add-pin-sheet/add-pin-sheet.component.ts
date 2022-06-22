@@ -60,13 +60,12 @@ export class AddPinSheetComponent implements OnInit {
   isAuthorizing = false
   isClickedSheetUrl = false
   onKeyChange: Subject<any> = new Subject()
-  @Output() onSubmit: EventEmitter<string> = new EventEmitter()
-  @Output() setHide: EventEmitter<undefined> = new EventEmitter()
+  @Output() onComplete: EventEmitter<string> = new EventEmitter()
   @Input() set useBlurPadding(enable: boolean) { this.loadBlurSource(false) }
   @Input() set setPopupBg(className: string) { this.popupBgClass = className }
   @Input() mapName!: string
 
-  hide = () => this.setHide.emit()
+  complete = () => this.onComplete.emit(this.sheetId)
 
   loadBlurSource = (enable: boolean) => {
     if (enable) {

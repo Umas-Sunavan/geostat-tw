@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ActivatedRoute, Route, Router } from '@angular/router';
-import { BehaviorSubject, lastValueFrom, map, mergeMap, of, Subject, take } from 'rxjs';
+import { BehaviorSubject, lastValueFrom, map, mergeMap, of, Subject, take, tap } from 'rxjs';
 import { MapHttpService } from 'src/app/shared/services/map-http/map-http.service';
 import { CategorySetting, CategorySettings, CategorySettingWithId } from 'src/app/shared/models/CategorySettings';
 import { HttpMap } from 'src/app/shared/models/MapHttp';
@@ -71,21 +71,18 @@ export class CategoryPickerComponent implements OnInit {
   }
 
   getCategoryFromFirebase = () => {
-    this.categoryService.getCategorySettings().subscribe(categoriesObj => {
-      this.categories = this.getCategories(categoriesObj)
-      this.updateSelectedCategory(this.categories, this.selectedCategoryValue)
-    })
+    return this.categoryService.getCategorySettings().pipe( map(categoriesObj => this.getCategories(categoriesObj)))
   }
 
-  getMapDataFromDb = async () => {
-    const mapId = this.activatedRoute.snapshot.paramMap.get("id")
-    if(mapId !== null && +mapId !== NaN) {
-      const map: HttpMap = await lastValueFrom(this.mapHttpService.getMap(+mapId))
-      return map
-    } else {
-      throw new Error("map id is not a number");
-    }
-  }
+  // getMapDataFromDb = async () => {
+  //   const mapId = this.activatedRoute.snapshot.paramMap.get("id")
+  //   if(mapId !== null && +mapId !== NaN) {
+  //     const map: HttpMap = await lastValueFrom(this.mapHttpService.getMap(+mapId))
+  //     return map
+  //   } else {
+  //     throw new Error("map id is not a number");
+  //   }
+  // }
 
   onGetMapModel = (map: HttpMap) => {
     if (map.pinSheetId) {
@@ -93,11 +90,27 @@ export class CategoryPickerComponent implements OnInit {
       this.pinsTableService.getAddressFromSourceSheet(map.pinSheetId).pipe(take(1)).subscribe( pinSheet => {
         if(!pinSheet) throw new Error("no sheet source table id found");
         this.changeCategory(map.defaultCategoryId)
-        this.getCategoryFromFirebase()
+        this.getCategoryFromFirebase().subscribe( categories => {
+          console.log(categories.map( category => category.tableForPinSheetId));
+          console.log(map.pinSheetId);
+          this.checkCategoriesDefinePinSheet(categories)
+          const categoriesForPinSheet = categories.filter( category => category.tableForPinSheetId === map.pinSheetId)
+          this.updateSelectedCategory(categoriesForPinSheet, this.selectedCategoryValue)
+          this.categories = categoriesForPinSheet
+        })
       })
     } else {
       throw new Error("map sheet id from DB is not found");
     }
+  }
+
+  checkCategoriesDefinePinSheet = (categories: CategorySettingWithId[]) => {
+    categories.forEach( category => {
+      const hasPinSheetId = Boolean(category.tableForPinSheetId)
+      if (!hasPinSheetId) {
+        console.error("a category has no pin sheet id specified. categoryId: ", category.categoryId);
+      }
+    })
   }
 
   async ngOnInit(): Promise<void> {

@@ -58,11 +58,9 @@ export class TextureService {
       this.isTileIdEqualInTextureService(tileId, mapping.id))
 
     if (mappingInCache) {
-      console.log(mappingInCache);
       return mappingInCache.texture
     } else {
       console.log('get from internet');
-
       const newTexutre = await this.getTextureBuffer(tileId)
       const newMapping = { id: tileId, texture: newTexutre }
       this.textureMapppingCacheAndId.push(newMapping)
@@ -232,7 +230,6 @@ export class TextureService {
   }
 
   getHeightTileSrc = (z: number, x: number, y: number) => {
-    console.log({ z, x, y });
     return `http://localhost:3000/${z}/${x}/${y}.pngraw`
     // return `https://api.mapbox.com/v4/mapbox.terrain-rgb/${z}/${x}/${y}.pngraw?access_token=pk.eyJ1IjoidW1hc3Nzc3MiLCJhIjoiY2wwb3l2cHB6MHhwdDNqbnRiZnV1bnF5MyJ9.oh8mJyUQCRsnvOurebxe7w`
   }

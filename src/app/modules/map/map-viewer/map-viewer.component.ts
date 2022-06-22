@@ -20,6 +20,7 @@ export class MapViewerComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private mapHttpService: MapHttpService,
     private pinsTableService: PinsTableService,
+    private animateService: AnimateService
   ) { }
 
   hoverPin?: { pin: Pin, legendPosition: Vector2 }
@@ -58,6 +59,7 @@ export class MapViewerComponent implements OnInit {
   
 
   async ngOnInit(): Promise<void> {
+    this.animateService.removeAllIntersetObject()
     this.mapModelFromDb = await this.getDefaultCategoryFromDb()
     this.mapTitle = this.mapModelFromDb.mapName
     

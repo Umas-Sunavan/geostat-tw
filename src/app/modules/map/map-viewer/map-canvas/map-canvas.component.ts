@@ -137,7 +137,12 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     })
     this.timeoutToPause()
     this.initOnUserUpdateResolution()
-    this.animateService.onMouseIntersect.subscribe(intersections => this.onMouseIntersect(intersections))
+    if(this.animateService.onMouseIntersectSubscription) {
+      this.animateService.onMouseIntersectSubscription.unsubscribe()
+    }
+    this.animateService.onMouseIntersectSubscription = this.animateService.onMouseIntersect.subscribe(intersections => this.onMouseIntersect(intersections))
+
+    
     // this.pins = await this.pinModelService.initPinsModel()
 
     // this.pointDimensionService.writeUserData()

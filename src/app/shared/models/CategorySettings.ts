@@ -9,6 +9,7 @@ export interface CategorySetting {
     valid: Boolean,
     options: CategoryOptions,
     tableCreateDate: string,
+    tableForPinSheetId: string,
     tableCreator: string,
     tableName: string,
     tableSource: string,

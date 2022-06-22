@@ -223,4 +223,12 @@ export class PinsTableService {
     return this.httpClient.post<{message:string}>('https://us-central1-twgeostat.cloudfunctions.net/getDB/address', body.toString(), { headers })
   }
 
+  updatePinSheetId = (mapId: number, sheetId:string) => {
+    let headers = new HttpHeaders()
+    headers = headers.set('content-type', 'application/x-www-form-urlencoded')
+    const body = new URLSearchParams()
+    body.set("sheetId", sheetId)
+    return this.httpClient.post<{message:string}>(`https://us-central1-twgeostat.cloudfunctions.net/getDB/maps/${mapId}/pinSheet`, body.toString(), { headers })
+  }
+
 }

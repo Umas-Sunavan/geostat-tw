@@ -83,6 +83,7 @@ export class CategoryService {
     "options": this.mockOptions,
     "tableCreateDate": "2022/05/08",
     "tableCreator": "Umas",
+    "tableForPinSheetId": "",
     "tableName": "2022 Q2利潤",
     "tableSource": "1dS8M_sBKtwwpXg6iWe3poICrJ2_39e1F0Av9mVm6rS4"
   }
@@ -190,6 +191,7 @@ export class CategoryService {
             },
             "tableCreateDate": "2022/04/12",
             "tableCreator": "Umas",
+            "tableForPinSheetId": "",
             "tableName": "店營業額",
             "tableSource": "1ER4MhRBniLOaNZ8_vkgv92Egp410nf-z-CkN9KO1LGg"
         }

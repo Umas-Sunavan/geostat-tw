@@ -31,6 +31,7 @@ export class AddCategoryComponent implements OnInit {
   @Output() setHide: EventEmitter<undefined> = new EventEmitter()
   @Input() set useBlurPadding( enable: boolean) {this.loadBlurSource(enable)}
   @Input() set setPopupBg(className: string) { this.popupBgClass = className}
+  @Input() pinSheetId: string|undefined = "1k_W-l-OMJjiJqank01W-G0rZVOHveQX7uET4cWQ35UE"
 
   toggleShowTip = () => this.showTip = !this.showTip
 

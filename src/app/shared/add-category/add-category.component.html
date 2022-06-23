@@ -3,14 +3,15 @@
     <div class="w-50 pl-9 pr-3 px-9 bg-white rounded-2xl text-category-500 pointer-events-auto">
         <div class="pr-6 max-h-full overflow-auto py-6">
             <div class="items-center flex justify-between">
-                <h2 class="text-2xl">新增資料步驟</h2>
+                <h2 class="text-2xl">新增資料表</h2>
                 <button class="p-5" (click)="hide()">
                     <img src="./assets/icons/cross-category.svg">
                 </button>
             </div>
+            <p class="pb-6">地圖上每一個圓柱(地址)需藉由數值來視覺化高度。以下為新增數值的步驟。</p>
             <div class="step mb-6">
-                <h3 class="py-2">一、建立試算表並填入資料</h3>
-                <a href="https://docs.google.com/spreadsheets/d/1rGYgg9SDkrafXSGpleAitmpaYMIUd_QNeDnogccZ0Fc/copy" target="_blank" >
+                <h3 class="py-2">步驟一、建立試算表並填入資料</h3>
+                <a [href]="'https://docs.google.com/spreadsheets/d/' + pinSheetId + '/copy'" target="_blank" >
                     <button class="bg-category-400 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2">
                         <p>由範本建立試算表</p>
                         <img class="pb-1.5" src="./assets/icons/external-link.svg">
@@ -18,7 +19,7 @@
                 </a>
             </div>
             <div class="step mt-6 mb-3">
-                <h3 class="py-2">二、複製其連結並貼上</h3>
+                <h3 class="py-2">步驟二、複製其連結並貼上</h3>
                 <label class="bg-category-200 rounded-xl p-4 block" for="catalog-link">
                     <input
                     id="catalog-link"

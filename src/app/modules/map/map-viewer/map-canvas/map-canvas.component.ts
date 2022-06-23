@@ -104,6 +104,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
   selectedPinsWithDnc: PinWithDnc[] = []
   debugMode = !environment.production
+  pinSheetId?: string
   @Output() selectedPinsWithDncEmitter: EventEmitter<PinWithDnc[]> = new EventEmitter<PinWithDnc[]>()
   // view
   guiPolygonSettings: GuiPolygonSettings = {
@@ -131,6 +132,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   async ngOnInit(): Promise<void> {
+    console.log(this.pins);
     this.hoverPinChangeSuject.subscribe(nextHoverPins => {
       this.hoveringPins = this.column3dService.updatePinsStyle(nextHoverPins, this.guiColumnSettings, this.hoveringPins, this.selectedPins)
       nextHoverPins = this.hoveringPins
@@ -149,7 +151,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   onMouseIntersect = (intersections: Intersection[]) => {
-    const pinIds = this.pinUtilsService.getPinIdsFromIntersections(intersections)
+    const pinIds = this.pinUtilsService.getPinIdsFromIntersections(intersections)    
     const pins = this.pinUtilsService.findPinById(this.pins, pinIds)
     this.changeLegendText(pins[0])
     this.onPinsHovered(pins)
@@ -183,7 +185,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     return new Vector2(x, y)
   }
 
-  appendUrlStatusCode = (setting: CategorySetting) => {
+  appendIsUrlValid = (setting: CategorySetting) => {
     console.log(setting);
     return this.categoryService.getCategoryTableByUrl(`https://docs.google.com/spreadsheets/d/${setting.tableSource}/gviz/tq?`).pipe( map(code => {
       setting.valid = Boolean(code === 200)
@@ -208,21 +210,30 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.initThree()
     this.canvasContainer.nativeElement.addEventListener('mousewheel', this.onMouseScroll)
     this.canvasContainer.nativeElement.addEventListener('click', this.onMouseClick)
-    // this.pinTableSource = this.pinModelService.getPinTableSource(mapId)
-    this.pins = await this.pinModelService.initPinsModel('1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM')
-    this.onCategoryChageFromPicker(this.defaultCategoryId) // init after pins ready
-    await this.initTile()
+  }
+  @Input() set onGetPinSheetId (id: string | undefined) {
+    if(id) {
+      this.pinSheetId = id    
+      this.pinModelService.initPinsModel(id).then( pins => {
+        this.pins = pins
+      }).then( () => this.initTile())
+    } else {
+      this.initTile()
+      console.error("not getting pin sheet id in map canvas");
+    }
   }
 
   @Input() onCategoryChageFromPicker = async (categoryId: string) => {  
+    console.log(categoryId);
+    console.log(this.pinSheetId);
+    if (!this.pinSheetId || !categoryId) throw new Error("called onCategoryChageFromPicker before PinSheetId inited");
     this.pinModelService.removePins(this.pins)
-    // this.pinTableSource = this.pinModelService.getPinTableSource(mapId)
-    this.pins = await this.pinModelService.initPinsModel('1vRdclyzCMhaoO23Xv81zbfmcLZQ9sKFrOwlkZFmozXM')
+    this.pins = await this.pinModelService.initPinsModel(this.pinSheetId)
     this.defaultCategoryId = categoryId
     if(!categoryId) return
     this.categoryService.getCategorySetting(categoryId).pipe( 
       take(1),
-      mergeMap( setting => this.appendUrlStatusCode(setting)),
+      mergeMap( setting => this.appendIsUrlValid(setting)),
       mergeMap( setting => this.pinModelService.applyPinHeightFromSetting(setting, this.pins))
     ).subscribe( (settingAndPins: {setting: CategorySetting;pins: Pin[]}|undefined) => {
         if (!settingAndPins) {
@@ -314,6 +325,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
   }
 
   initTile = async () => {
+    console.log('initTile');
+    
     this.isLoadingTile.emit(true)
     const tileIds = this.tileService.initTileIdsOfLevel8()
     const tiles = await this.tileUtilsService.getTileMeshById(tileIds)

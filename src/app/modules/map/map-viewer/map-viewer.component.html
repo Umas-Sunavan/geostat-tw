@@ -41,6 +41,8 @@
         text-lg md:text-4xl px-6 py-3 
         font-light">{{mapTitle}}</h1>
         <app-category-picker class="flex flex-col m-6" 
+        *ngIf="isCategoryPickerShow"
+        [isAddCategoryShow]="initAddingCategory"
         (changeCategoryToCanvas)="mapCanvas.onCategoryChageFromPicker($event)"
         [setMapModelFromDb]="mapModelFromDb"
         ></app-category-picker>

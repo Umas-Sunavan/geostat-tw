@@ -37,11 +37,17 @@ export class MapViewerComponent implements OnInit {
   showResetPosition = false
   resetCooldown = false
   isAddPinSheetFlowShow = false
-  pinSheetId?:string 
+  isCategoryPickerShow = false
+  pinSheetId?:string
+  initAddingCategory = false
 
   completeAddPinSheetFlow= (sheetId: string) => {
     this.isAddPinSheetFlowShow = !this.isAddPinSheetFlowShow
     this.updatePinSheet(sheetId)
+    this.isCategoryPickerShow = true
+    this.initAddingCategory = false
+    console.log(this.initAddingCategory);
+    
   }
 
   updatePinSheet = (sheetId:string) => {
@@ -71,9 +77,9 @@ export class MapViewerComponent implements OnInit {
     this.mapTitle = this.mapModelFromDb.mapName
     const id = this.mapModelFromDb.pinSheetId
     if (id !== "null" && id !== "") {
+      this.isCategoryPickerShow = true
       this.pinSheetId = id
       console.log(this.pinSheetId);
-      
       const pinSheet = await lastValueFrom(this.pinsTableService.getAddressFromSourceSheet(id))
       if(!pinSheet) throw new Error("found pin sheet id but no sheet content loaded");
     } else {

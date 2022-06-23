@@ -39,7 +39,7 @@
                 <a [href]="'https://docs.google.com/spreadsheets/d/' + sheetId + '/'" target="_blank" (click)="isClickedSheetUrl = true">
                     <button class="bg-category-400 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2">
                         <p>編輯地址清單</p>
-                        <img class="pb-1.5" src="./assets/icons/external-link.svg">
+                        <img class="ml-2 pb-1.5" src="./assets/icons/external-link.svg">
                     </button>
                 </a>
                 <button class="mt-3 rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2" [ngClass]="{'bg-category-400 ': isClickedSheetUrl, 'bg-grey-100 ': !isClickedSheetUrl, 'text-grey-300 ': !isClickedSheetUrl}" (click)="complete()">

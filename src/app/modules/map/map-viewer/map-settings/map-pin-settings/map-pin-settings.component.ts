@@ -14,6 +14,7 @@ export class MapPinSettingsComponent implements OnInit {
   unselectedPins: Pin[] = []
   selectedPins: Pin[] = []
   selectedPinsWithType: PinWithPolygonType[] = []
+  @Input() pinSheetId?: string
   @Input() polygons: Polygon[] = []
   @Input() set setPolygons(polygons: Polygon[]) {
     this.onPolygonUpdated(polygons)

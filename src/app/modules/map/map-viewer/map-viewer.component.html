@@ -59,10 +59,16 @@
       </button>
       
     </div>
-    <app-map-settings class="flex float-right flex-col" [columnSettings]="mapCanvas.guiColumnSettings"
-      [polygonSettings]="mapCanvas.guiPolygonSettings" [pins]="mapCanvas.pins" [selectedPins]="mapCanvas.selectedPins"
-      (columnChanged)="mapCanvas.uiUpdatePin($event)" (polygonChanged)="mapCanvas.uiUpdatePolygon($event)"
-      (pinSelected)="onPinSelected($event)" [polygons]="mapCanvas.polygons"></app-map-settings>
+    <app-map-settings class="flex float-right flex-col" 
+      [columnSettings]="mapCanvas.guiColumnSettings"
+      [polygonSettings]="mapCanvas.guiPolygonSettings" 
+      [pins]="mapCanvas.pins" 
+      [pinSheetId]="pinSheetId"
+      [selectedPins]="mapCanvas.selectedPins"
+      (columnChanged)="mapCanvas.uiUpdatePin($event)" 
+      (polygonChanged)="mapCanvas.uiUpdatePolygon($event)"
+      (pinSelected)="onPinSelected($event)" 
+      [polygons]="mapCanvas.polygons"></app-map-settings>
   </div>
   <app-map-canvas 
   #mapCanvas

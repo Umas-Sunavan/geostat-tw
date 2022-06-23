@@ -19,7 +19,6 @@ body
     background-size: cover // three background settings above sets the backround position fixed
     box-shadow: inset 0 0 0 3000px rgba(255, 255, 255, 0.3) // because the blur effect won't affect the pixel near border, so it is used as an inner shadow
     filter: blur(0px) // fix the element
-    overflow: hidden // hide the overflowed blur effect, which is from the before element
     &:before
         content: ""
         position: absolute // position should be same as parent by using absoute
@@ -38,6 +37,8 @@ body
     border-radius: 2rem
 .gradient-bg
     background: linear-gradient(306deg, rgba(52,136,184,1) 0%, rgba(75,158,205,1) 100%)
+.pinsheet-gradient-bg
+    background: linear-gradient(306deg, #EF6F53 0%, #F35B77 100%)
 .tint-shadow-primary
     box-shadow: 0px 21px 16px -11px #4b9ecd55, 0px 3px 13px 0px #06091829
     &:hover

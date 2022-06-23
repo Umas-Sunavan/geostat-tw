@@ -1,4 +1,19 @@
-<section class="glass-blur rounded-2xl pointer-events-auto" [ngStyle]="{ backgroundImage: blurSource }">
+
+
+  <div class="bg-white/90 m-3 p-3 rounded-xl flex text-pins-500 flex-col settings-height">
+    <h2 class="p-2 text-xl">編輯落點</h2>
+    <a class="flex" target="_blank" [href]="'https://docs.google.com/spreadsheets/d/' + pinSheetId + '/edit#gid=0&range=A:B'">
+      <button
+      class="
+      text-sm md:text-xl
+      tint-shadow-primary pinsheet-gradient-bg bg-primary rounded-full items-center flex justify-center text-white pointer-events-auto w-full
+      mx-2 mb-3 mt-2 px-4 py-2 md:py-4 md:px-8 "
+      >
+        落點資料表
+        <img class="ml-2 pb-1" src="./assets/icons/external-link-white.svg">
+      </button>
+    </a>
+  </div>
   <div class="bg-white/90 m-3 p-3 rounded-xl flex text-pins-500 flex-col settings-height">
     <h2 class="p-2 text-xl">選取落點</h2>
     <form>
@@ -32,4 +47,3 @@
       </fieldset>
     </form>
   </div>
-</section>

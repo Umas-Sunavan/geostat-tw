@@ -22,6 +22,7 @@ export class MapSettingsComponent implements OnInit {
   @Output() columnChanged: EventEmitter<Event> = new EventEmitter()
   @Output() polygonChanged: EventEmitter<Event> = new EventEmitter()
   @Input() polygonSettings!: GuiPolygonSettings
+  @Input() pinSheetId?: string
   @Input() polygons: Polygon[] = []
   @Input() pins: Pin[] = []
   @Input() hoveringPins: Pin[] = []

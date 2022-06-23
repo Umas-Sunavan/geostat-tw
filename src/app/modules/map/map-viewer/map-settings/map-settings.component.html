@@ -22,13 +22,16 @@
     <img src="./assets/icons/check.svg" />
   </button>
   <div class="pointer-events-none flex flex-col-reverse md:flex-row overflow-y-auto settings-container-height rounded-2xl" *ngIf="showSettings">
-    <app-map-pin-settings
+    <section class="glass-blur md:mr-3 rounded-2xl" [ngStyle]="{ backgroundImage: blurSource }">
+    <div class="pointer-events-auto flex flex-col md:flex-row overflow-y-auto">
+      <app-map-pin-settings
+      [pinSheetId]="pinSheetId"
       (pinChecked)="onPinSelected($event)"
       [blurSource]="blurSource"
       [setPins]="pins"
       [setSelectedPins]="selectedPins"
       [setPolygons]="polygons"
-      class="pointer-events-auto flex float-right flex-col md:pr-4 mt-4 md:mt-0"
+      class="pointer-events-auto float-right flex-col"
     ></app-map-pin-settings>
     <app-map-3d-settings
       [polygonSettings]="polygonSettings"
@@ -38,5 +41,7 @@
       (polygonChanged)="onPolygonChanged($event)"
       class="pointer-events-auto"
     ></app-map-3d-settings>
+    </div>
+    </section>
   </div>
 </div>

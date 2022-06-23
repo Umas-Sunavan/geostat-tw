@@ -23,13 +23,13 @@ export class CategoryPickerComponent implements OnInit {
     private pinsTableService: PinsTableService,
   ) { }
 
-  isShow: boolean = false
+  isCategoriesShow: boolean = false
   blurSource: string = ''
   categories: CategorySettingWithId[] = []
   selectedCategoryValue: string = ''
   selectedCategoryName = ''
   selectedCategory?: CategorySetting
-  isAddCategoryShow: boolean = false
+  @Input() isAddCategoryShow: boolean = false
   isAddNameShow:boolean = false
   addedName = ''
   isCompletedShow: boolean = false
@@ -42,6 +42,7 @@ export class CategoryPickerComponent implements OnInit {
       this.onGetMapModel(map)
     }
   }
+  pinSheetId?: string
 
   initDefaultCategorySubscriber = () => {
     this.categoryChangeSubject.pipe(
@@ -93,10 +94,12 @@ export class CategoryPickerComponent implements OnInit {
         this.getCategoryFromFirebase().subscribe( categories => {
           console.log(categories.map( category => category.tableForPinSheetId));
           console.log(map.pinSheetId);
-          this.checkCategoriesDefinePinSheet(categories)
+          this.checkCategoriesHasNoPinSheet(categories)
           const categoriesForPinSheet = categories.filter( category => category.tableForPinSheetId === map.pinSheetId)
+          this.createOneIfNone(categoriesForPinSheet)
           this.updateSelectedCategory(categoriesForPinSheet, this.selectedCategoryValue)
           this.categories = categoriesForPinSheet
+          this.pinSheetId = map.pinSheetId
         })
       })
     } else {
@@ -104,7 +107,9 @@ export class CategoryPickerComponent implements OnInit {
     }
   }
 
-  checkCategoriesDefinePinSheet = (categories: CategorySettingWithId[]) => {
+  createOneIfNone = (categories: CategorySettingWithId[]) => categories.length === 0 ? this.toggleAddCategory() : ''
+
+  checkCategoriesHasNoPinSheet = (categories: CategorySettingWithId[]) => {
     categories.forEach( category => {
       const hasPinSheetId = Boolean(category.tableForPinSheetId)
       if (!hasPinSheetId) {
@@ -118,8 +123,8 @@ export class CategoryPickerComponent implements OnInit {
   }
 
   toggleShow = () => {
-    this.isShow = !this.isShow
-    if (this.isShow) {
+    this.isCategoriesShow = !this.isCategoriesShow
+    if (this.isCategoriesShow) {
       this.animateService.getCavasImage().pipe(take(1)).subscribe(value => {
         this.blurSource = `url(${value})`
       })
@@ -164,6 +169,7 @@ export class CategoryPickerComponent implements OnInit {
     this.addedName = name
     if(!this.addingSheetUrl) throw new Error("no google sheet url before creating new category on database");
     defaultSetting.tableSource = this.categoryService.getSheetIdFromUrl(this.addingSheetUrl)
+    defaultSetting.tableForPinSheetId = this.pinSheetId || ''
     this.addingCategoryId = this.categoryService.addCategory(defaultSetting) || ''
   }
 

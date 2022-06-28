@@ -36,6 +36,7 @@ export class CategoryPickerComponent implements OnInit {
   addingSheetUrl?: string
   addingCategoryId?: string
   categoryChangeSubject: Subject<string> = new Subject()
+  categoryToEdit?:string
   @Output() changeCategoryToCanvas: EventEmitter<string> = new EventEmitter()
   @Input('setMapModelFromDb') set setMapModelFromDb(map:HttpMap) {
     if (map) {
@@ -135,6 +136,17 @@ export class CategoryPickerComponent implements OnInit {
     this.categoryChangeSubject.next(categoryId)
     this.changeCategoryToCanvas.emit(categoryId)
     this.updateSelectedCategory(this.categories, categoryId)
+  }
+
+  showCategoryEdit = (categoryId: string) => {
+    const category = this.categories.find( category => category.categoryId === categoryId) 
+    if (!category) throw new Error("no category found");
+    this.categoryToEdit = category.tableSource
+    console.log(this.categoryToEdit);
+  }
+
+  hideCategoryEdit = () => {   
+    this.categoryToEdit = undefined
   }
 
   // popup functions: 

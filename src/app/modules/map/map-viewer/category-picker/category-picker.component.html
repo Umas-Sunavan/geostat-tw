@@ -1,3 +1,4 @@
+<div *ngIf="categoryToEdit" class="w-screen h-screen absolute left-0 top-0" (click)="hideCategoryEdit()"></div>
 <div class="flex flex-col">
     <p class="
     text-xs md:text-base 
@@ -27,11 +28,24 @@
                         <div class="unselected-category overflow-y-auto">
                             <ng-container *ngFor="let category of categories; index as i">
                                 <label
-                                    class="rounded-full bg-category-200 py-3 px-6 flex space-x-2 items-center my-1 mx-3">
+                                    class="rounded-full bg-category-200 py-1 px-6 flex space-x-2 items-center my-1 mx-3">
                                     <label [for]="'category' + i" class="flex space-x-2 mr-auto">
                                         <p class="pr-6">{{category.tableName}}</p>
                                     </label>
-                                    <input type="radio" [id]="'category' + i" name="category" [value]="category.categoryId" [(ngModel)]="selectedCategoryValue" (change)="changeCategory(category.categoryId)" [ngStyle]="{'background-image': updateSelectedStyle(category.categoryId)}"/>
+                                    <input type="radio" [id]="'category' + i" name="category" [value]="category.categoryId" [(ngModel)]="selectedCategoryValue" (change)="changeCategory(category.categoryId)" [ngStyle]="{'background-image': updateSelectedStyle(category.categoryId)}" class="m-3"/>
+                                    <div class="flex" (click)="showCategoryEdit(category.categoryId)">
+                                        <button class="p-2 ml-1 my-1 hover:bg-white rounded-xl">
+                                            <img src="./assets/icons/more-category.svg">
+                                        </button>
+                                        <div *ngIf="categoryToEdit === category.tableSource" class="pointer-events-auto z-20 absolute w-max dropdown p-2 bg-white rounded-2xl tint-shadow-primary-sm">
+                                            <a class="p-4 hover:bg-category-200 rounded-2xl flex" target="_blank" [href]="'https://docs.google.com/spreadsheets/d/' + category.tableSource + '/edit#gid=0&range=A:B'">
+                                                <button class="pointer-events-none flex items-center">
+                                                    編輯資料
+                                                    <img class="ml-2 pb-1.5" src="./assets/icons/external-link.svg">
+                                                </button>
+                                            </a>
+                                        </div>
+                                    </div>
                                 </label>
                             </ng-container>
                         </div>
@@ -46,6 +60,7 @@
                 <img src="./assets/icons/add-category.svg">
             </button>
         </div>
+        <div *ngIf="categoryToEdit" class="pointer-events-auto absolute-important w-full h-full left-0 top-0" (click)="hideCategoryEdit()"></div>
     </section>
 </div>
 <app-add-category

@@ -218,7 +218,7 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
         this.pins = pins
       }).then( () => this.initTile())
     } else {
-      this.initTile()
+      // this.initTile()
       console.error("not getting pin sheet id in map canvas");
     }
   }

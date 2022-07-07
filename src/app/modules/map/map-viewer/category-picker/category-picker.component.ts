@@ -104,7 +104,7 @@ export class CategoryPickerComponent implements OnInit {
         })
       })
     } else {
-      throw new Error("map sheet id from DB is not found");
+      this.toggleAddCategory()
     }
   }
 

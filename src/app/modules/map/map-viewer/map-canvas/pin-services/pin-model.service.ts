@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { concatMap, forkJoin, lastValueFrom, mergeMap, of } from 'rxjs';
+import { catchError, concat, concatMap, delay, forkJoin, from, lastValueFrom, map, mergeMap, Observable, of, tap } from 'rxjs';
 import { CategoryTableRow } from 'src/app/shared/models/CategoryTableRow';
 import { CircleGeometry, CylinderGeometry, Group, Mesh, MeshPhongMaterial, Object3D, Scene, Vector2, Vector3 } from 'three';
 import { GoogleSheetPinMappingLonLat } from 'src/app/shared/models/GoogleSheetPinMappingLonLat';
@@ -31,25 +31,52 @@ export class PinModelService {
   ) { }
 
   initPinsModel = async (pinTableSource: string) => {
-    // retrice all known address from DB (cache). As for the unknown address, theny needs to get geoencoding then put them to DB.
+    // retrieve all known address from DB (cache). As for the unknown address, theny needs to get geoencoding then put them to DB.
     const addressFromSheet:GoogleSheetPin[] = await lastValueFrom(this.pinsTableService.getAddressFromSourceSheet(pinTableSource))
     const lonlatCacheFromDb: GoogleSheetPinMappingLonLat[] = await lastValueFrom(this.pinsTableService.getPinsLonLatCache())
-    const {availableCahce, unCachedAddress} = this.filterAvailableLonlatCahce(addressFromSheet, lonlatCacheFromDb)
-    const pinsNeedsToCache = await lastValueFrom(this.pinsTableService.getPinLonLatFromGeoencoding(unCachedAddress))    
-    await lastValueFrom(this.addPinToCache(pinsNeedsToCache))
-    const googleSheetPinsMappingLonLat = [...availableCahce, ...pinsNeedsToCache]
+    const {availableCache, unCachedAddress} = this.filterAvailableLonlatCahce(addressFromSheet, lonlatCacheFromDb)
+    const pinsJustCached = await this.groupingPinsToCache(unCachedAddress)
+    const googleSheetPinsMappingLonLat = [...availableCache, ...pinsJustCached]      
     const pins = this.createPinsModel(googleSheetPinsMappingLonLat)
     return pins
+  }
+
+  groupingPinsToCache = async (addresses: GoogleSheetPin[] ) => {
+    const groupingAddresses = (addresses: GoogleSheetPin[]):GoogleSheetPin[][] => {
+      const emptyGroups = new Array(Math.ceil(addresses.length/10)).fill('').map((v,i) => i)
+      const groups = emptyGroups.map( groupId => {
+        const group = addresses.filter( (address, addressId) => {
+          const sliceStartAt = groupId * 10
+          const sliceEndAt = (groupId * 10) + 10
+          return sliceStartAt <= addressId && sliceEndAt > addressId
+        })
+        return group
+      })
+      return groups
+    }
+    const groups = groupingAddresses(addresses)
+    console.log(groups);
+    
+    const pinsCached = []
+    for (const addresses of groups) {
+      console.log(addresses);
+      const pinsNeedsCache = await lastValueFrom(this.pinsTableService.getPinLonLatFromGeoencoding(addresses))        
+      try {
+        await lastValueFrom(this.addPinToCache(pinsNeedsCache))
+      } catch (error) {
+        console.error(error);         
+      }
+      pinsCached.push(...pinsNeedsCache)
+    }
+    return pinsCached
   }
 
   addPinToCache = (pins: GoogleSheetPinMappingLonLat[]) => {
     const requests = pins.map( pin => this.pinsTableService.addAddressCache(pin))
     if (requests.length > 0) {
-      return of('').pipe( 
-        concatMap( value => forkJoin([...requests]))
-      )
+      return concat(...requests).pipe( delay(250), tap( val => console.log((val.message))) , map( val => [val]))
     } else {
-      return of([])
+      return of([] as {message: string;}[])
     }
   }
 
@@ -64,7 +91,7 @@ export class PinModelService {
         unCachedAddress.push(sourcePin)
       } 
     })
-    return { availableCahce, unCachedAddress}
+    return { availableCache: availableCahce, unCachedAddress}
   }
 
   createPinsModel = (fromSheet: GoogleSheetPinMappingLonLat[]):Pin[] => {
@@ -97,7 +124,7 @@ export class PinModelService {
   applyPinHeightFromSetting = async (setting: CategorySetting, pins: Pin[]) => {
     if (!setting.valid) return    
     const categoryTable = await this.categoryService.getTableFromSettings(setting)
-    const { mappedPins, mappedRows } = this.pinCategoryMapping.mappingPinAndTable(categoryTable, pins)
+    const { mappedPins, mappedRows } = this.pinCategoryMapping.mappingPinAndTable(categoryTable, pins)    
     pins = this.updatePinHeightFromRows(mappedPins, mappedRows)    
     return {setting, pins}
   }
@@ -107,7 +134,7 @@ export class PinModelService {
       const mappedRow = rows.find( row => row.title === pin.title)
       if(!mappedRow) throw new Error(`row is not found in pin ${pin.title}`);
       const value = Number(mappedRow.value)
-      if(!value) throw new Error(`value in row ${mappedRow.title} in not a number`);
+      if(!value && value !== 0) throw new Error(`value in row ${mappedRow.title} in not a number`);
       pin.height = value
     })
     return pins

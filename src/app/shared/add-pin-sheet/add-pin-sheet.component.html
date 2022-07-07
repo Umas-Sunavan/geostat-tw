@@ -5,7 +5,7 @@
              <div class="items-center flex justify-between">
                  <h2 class="py-5 text-2xl">為地圖新增地址資料</h2>
              </div>
-             <p class="pb-6">落點由試算表產生，是在地圖上用來視覺化資料的圓柱。</p>
+             <p class="pb-6">地址資料能在地圖上產生圓柱，圓柱高度可綁定數值的大小，藉此視覺化數值資料。</p>
              <div class="step mb-6" [ngSwitch]="gapiInited && gisInited" >
                 <ng-container *ngSwitchCase="true" [ngSwitch]="isAuthorizing">
                     <button *ngSwitchCase="false"  class="bg-category-400  rounded-full pt-3 pb-2 flex w-full items-center justify-center space-x-2" (click)="handleAuthClick()">

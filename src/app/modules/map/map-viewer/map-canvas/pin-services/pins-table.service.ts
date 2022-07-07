@@ -159,7 +159,7 @@ export class PinsTableService {
   })
 
   convertAddressToRawGeoencoding = mergeMap( (next: GoogleSheetPin[]): Observable<GoogleSheetPinMappingGeoencodingRaw[]>=> {
-    next = next.filter( (v,i) => i < 20)
+    // next = next.filter( (v,i) => i < 20)
     let allRequests = next.map(pointData => {      
       const encodedAddress = encodeURIComponent(pointData.address)
       const request = this.getGeoLonLat(encodedAddress, pointData)

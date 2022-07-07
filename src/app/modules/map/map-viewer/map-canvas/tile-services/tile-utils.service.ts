@@ -135,6 +135,13 @@ export class TileUtilsService {
       scene.add(tile3d)
     })
   }
+
+  removeTilesFromScene = (tiles: Tile[], scene: Scene) => {
+    tiles.forEach(tile => {
+      if (!tile.mesh) throw new Error("no mesh to remove from scene");
+      tile.mesh.removeFromParent()
+    })
+  }
   
   // create
 

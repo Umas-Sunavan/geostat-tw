@@ -211,39 +211,43 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     this.canvasContainer.nativeElement.addEventListener('mousewheel', this.onMouseScroll)
     this.canvasContainer.nativeElement.addEventListener('click', this.onMouseClick)
   }
+  
   @Input() set onGetPinSheetId (id: string | undefined) {
-    if(id) {
-      this.pinSheetId = id    
-      this.pinModelService.initPinsModel(id).then( pins => {
-        this.pins = pins
-      }).then( () => this.initTile())
-    } else {
-      // this.initTile()
-      console.error("not getting pin sheet id in map canvas");
-    }
+    this.pinSheetId = id;
+    (async () => {
+      await this.updateTile()
+      if(this.pinSheetId && this.defaultCategoryId) {
+        this.initPinsModelAndHeight(this.pinSheetId, this.defaultCategoryId)
+      }
+    })()
   }
 
-  @Input() onCategoryChageFromPicker = async (categoryId: string) => {  
-    console.log(categoryId);
-    console.log(this.pinSheetId);
-    if (!this.pinSheetId || !categoryId) throw new Error("called onCategoryChageFromPicker before PinSheetId inited");
+  initPinsModelAndHeight = async (pinSheetId: string, categoryId: string) => {
+    const pins = await this.pinModelService.initPinsModel(pinSheetId)
     this.pinModelService.removePins(this.pins)
-    this.pins = await this.pinModelService.initPinsModel(this.pinSheetId)
-    this.defaultCategoryId = categoryId
-    if(!categoryId) return
+    this.pins = pins
+    await this.updateTile()
     this.categoryService.getCategorySetting(categoryId).pipe( 
       take(1),
       mergeMap( setting => this.appendIsUrlValid(setting)),
       mergeMap( setting => this.pinModelService.applyPinHeightFromSetting(setting, this.pins))
     ).subscribe( (settingAndPins: {setting: CategorySetting;pins: Pin[]}|undefined) => {
-        if (!settingAndPins) {
-          alert('資料來源錯誤。請確保其Google Sheet已設為公開')
-          return
-        }
-        this.pins = settingAndPins.pins
-        this.applySettings(settingAndPins.setting)
-        this.pinModelService.updatePin3ds(this.pins, this.scene, settingAndPins.setting.options.meshSettings)      
-      })
+      if (!settingAndPins) {
+        alert('資料來源錯誤。請確保其Google Sheet已設為公開')
+        return
+      }
+      this.pins = settingAndPins.pins
+      this.applySettings(settingAndPins.setting)
+      this.pinModelService.updatePin3ds(this.pins, this.scene, settingAndPins.setting.options.meshSettings)      
+    })  
+    
+  }
+
+  @Input() onCategoryChageFromPicker = async (categoryId: string) => {  
+    this.defaultCategoryId = categoryId
+    if(this.pinSheetId && this.defaultCategoryId) {
+      this.initPinsModelAndHeight(this.pinSheetId, this.defaultCategoryId)
+    }
   }
 
   getCategoryIdFromRouteAsync = async (): Promise<string> => {
@@ -324,9 +328,8 @@ export class MapCanvasComponent implements OnInit, AfterViewInit {
     }, 6000);
   }
 
-  initTile = async () => {
-    console.log('initTile');
-    
+  updateTile = async () => {
+    this.tileUtilsService.removeTilesFromScene(this.tiles, this.scene)
     this.isLoadingTile.emit(true)
     const tileIds = this.tileService.initTileIdsOfLevel8()
     const tiles = await this.tileUtilsService.getTileMeshById(tileIds)

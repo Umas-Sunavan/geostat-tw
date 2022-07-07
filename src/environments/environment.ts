@@ -5,14 +5,14 @@
 export const environment = {
   production: false,
   firebaseConfig: {
-    apiKey: "AIzaSyDfT5qnMc2BxK0-QnRmWzbnmXgsqFjqLcE",
-    authDomain: "twgeostat.firebaseapp.com",
-    databaseURL: "https://twgeostat-default-rtdb.firebaseio.com",
-    projectId: "twgeostat",
-    storageBucket: "twgeostat.appspot.com",
-    messagingSenderId: "349482155640",
-    appId: "1:349482155640:web:5dccc81340eff5b646f78d",
-    measurementId: "G-W4SHBZF9SS"
+    apiKey: "",
+    authDomain: "",
+    databaseURL: "",
+    projectId: "",
+    storageBucket: "",
+    messagingSenderId: "",
+    appId: "",
+    measurementId: ""
   },
 };
 

@@ -31,7 +31,7 @@
           md:text-2xl 
           mx-3 p-3 md:my-6 
           font-medium hover:bg-primary-500 hover:text-white rounded-2xl flex items-center"
-          [routerLink]="['dashboard']" (mouseenter)="hoverLogo = true" (mouseleave)="hoverLogo = false">
+          [routerLink]="['/dashboard']" (mouseenter)="hoverLogo = true" (mouseleave)="hoverLogo = false">
             <img *ngIf="hoverLogo" src="./assets/icons/logo.svg" class="w-8 pr-1 pb-1">
             <img *ngIf="!hoverLogo" src="./assets/icons/logo-primary.svg" class="w-8 pr-1 pb-1">
             Geostat.tw

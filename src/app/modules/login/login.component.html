@@ -1,0 +1,60 @@
+<div class="bg-primary-500 p-16 h-full w-full">
+    <header class="w-full flex text-white items-center">
+        <div class="flex p-5">
+            <img src="./assets/icons/logo.svg" class="mr-1">
+            <h1 class="text-4xl">Geostat.tw</h1>
+        </div>
+        <div class="flex pt-6 pb-5 px-5">
+            <h1 class="text-2xl text-bold">About</h1>
+        </div>
+        <div class="flex ml-auto">
+            <h1 class="text-2xl text-bold text-primary-400">2022 Designed by Umas</h1>
+        </div>
+    </header>
+    <div class="bg-primary-500 flex">
+        <div class="w-full p-5 flex items-center">
+            <img src="./assets/illustrations/illustration-taiwan-decoration.svg" class="mr-1">
+        </div>
+        <div class="w-full">
+            <div class="m-16 bg-white h-full rounded-4xl flex flex-col items-center p-12">
+                <div class="text-sm text-primary-500 font-light">現在加入</div>
+                <div class="flex text-primary-500 font-bold items-center" >
+                    <img src="./assets/illustrations/illustration-logo.svg" class="w-12 p-1">
+                    <h1 class="text-2xl">Geostat.tw</h1>
+                </div>
+                <div class="vertical-line my-4 bg-pins-500"></div>
+                <button
+                class="
+                text-sm md:text-xl
+                pinsheet-gradient-bg bg-primary rounded-full items-center flex justify-center text-white pointer-events-auto w-full
+                mx-2 mb-3 mt-2 px-4 py-2 md:py-4 md:px-8 "
+                >
+                    快速註冊
+                    <img class="ml-2 pb-1" src="./assets/icons/external-link-white.svg">
+                </button>
+                <div class="flex flex-row items-center">
+                    <hr class="w-12 bg-primary-500 border-primary-500"/>
+                        <p class="px-6 py-4 text-sm text-primary-500 font-light">或直接登入</p>
+                    <hr class="w-12 border-primary-500"/>
+                </div>
+                <div class="step mt-6 mb-3">
+                    <label class="rounded-xl p-4 block" [ngClass]="'bg-primary-200'" for="catalog-link">
+                        <input
+                        id="catalog-link"
+                        type="email"
+                        #email="ngModel"
+                        [(ngModel)]="email"
+                        required
+                        [size]="13"
+                        placeholder="電子郵件"
+                        class="px-2 py-1 border-b-2 w-full text-xl" [ngClass]="['border-primary-400', 'placeholder:text-primary-400', 'bg-primary-200']"
+                        >
+                    </label>
+                    <div class="px-5 pt-2 text-sm text-error-500">
+                        <p *ngIf="email.touched && email.errors && email.errors['required']">此為必填</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -24,6 +24,7 @@ import { AddPinSheetComponent } from './shared/add-pin-sheet/add-pin-sheet.compo
 import { LoginComponent } from './modules/login/login.component';
 import { AuthHttpInterceptor, AuthModule } from '@auth0/auth0-angular';
 import { Interceptor } from './intercepter';
+import { environment } from 'src/environments/environment';
 
 @NgModule({
   declarations: [
@@ -56,26 +57,14 @@ import { Interceptor } from './intercepter';
       domain: 'dev-a63zgv8t.us.auth0.com',
       clientId: 'zU6Tp5fGH9m5s6L807QdLNCPNZP6PiVV',
         // Request this audience at user authentication time
-      audience: 'http://localhost:8081/maps/',
+      audience: 'https://dev-a63zgv8t.us.auth0.com/api/v2/',
 
       // Request this scope at user authentication time
       scope: 'read:current_user',
 
       // Specify configuration for the interceptor              
       httpInterceptor: {
-        allowedList: [
-          {
-            // Match any request that starts 'http://localhost:8081/maps/' (note the asterisk)
-            uri: 'http://localhost:8081/maps/*',
-            tokenOptions: {
-              // The attached token should target this audience
-              audience: 'http://localhost:8081/maps/',
-
-              // The attached token should have these scopes
-              scope: 'read:current_user'
-            }
-          }
-        ]
+        allowedList: environment.auth0HttpAllowedList
       }
 
     }),

@@ -38,10 +38,7 @@ export class MapsComponent implements OnInit {
   @Input() set onUserInit(userData: Auth0User| undefined) {
     if (!userData) return 
     this.userData = userData;
-    // (async () => {
-    //   this.maps = await lastValueFrom(this.updateList())
-    // })()
-    this.updateList().subscribe( maps => this.maps)
+    this.updateList().subscribe( maps => this.maps = maps)
   }
 
   async ngOnInit(): Promise<void> {

@@ -19,8 +19,8 @@ export class MapHttpService {
     const accessToken = this.cookieService.get("accessToken")
     console.log(accessToken);
     
-    const header = new HttpHeaders({ "authorization": `Bearer ${accessToken}`})
-    // return this.httpClient.get<HttpMap[]>('https://us-central1-twgeostat.cloudfunctions.net/getDB/maps', { headers: header})
+    const header = new HttpHeaders({ "authorization": `Bearer ${accessToken}`, 'content-type': 'application/x-www-form-urlencoded'})
+    return this.httpClient.get<HttpMap[]>('https://us-central1-twgeostat.cloudfunctions.net/getDB/maps', { headers: header})
     let headers = new HttpHeaders({ "authorization": `Bearer ${accessToken}`, 'content-type': 'application/x-www-form-urlencoded'})
     return this.httpClient.get<HttpMap[]>('http://localhost:8081/maps', {headers: headers})
   }

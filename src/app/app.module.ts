@@ -6,7 +6,7 @@ import { AppComponent } from './app.component';
 import { AuthComponent } from './modules/auth/auth/auth.component';
 import { HeaderComponent } from './core/layouts/header/header/header.component';
 import { FooterComponent } from './core/layouts/footer/footer/footer.component';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MapCanvasComponent } from './modules/map/map-viewer/map-canvas/map-canvas.component';
 import { DashboardComponent } from './modules/dashboard/dashboard.component';
@@ -22,6 +22,8 @@ import { MapsComponent } from './modules/dashboard/maps/maps.component';
 import { CategoriesComponent } from './modules/dashboard/categories/categories.component';
 import { AddPinSheetComponent } from './shared/add-pin-sheet/add-pin-sheet.component';
 import { LoginComponent } from './modules/login/login.component';
+import { AuthHttpInterceptor, AuthModule } from '@auth0/auth0-angular';
+import { Interceptor } from './intercepter';
 
 @NgModule({
   declarations: [
@@ -50,8 +52,36 @@ import { LoginComponent } from './modules/login/login.component';
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
+    AuthModule.forRoot({
+      domain: 'dev-a63zgv8t.us.auth0.com',
+      clientId: 'zU6Tp5fGH9m5s6L807QdLNCPNZP6PiVV',
+        // Request this audience at user authentication time
+      audience: 'http://localhost:8081/maps/',
+
+      // Request this scope at user authentication time
+      scope: 'read:current_user',
+
+      // Specify configuration for the interceptor              
+      httpInterceptor: {
+        allowedList: [
+          {
+            // Match any request that starts 'http://localhost:8081/maps/' (note the asterisk)
+            uri: 'http://localhost:8081/maps/*',
+            tokenOptions: {
+              // The attached token should target this audience
+              audience: 'http://localhost:8081/maps/',
+
+              // The attached token should have these scopes
+              scope: 'read:current_user'
+            }
+          }
+        ]
+      }
+
+    }),
+
   ],
-  providers: [],
+  providers: [{ provide: HTTP_INTERCEPTORS, useClass: AuthHttpInterceptor, multi: true }, { provide: HTTP_INTERCEPTORS, useClass: Interceptor, multi: true }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

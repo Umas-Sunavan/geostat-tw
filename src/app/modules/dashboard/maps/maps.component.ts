@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom, mergeMap, of } from 'rxjs';
+import { Auth0User } from 'src/app/shared/models/Auth0User';
 import { HttpMap } from 'src/app/shared/models/MapHttp';
 import { MapHttpService } from 'src/app/shared/services/map-http/map-http.service';
 import { CategoryService } from '../../map/map-viewer/map-canvas/category/category.service';
@@ -33,9 +34,18 @@ export class MapsComponent implements OnInit {
   }
   editButtonTopPosition = "0px"
   showRenamingPopup: boolean = false
+  userData?: Auth0User
+  @Input() set onUserInit(userData: Auth0User| undefined) {
+    if (!userData) return 
+    this.userData = userData;
+    // (async () => {
+    //   this.maps = await lastValueFrom(this.updateList())
+    // })()
+    this.updateList().subscribe( maps => this.maps)
+  }
 
   async ngOnInit(): Promise<void> {
-    this.maps = await lastValueFrom(this.updateList())
+    
   }
 
   // naming popup

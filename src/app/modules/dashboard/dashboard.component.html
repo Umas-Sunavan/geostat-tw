@@ -5,15 +5,23 @@
         </button>
         <button class="hover:bg-menu-600 p-2 my-2 rounded-xl">
             <img src="./assets/icons/log-out.svg" class="w-8 p-0.5">
-            <p class="text-white pt-2">登出</p>
+            <button class="text-white pt-2" (click)="auth.logout({ returnTo: document.location.origin })">
+                登出
+            </button>
         </button>
     </nav>
     <main class="flex w-full flex-col md:flex-row pointer-events-auto dashboard" (click)="clickSpace($event, mapsComponent, categoriesComponent)">
         <section class="absolute top-0 text-primary-500 flex-col justify-between p-6">
             <h1 class="text-2xl font-medium tracking-widest">GeoStat.tw</h1>
-            <!-- <small class="tracking-wide">Portions of this content are ©2022 by Umas Sunavan. Content available under a license.</small> -->
+            <small class="tracking-wide">Portions of this content are ©2022 by Umas Sunavan. Content available under a license.</small>
+            <ng-container *ngIf="auth.isAuthenticated$ | async">
+                <ul *ngIf="auth.user$ | async as user">
+                    <li>{{ userData?.name }}</li>
+                    <li>{{ userData?.email }}</li>
+                  </ul>
+            </ng-container>
         </section>
-        <app-maps #mapsComponent class="category bg-primary-100 md:w-7/12 flex items-end justify-end"></app-maps>
+        <app-maps #mapsComponent class="category bg-primary-100 md:w-7/12 flex items-end justify-end" [onUserInit]="userData"></app-maps>
         <app-categories #categoriesComponent class="category bg-category-100 w-full md:w-5/12 flex items-end justify-start"></app-categories>
     </main>
 </div>

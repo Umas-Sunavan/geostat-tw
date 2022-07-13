@@ -42,8 +42,8 @@
                         <input
                         id="catalog-link"
                         type="email"
-                        #email="ngModel"
-                        [(ngModel)]="email"
+                        #emailInput="ngModel"
+                        [(ngModel)]="mail"
                         required
                         [size]="13"
                         placeholder="電子郵件"
@@ -51,9 +51,10 @@
                         >
                     </label>
                     <div class="px-5 pt-2 text-sm text-error-500">
-                        <p *ngIf="email.touched && email.errors && email.errors['required']">此為必填</p>
+                        <p *ngIf="emailInput.touched && emailInput.errors && emailInput.errors['required']">此為必填</p>
                     </div>
                 </div>
+                <button (click)="auth.loginWithRedirect()">Log in</button>
             </div>
         </div>
     </div>

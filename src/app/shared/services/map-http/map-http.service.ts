@@ -1,5 +1,6 @@
 import { HttpClient, HttpContext, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { CookieService } from 'ngx-cookie-service';
 import { Observable, of } from 'rxjs';
 import { HttpMap } from 'src/app/shared/models/MapHttp';
 
@@ -9,12 +10,19 @@ import { HttpMap } from 'src/app/shared/models/MapHttp';
 export class MapHttpService {
 
   constructor(
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    private cookieService: CookieService,
   ) { }
 
 
   getMaps = () => {
-    return this.httpClient.get<HttpMap[]>('https://us-central1-twgeostat.cloudfunctions.net/getDB/maps')
+    const accessToken = this.cookieService.get("accessToken")
+    console.log(accessToken);
+    
+    const header = new HttpHeaders({ "authorization": `Bearer ${accessToken}`})
+    // return this.httpClient.get<HttpMap[]>('https://us-central1-twgeostat.cloudfunctions.net/getDB/maps', { headers: header})
+    let headers = new HttpHeaders({ "authorization": `Bearer ${accessToken}`, 'content-type': 'application/x-www-form-urlencoded'})
+    return this.httpClient.get<HttpMap[]>('http://localhost:8081/maps', {headers: headers})
   }
 
   getMockMaps = ():Observable<HttpMap[]> => {

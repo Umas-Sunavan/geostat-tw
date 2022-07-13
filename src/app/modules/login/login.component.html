@@ -54,7 +54,8 @@
                         <p *ngIf="emailInput.touched && emailInput.errors && emailInput.errors['required']">此為必填</p>
                     </div>
                 </div>
-                <button (click)="auth.loginWithRedirect()">Log in</button>
+                <button (click)="auth.loginWithRedirect({ redirect_uri: callbackUrl})">Log in</button>
+                {{callbackUrl}}
             </div>
         </div>
     </div>

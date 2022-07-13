@@ -37,7 +37,8 @@ const envConfigFile = `export const environment = {
           scope: 'read:current_user'
         }
       }
-    ]
+    ],
+    callbackUrl: 'https://umas-sunavan.github.io/geostat-tw'
 };
 `;
 

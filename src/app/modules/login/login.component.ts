@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '@auth0/auth0-angular';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -12,7 +13,10 @@ export class LoginComponent implements OnInit {
     public auth: AuthService) { }
 
   ngOnInit(): void {
+    console.log(window.origin);
   }
+
+  callbackUrl = environment.callbackUrl
 
   mail: string = ''
   password: string = ''

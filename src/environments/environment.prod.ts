@@ -24,14 +24,15 @@ export const environment = {
       }, 
       {
         // Match any request that starts 'https://dev-a63zgv8t.us.auth0.com/api/v2/' (note the asterisk)
-        uri: 'https://us-central1-twgeostat.cloudfunctions.net/getDB/*',
+        uri: 'https://us-central1-twgeostat.cloudfunctions.net/getDB/maps/*',
         tokenOptions: {
           // The attached token should target this audience
-          audience: 'https://us-central1-twgeostat.cloudfunctions.net/getDB/maps/',
+          audience: 'https://us-central1-twgeostat.cloudfunctions.net/getDB/maps',
   
           // The attached token should have these scopes
           scope: 'read:current_user'
         }
       }
-    ]
+    ],
+    callbackUrl: 'https://umas-sunavan.github.io/geostat-tw'
 };

@@ -23,8 +23,8 @@ import { CategoriesComponent } from './modules/dashboard/categories/categories.c
 import { AddPinSheetComponent } from './shared/add-pin-sheet/add-pin-sheet.component';
 import { LoginComponent } from './modules/login/login.component';
 import { AuthHttpInterceptor, AuthModule } from '@auth0/auth0-angular';
-import { Interceptor } from './intercepter';
 import { environment } from 'src/environments/environment';
+import { Interceptor } from './Intercepter';
 
 @NgModule({
   declarations: [

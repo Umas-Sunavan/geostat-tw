@@ -38,6 +38,8 @@ export class MapsComponent implements OnInit {
   @Input() set onUserInit(userData: Auth0User| undefined) {
     if (!userData) return 
     this.userData = userData;
+    console.log('will update list');
+    
     this.updateList().subscribe( maps => this.maps = maps)
   }
 

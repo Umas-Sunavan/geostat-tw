@@ -31,7 +31,9 @@ export class DashboardComponent implements OnInit {
   userData?: Auth0User
 
   async ngOnInit(): Promise<void> {
-    const accessToken = await lastValueFrom(this.auth.getAccessTokenSilently())
+    const accessToken = await lastValueFrom(this.auth.getAccessTokenWithPopup())
+    console.log(accessToken);
+    
     this.cookieService.set("accessToken", accessToken)
     this.auth.user$.pipe(
       take(1),

@@ -39,6 +39,7 @@ export class DashboardComponent implements OnInit {
       const accessToken = await lastValueFrom(this.auth.getAccessTokenSilently())
       this.cookieService.set("accessToken", accessToken)
     } catch (error) {
+      this.logout()
       this.router.navigate(['login'])
       console.error(error);
     }

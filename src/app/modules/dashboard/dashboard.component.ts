@@ -1,6 +1,6 @@
 import { Component, ElementRef, Inject, Input, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { concatMap, lastValueFrom, map, pluck, take, tap } from 'rxjs';
+import { concatMap, lastValueFrom, map, of, pluck, take, tap } from 'rxjs';
 import { CategorySetting, CategorySettings, CategorySettingWithId } from 'src/app/shared/models/CategorySettings';
 import { HttpMap } from 'src/app/shared/models/MapHttp';
 import { CategoryService } from '../map/map-viewer/map-canvas/category/category.service';
@@ -12,6 +12,7 @@ import { AuthService } from '@auth0/auth0-angular';
 import { CookieService } from 'ngx-cookie-service';
 import { HttpClient } from '@angular/common/http';
 import { Auth0User } from 'src/app/shared/models/Auth0User';
+import { PinsTableService } from '../map/map-viewer/map-canvas/pin-services/pins-table.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -26,33 +27,41 @@ export class DashboardComponent implements OnInit {
     public auth: AuthService,
     private cookieService: CookieService,
     private httpClient: HttpClient,
+    private router: Router,
+    private pinTableService: PinsTableService
   ) { }
 
   userData?: Auth0User
 
   async ngOnInit(): Promise<void> {
-    const accessToken = await lastValueFrom(this.auth.getAccessTokenWithPopup())
-    console.log(accessToken);
-    
-    this.cookieService.set("accessToken", accessToken)
+    try {
+      const accessToken = await lastValueFrom(this.auth.getAccessTokenSilently())
+      this.cookieService.set("accessToken", accessToken)
+    } catch (error) {
+      console.error("redirect to login page");
+      this.router.navigate(['login'])
+    }
     this.auth.user$.pipe(
       take(1),
       concatMap((user) =>
-        // Use HttpClient to make the call
         this.httpClient.get<Auth0User>(
           encodeURI(`https://dev-a63zgv8t.us.auth0.com/api/v2/users/${user?.sub}`)
         )
       )
     )
     .subscribe( userData => this.userData = userData);
+  }
 
+  logout = () => {
+    console.log(this.document.location.origin);
+    this.cookieService.delete("accessToken")
+    this.auth.logout({ returnTo: `${this.document.location.origin}/login` })
   }
 
   clickSpace = (event: MouseEvent, mapsCompoent: MapsComponent, categoriesCompoent: CategoriesComponent) => {
     mapsCompoent.clickSpace(event)
     categoriesCompoent.clickSpace(event)
     event.stopPropagation();
-    console.log(this.cookieService.get("accessToken"));
   }
 
 }

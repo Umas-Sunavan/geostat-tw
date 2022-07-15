@@ -3,9 +3,9 @@
         <button class="hover:bg-menu-600 rounded-xl my-2 p-2">
             <img src="./assets/icons/logo.svg" class="w-8">
         </button>
-        <button class="hover:bg-menu-600 p-2 my-2 rounded-xl">
+        <button class="hover:bg-menu-600 p-2 my-2 rounded-xl" (click)="logout()">
             <img src="./assets/icons/log-out.svg" class="w-8 p-0.5">
-            <button class="text-white pt-2" (click)="auth.logout({ returnTo: document.location.origin })">
+            <button class="text-white pt-2">
                 登出
             </button>
         </button>

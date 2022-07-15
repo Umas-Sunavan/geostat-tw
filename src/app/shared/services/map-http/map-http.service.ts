@@ -21,7 +21,7 @@ export class MapHttpService {
   getAccessToken = () => this.cookieService.get("accessToken")
 
   createHeader = () => new HttpHeaders({ "authorization": `Bearer ${this.getAccessToken()}`, 'content-type': 'application/x-www-form-urlencoded'})
-  
+
   getFrontEndUrl = () => environment.useProductionApi ? 'https://us-central1-twgeostat.cloudfunctions.net/getDB' : 'http://localhost:8081'
 
   getMaps = (): Observable<HttpMap[]> => {
@@ -71,7 +71,6 @@ export class MapHttpService {
   }
 
   changeDefaultCategory = (mapId: string, categoryId: string) => {
-    const accessToken = this.cookieService.get("accessToken")
     let body = new URLSearchParams();
     body.set("category", categoryId)
     return this.httpClient.post<{message:string}>(`${this.getFrontEndUrl()}/maps/${mapId}/category`, body.toString(), { headers: this.createHeader() })

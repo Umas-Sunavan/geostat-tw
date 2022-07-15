@@ -4,6 +4,7 @@ const targetPath = './src/environments/environment.prod.ts';
 
 const envConfigFile = `export const environment = {
    production: true,
+   useProductionApi: true,
    firebaseConfig: {
       apiKey: "${process.env['API_KEY']}",
       authDomain: "${process.env['AUTH_DOMAIN']}",

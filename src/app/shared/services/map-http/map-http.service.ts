@@ -1,8 +1,12 @@
 import { HttpClient, HttpContext, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from '@auth0/auth0-angular';
+import { Auth0Client } from '@auth0/auth0-spa-js';
 import { CookieService } from 'ngx-cookie-service';
-import { Observable, of } from 'rxjs';
+import { catchError, mergeMap, Observable, of } from 'rxjs';
 import { HttpMap } from 'src/app/shared/models/MapHttp';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -14,15 +18,14 @@ export class MapHttpService {
     private cookieService: CookieService,
   ) { }
 
+  getAccessToken = () => this.cookieService.get("accessToken")
 
-  getMaps = () => {
-    const accessToken = this.cookieService.get("accessToken")
-    console.log(accessToken);
-    
-    const header = new HttpHeaders({ "authorization": `Bearer ${accessToken}`, 'content-type': 'application/x-www-form-urlencoded'})
-    return this.httpClient.get<HttpMap[]>('https://us-central1-twgeostat.cloudfunctions.net/getDB/maps', { headers: header})
-    let headers = new HttpHeaders({ "authorization": `Bearer ${accessToken}`, 'content-type': 'application/x-www-form-urlencoded'})
-    return this.httpClient.get<HttpMap[]>('http://localhost:8081/maps', {headers: headers})
+  createHeader = () => new HttpHeaders({ "authorization": `Bearer ${this.getAccessToken()}`, 'content-type': 'application/x-www-form-urlencoded'})
+  
+  getFrontEndUrl = () => environment.useProductionApi ? 'https://us-central1-twgeostat.cloudfunctions.net/getDB' : 'http://localhost:8081'
+
+  getMaps = (): Observable<HttpMap[]> => {
+    return this.httpClient.get<HttpMap[]>(`${this.getFrontEndUrl()}/maps`, { headers: this.createHeader()})
   }
 
   getMockMaps = ():Observable<HttpMap[]> => {
@@ -37,15 +40,13 @@ export class MapHttpService {
   }
 
   deleteMap = (id: number):Observable<{message:string}> => {
-    let headers = new HttpHeaders().set('content-type', 'application/x-www-form-urlencoded')
-    return this.httpClient.delete<{message:string}>(`https://us-central1-twgeostat.cloudfunctions.net/getDB/maps/${id}`, {headers})
+    return this.httpClient.delete<{message:string}>(`${this.getFrontEndUrl()}/maps/${id}`, { headers: this.createHeader()})
   }
 
   renameMap = (id: number, name: string):Observable<{message:string}> => {
-    let headers = new HttpHeaders().set('content-type', 'application/x-www-form-urlencoded')
     let body = new URLSearchParams();
     body.set('name', name);
-    return this.httpClient.post<{message:string}>(`https://us-central1-twgeostat.cloudfunctions.net/getDB/maps/${id}/rename`, body.toString(), { headers })
+    return this.httpClient.post<{message:string}>(`${this.getFrontEndUrl()}/maps/${id}/rename`, body.toString(), { headers: this.createHeader() })
   }
 
   addMap = (name: string, creator: string, defaultCategoryId: string, mapOptionId: string):Observable<{message:string, id: string, name: string}> => {
@@ -61,19 +62,18 @@ export class MapHttpService {
     //   defaultCategoryId: defaultCategoryId,
     //   mapSettingId: mapOptionId
     // }
-    let headers = new HttpHeaders().set('content-type', 'application/x-www-form-urlencoded')
     // let headers = new HttpHeaders().set('content-type', 'multipart/form-data')
-    return this.httpClient.post<{message:string, id: string, name: string}>(`https://us-central1-twgeostat.cloudfunctions.net/getDB/maps/`, body.toString(), { headers })
+    return this.httpClient.post<{message:string, id: string, name: string}>(`${this.getFrontEndUrl()}/maps/`, body.toString(), { headers: this.createHeader() })
   }
 
   getMap = (id: number) => {
-    return this.httpClient.get<HttpMap>(`https://us-central1-twgeostat.cloudfunctions.net/getDB/maps/${id}`)
+    return this.httpClient.get<HttpMap>(`${this.getFrontEndUrl()}/maps/${id}`, { headers: this.createHeader()})
   }
 
   changeDefaultCategory = (mapId: string, categoryId: string) => {
-    const headers = new HttpHeaders().set('content-type', 'application/x-www-form-urlencoded')
+    const accessToken = this.cookieService.get("accessToken")
     let body = new URLSearchParams();
     body.set("category", categoryId)
-    return this.httpClient.post<{message:string}>(`https://us-central1-twgeostat.cloudfunctions.net/getDB/maps/${mapId}/category`, body.toString(), { headers })
+    return this.httpClient.post<{message:string}>(`${this.getFrontEndUrl()}/maps/${mapId}/category`, body.toString(), { headers: this.createHeader() })
   }
 }

@@ -8,6 +8,8 @@ import { GoogleSheetPinMappingGeoencodingRaw } from 'src/app/shared/models/Googl
 import { GoogleSheetPinMappingLonLat } from 'src/app/shared/models/GoogleSheetPinMappingLonLat';
 import { GoogleSheetRawData, GoogleSheetRow } from 'src/app/shared/models/GoogleSheetRawData';
 import { GeoencodingCache } from 'src/app/shared/models/GeoencodingCache';
+import { CookieService } from 'ngx-cookie-service';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +18,15 @@ export class PinsTableService {
 
   constructor(
     private httpClient: HttpClient,
+    private cookieService: CookieService
   ) { }
+
+  getAccessToken = () => this.cookieService.get("accessToken")
+
+  createHeader = () => new HttpHeaders({ "authorization": `Bearer ${this.getAccessToken()}`, 'content-type': 'application/x-www-form-urlencoded'})
+  
+  getFrontEndUrl = () => environment.useProductionApi ? 'https://us-central1-twgeostat.cloudfunctions.net/getDB' : 'http://localhost:8081'
+
 
   getPinLonLatFromGeoencoding = (pins: GoogleSheetPin[]): Observable<GoogleSheetPinMappingLonLat[]> => {
     return of(pins).pipe(
@@ -49,7 +59,7 @@ export class PinsTableService {
   })
 
   getPinsLonLatCache = (): Observable<GoogleSheetPinMappingLonLat[]> => {
-    return this.httpClient.get<GeoencodingCache[]>(`https://us-central1-twgeostat.cloudfunctions.net/getDB/address`).pipe(
+    return this.httpClient.get<GeoencodingCache[]>(`${this.getFrontEndUrl()}/address`, { headers: this.createHeader()}).pipe(
       this.convertCacheToLonLat,
     )
   }
@@ -205,30 +215,26 @@ export class PinsTableService {
   })
 
   getAddressCache = (id: number) => {
-    return this.httpClient.get(`https://us-central1-twgeostat.cloudfunctions.net/getDB/address/${id}`)
+    return this.httpClient.get(`${this.getFrontEndUrl()}/address/${id}`, { headers: this.createHeader()})
   }
 
   getAddressCaches = () => {
-    return this.httpClient.get('https://us-central1-twgeostat.cloudfunctions.net/getDB/address')
+    return this.httpClient.get(`${this.getFrontEndUrl()}/address`, { headers: this.createHeader()})
   }
 
   addAddressCache = (address: GoogleSheetPinMappingLonLat) => {
-    let headers = new HttpHeaders()
-    headers = headers.set('content-type', 'application/x-www-form-urlencoded')
     const body = new URLSearchParams()
     body.set("lat", address.lonLat.y.toString())
     body.set("lon", address.lonLat.x.toString())
     body.set("title", address.pinData.title)
     body.set("address", address.pinData.address)
-    return this.httpClient.post<{message:string}>('https://us-central1-twgeostat.cloudfunctions.net/getDB/address', body.toString(), { headers })
+    return this.httpClient.post<{message:string}>(`${this.getFrontEndUrl()}/address`, body.toString(), { headers: this.createHeader() })
   }
 
   updatePinSheetId = (mapId: number, sheetId:string) => {
-    let headers = new HttpHeaders()
-    headers = headers.set('content-type', 'application/x-www-form-urlencoded')
     const body = new URLSearchParams()
     body.set("sheetId", sheetId)
-    return this.httpClient.post<{message:string}>(`https://us-central1-twgeostat.cloudfunctions.net/getDB/maps/${mapId}/pinSheet`, body.toString(), { headers })
+    return this.httpClient.post<{message:string}>(`${this.getFrontEndUrl()}/maps/${mapId}/pinSheet`, body.toString(), { headers: this.createHeader()})
   }
 
 }

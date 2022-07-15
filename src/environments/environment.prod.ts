@@ -28,12 +28,12 @@ export const environment = {
         uri: 'https://us-central1-twgeostat.cloudfunctions.net/getDB/*',
         tokenOptions: {
           // The attached token should target this audience
-          audience: 'https://us-central1-twgeostat.cloudfunctions.net/getDB/maps',
+          audience: 'https://us-central1-twgeostat.cloudfunctions.net/getDB/',
   
           // The attached token should have these scopes
           scope: 'read:current_user'
         }
       }
     ],
-    callbackUrl: 'https://umas-sunavan.github.io/geostat-tw/dashboard'
+    callbackUrl: 'https://umas-sunavan.github.io/geostat-tw'
 };

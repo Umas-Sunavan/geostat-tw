@@ -50,7 +50,7 @@ export const environment = {
       }
     }
   ],
-  callbackUrl: 'https://local.auth:4200/dashboard'
+  callbackUrl: 'https://local.auth:4200'
 };
 
 /*

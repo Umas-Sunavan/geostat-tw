@@ -13,6 +13,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { HttpClient } from '@angular/common/http';
 import { Auth0User } from 'src/app/shared/models/Auth0User';
 import { PinsTableService } from '../map/map-viewer/map-canvas/pin-services/pins-table.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-dashboard',
@@ -38,8 +39,8 @@ export class DashboardComponent implements OnInit {
       const accessToken = await lastValueFrom(this.auth.getAccessTokenSilently())
       this.cookieService.set("accessToken", accessToken)
     } catch (error) {
-      console.error("redirect to login page");
       this.router.navigate(['login'])
+      console.error(error);
     }
     this.auth.user$.pipe(
       take(1),
@@ -55,7 +56,7 @@ export class DashboardComponent implements OnInit {
   logout = () => {
     console.log(this.document.location.origin);
     this.cookieService.delete("accessToken")
-    this.auth.logout({ returnTo: `${this.document.location.origin}/login` })
+    this.auth.logout({ returnTo: `${environment.callbackUrl}/login` })
   }
 
   clickSpace = (event: MouseEvent, mapsCompoent: MapsComponent, categoriesCompoent: CategoriesComponent) => {

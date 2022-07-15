@@ -15,10 +15,10 @@ export class LoginComponent implements OnInit {
     ) { }
 
   ngOnInit(): void {
-    console.log(this.callbackUrl);
+    console.log(this.redirectUrl);
   }
 
-  callbackUrl = environment.callbackUrl
+  redirectUrl = `${environment.callbackUrl}/dashboard`
 
   mail: string = ''
   password: string = ''

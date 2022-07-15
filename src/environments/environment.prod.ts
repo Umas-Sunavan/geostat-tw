@@ -1,5 +1,6 @@
 export const environment = {
    production: true,
+   useProductionApi: true,
    firebaseConfig: {
       apiKey: "",
       authDomain: "",
@@ -24,7 +25,7 @@ export const environment = {
       }, 
       {
         // Match any request that starts 'https://dev-a63zgv8t.us.auth0.com/api/v2/' (note the asterisk)
-        uri: 'https://us-central1-twgeostat.cloudfunctions.net/getDB/maps/*',
+        uri: 'https://us-central1-twgeostat.cloudfunctions.net/getDB/*',
         tokenOptions: {
           // The attached token should target this audience
           audience: 'https://us-central1-twgeostat.cloudfunctions.net/getDB/maps',
@@ -34,5 +35,5 @@ export const environment = {
         }
       }
     ],
-    callbackUrl: 'https://umas-sunavan.github.io/geostat-tw'
+    callbackUrl: 'https://umas-sunavan.github.io/geostat-tw/dashboard'
 };

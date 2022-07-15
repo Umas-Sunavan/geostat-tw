@@ -4,6 +4,7 @@
 
 export const environment = {
   production: false,
+  useProductionApi: true,
   firebaseConfig: {
     apiKey: "",
     authDomain: "",
@@ -31,7 +32,7 @@ export const environment = {
       uri: 'http://localhost:8081/*',
       tokenOptions: {
         // The attached token should target this audience
-        audience: 'http://localhost:8081/maps',
+        audience: 'http://localhost:8081',
 
         // The attached token should have these scopes
         scope: 'read:current_user'
@@ -42,14 +43,14 @@ export const environment = {
       uri: 'https://us-central1-twgeostat.cloudfunctions.net/getDB/*',
       tokenOptions: {
         // The attached token should target this audience
-        audience: 'https://us-central1-twgeostat.cloudfunctions.net/getDB/maps',
+        audience: 'https://us-central1-twgeostat.cloudfunctions.net/getDB/',
 
         // The attached token should have these scopes
         scope: 'read:current_user'
       }
     }
   ],
-  callbackUrl: 'http://localhost:4200/dashboard'
+  callbackUrl: 'https://local.auth:4200/dashboard'
 };
 
 /*

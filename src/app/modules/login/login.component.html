@@ -28,7 +28,7 @@
                 text-sm md:text-xl
                 pinsheet-gradient-bg bg-primary rounded-full items-center flex justify-center text-white pointer-events-auto w-full
                 mx-2 mb-3 mt-2 px-4 py-2 md:py-4 md:px-8 "
-                (click)='auth.loginWithRedirect({screen_hint: "signup", ui_locales: "zh-TW"})'
+                (click)='auth.loginWithRedirect({screen_hint: "signup", ui_locales: "zh-TW", redirect_uri: redirectUrl})'
                 >
                     快速註冊
                     <img class="ml-2 pb-1" src="./assets/icons/external-link-white.svg">
@@ -43,7 +43,7 @@
                 text-sm md:text-xl
                 gradient-bg bg-primary rounded-full items-center flex justify-center text-white pointer-events-auto w-full
                 mx-2 mb-3 mt-2 px-4 py-2 md:py-4 md:px-8 "
-                (click)='auth.loginWithRedirect({screen_hint: "login", ui_locales: "zh-TW"})'
+                (click)='auth.loginWithRedirect({screen_hint: "login", ui_locales: "zh-TW", redirect_uri: redirectUrl})'
                 >
                     登入
                     <img class="ml-2 pb-1" src="./assets/icons/external-link-white.svg">

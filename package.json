@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "startHttps": "ng serve --ssh --disable-host-check",
     "build": "npm run config; ng build --base-href=/geostat-tw/",
     "config": "ts-node -O '{\"module\": \"commonjs\"}' ./src/configEnv.index.ts",
     "watch": "ng build --watch --configuration development",

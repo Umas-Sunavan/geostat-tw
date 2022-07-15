@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, Inject, OnInit } from '@angular/core';
 import { AuthService } from '@auth0/auth0-angular';
 import { environment } from 'src/environments/environment';
 
@@ -10,10 +11,11 @@ import { environment } from 'src/environments/environment';
 export class LoginComponent implements OnInit {
 
   constructor(
-    public auth: AuthService) { }
+    public auth: AuthService
+    ) { }
 
   ngOnInit(): void {
-    console.log(window.origin);
+    console.log(this.callbackUrl);
   }
 
   callbackUrl = environment.callbackUrl

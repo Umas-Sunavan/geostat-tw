@@ -1,53 +1,99 @@
-<div class="bg-primary-500 p-16 h-full w-full">
-    <header class="w-full flex text-white items-center">
-        <div class="flex p-5">
-            <img src="./assets/icons/logo.svg" class="mr-1">
-            <h1 class="text-4xl">Geostat.tw</h1>
-        </div>
-        <div class="flex pt-6 pb-5 px-5">
-            <h1 class="text-2xl text-bold">About</h1>
-        </div>
-        <div class="flex ml-auto">
-            <h1 class="text-2xl text-bold text-primary-400">2022 Designed by Umas</h1>
-        </div>
-    </header>
-    <div class="bg-primary-500 flex">
-        <div class="w-full p-5 flex items-center">
-            <img src="./assets/illustrations/illustration-taiwan-decoration.svg" class="mr-1">
-        </div>
-        <div class="w-full">
-            <div class="m-16 bg-white h-full rounded-4xl flex flex-col items-center p-12">
-                <div class="text-sm text-primary-500 font-light">現在加入</div>
-                <div class="flex text-primary-500 font-bold items-center" >
-                    <img src="./assets/illustrations/illustration-logo.svg" class="w-12 p-1">
-                    <h1 class="text-2xl">Geostat.tw</h1>
+<div class="bg-primary-500 h-full w-full" style="padding: 3rem 7rem 3rem 7rem; height: 100vh;">
+    <div class="flex flex-col h-full content-center m-auto" style="max-width: 100rem;">
+        <header class="w-full flex text-white items-center">
+            <div class="flex p-5">
+                <img src="./assets/icons/logo.svg" class="mr-1">
+                <h1 class="text-4xl">Geostat.tw</h1>
+            </div>
+            <div class="flex pt-6 pb-5 px-5">
+                <h1 class="text-2xl text-bold">About</h1>
+            </div>
+            <div class="flex ml-auto">
+                <h1 class="text-2xl text-bold text-primary-400">2022 Designed by Umas</h1>
+            </div>
+        </header>
+        <div class="bg-primary-500 flex grow">
+            <div class="w-2/3 flex items-center relative">
+                <div class="flex h-full w-full">
+                    <div class="mr-1 absolute w-full" style="transform: scale(0.8); top: calc(50% - 300px); left: calc(50% - 350px); width: 40rem;">
+                        <img src="./assets/illustrations/illustration-taiwan-decoration.svg">
+                    </div>
+                    <div class="mr-1 absolute w-full" style="transform: scale(0.8); top: calc(50% - 230px); left: calc(50% - 220px)">
+                        <img src="./assets/illustrations/illustration-taiwan.svg">
+                    </div>
+                    <div class="mr-1 absolute w-full" style="transform: scale(0.8); top: calc(50% - 230px); left: calc(50% - -60px)">
+                        <img src="./assets/illustrations/illustration-list.svg">
+                    </div>
+                    <div class="mr-1 absolute w-full" style="transform: scale(0.8); top: calc(50% - 170px); left: calc(50% - 290px)">
+                        <img src="./assets/illustrations/illustration-buttons.svg">
+                    </div>
                 </div>
-                <div class="vertical-line my-4 bg-pins-500"></div>
-                <button
-                class="
-                text-sm md:text-xl
-                pinsheet-gradient-bg bg-primary rounded-full items-center flex justify-center text-white pointer-events-auto w-full
-                mx-2 mb-3 mt-2 px-4 py-2 md:py-4 md:px-8 "
-                (click)='auth.loginWithRedirect({screen_hint: "signup", ui_locales: "zh-TW", redirect_uri: redirectUrl})'
-                >
-                    快速註冊
-                    <img class="ml-2 pb-1" src="./assets/icons/external-link-white.svg">
-                </button>
-                <div class="flex flex-row items-center">
-                    <hr class="w-12 bg-primary-500 border-primary-500"/>
-                        <p class="px-6 py-4 text-sm text-primary-500 font-light">或直接登入</p>
-                    <hr class="w-12 border-primary-500"/>
+            </div>
+            <div class="w-1/3 relative z-10 mb-10">
+                <div class="bg-white h-full rounded-4xl flex flex-col items-center p-12">
+                    <div class="pointer-events-none">
+                        <div class="absolute w-full" style="transform: scale(0.8); top: calc(40% - -14%); left: calc(40% - 50%)">
+                            <img src="./assets/illustrations/illustration-leave-a.svg">
+                        </div>
+    
+                        <div class="absolute w-full" style="transform: scale(0.8); top: calc(99.6% - 136px); left: calc(40% - 50.1%); border-radius: 40px; overflow: clip;">
+                            <img src="./assets/illustrations/illustration-leave-b.svg">
+                        </div>
+    
+                        <div class="absolute w-full" style="transform: scale(0.8); top: calc(40% - 5%); left: calc(90% - 50px)">
+                            <img src="./assets/illustrations/illustration-leave-c.svg">
+                        </div>
+    
+                        <div class="absolute w-full" style="transform: scale(0.8); top: calc(99.6% - 136px); left: calc(40% - -11%)">
+                            <img src="./assets/illustrations/illustration-sitting.svg">
+                        </div>
+                    </div>
+                    <div class="text-sm text-primary-500 font-light">現在加入</div>
+                    <div class="flex text-primary-500 font-bold items-center" >
+                        <img src="./assets/illustrations/illustration-logo.svg" class="w-12 p-1">
+                        <h1 class="text-2xl">Geostat.tw</h1>
+                    </div>
+                    <div class="vertical-line my-4 bg-pins-500"></div>
+                    <button
+                    class="
+                    text-sm md:text-xl
+                    pinsheet-gradient-bg bg-primary rounded-full items-center flex justify-center text-white pointer-events-auto w-full
+                    mx-2 mb-3 mt-2 px-4 py-2 md:py-4 md:px-8 "
+                    (click)='auth.loginWithRedirect({screen_hint: "signup", ui_locales: "zh-TW", redirect_uri: redirectUrl})'
+                    >
+                        快速註冊
+                        <img class="ml-2 pb-1" src="./assets/icons/external-link-white.svg">
+                    </button>
+                    <div class="flex flex-row items-center">
+                        <p class="px-6 py-6 text-sm text-primary-500 font-light">或者</p>
+                    </div>
+                    <button
+                    class="
+                    text-sm md:text-xl
+                    gradient-bg bg-primary rounded-full items-center flex justify-center text-white pointer-events-auto w-full
+                    mx-2 mb-3 mt-2 px-4 py-2 md:py-4 md:px-8 "
+                    (click)='auth.loginWithRedirect({screen_hint: "login", ui_locales: "zh-TW", redirect_uri: redirectUrl})'
+                    >
+                        登入
+                        <img class="ml-2 pb-1" src="./assets/icons/external-link-white.svg">
+                    </button>
+                    <div class="text-primary-500 flex mt-auto flex-row items-center">
+                        <ul class="">
+                            <li class="flex">
+                                <img class="ml-2 pb-1" src="./assets/icons/external-link-white.svg">
+                                免費註冊
+                            </li>
+                            <li class="flex">
+                                <img class="ml-2 pb-1" src="./assets/icons/external-link-white.svg">
+                                免費註冊
+                            </li>
+                            <li class="flex">
+                                <img class="ml-2 pb-1" src="./assets/icons/external-link-white.svg">
+                                免費註冊
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                <button
-                class="
-                text-sm md:text-xl
-                gradient-bg bg-primary rounded-full items-center flex justify-center text-white pointer-events-auto w-full
-                mx-2 mb-3 mt-2 px-4 py-2 md:py-4 md:px-8 "
-                (click)='auth.loginWithRedirect({screen_hint: "login", ui_locales: "zh-TW", redirect_uri: redirectUrl})'
-                >
-                    登入
-                    <img class="ml-2 pb-1" src="./assets/icons/external-link-white.svg">
-                </button>
             </div>
         </div>
     </div>

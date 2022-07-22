@@ -85,8 +85,8 @@ export class AddPinSheetComponent implements OnInit {
   gisInited = false;
   tokenClient?: any;
   DISCOVERY_DOC = ['https://sheets.googleapis.com/$discovery/rest?version=v4', 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
-  API_KEY = '';
-  CLIENT_ID = '';
+  API_KEY = 'AIzaSyA5kxlACC7j0H9xEw9mYYF3fiQLmADayOk';
+  CLIENT_ID = '349482155640-denm4e3bg0eseughru3krlrlocgjdghj.apps.googleusercontent.com';
   // Authorization scopes required by the API; multiple scopes can be
   // included, separated by spaces.
   SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
